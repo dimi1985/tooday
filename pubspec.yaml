@@ -38,8 +38,8 @@ dependencies:
   provider: ^6.0.5
   iconly: ^1.0.1
   shared_preferences: ^2.1.0
-  flutter_local_notifications: ^13.0.0
-  flutter_background: ^1.2.0
+
+
 
 
   # The following adds the Cupertino Icons font to your application.

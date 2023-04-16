@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
 import 'package:tooday/main.dart';
+import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
@@ -55,8 +56,6 @@ class _SettingsPageState extends State<SettingsPage> {
         });
 
         TodoApp.setLocale(context, locale);
-      
-
       }
     });
   }
@@ -64,7 +63,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-     final StayProvider = Provider.of<StayOnPageProvider>(context);
+    final StayProvider = Provider.of<StayOnPageProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,138 +75,147 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  AppLocalizations.of(context).translate('Theme'),
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                title: Row(children: [
-                  const Icon(Icons.dark_mode),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Text(AppLocalizations.of(context).translate('Dark Theme'))
-                ]),
-                trailing: Switch(
-                  value: themeProvider.isDarkThemeEnabled,
-                  onChanged: (value) {
-                    themeProvider.isDarkThemeEnabled = value;
-                  },
-                ),
-              ),
-            ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  AppLocalizations.of(context).translate('Language'),
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                title: Row(children: [
-                  const Icon(IconlyBold.discovery),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    AppLocalizations.of(context)
-                        .translate('Language Selection'),
-                  ),
-                  const Spacer(),
-                  DropdownButton<Language>(
-                    value: _selectedLanguage,
-                    onChanged: _onLanguageSelected,
-                    items: supportedLanguages.map((language) {
-                      return DropdownMenuItem<Language>(
-                        value: language,
-                        child: Text(language.name),
-                      );
-                    }).toList(),
-                  ),
-                ]),
-              ),
-            ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  AppLocalizations.of(context).translate('General'),
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                  title: Row(
-                children: [
-                  const Icon(IconlyBold.notification),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    AppLocalizations.of(context).translate('About'),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    AppLocalizations.of(context).translate('Theme'),
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                ],
-              )),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                title: Row(
-                  children: [
-                    
-                    Expanded(
-                      child: Text(AppLocalizations.of(context).translate('Stay on add todo screen when adding ?',
-                      ),maxLines: 2,),
-                    ),
-                    Switch(
-                  value: StayProvider.isStayOnPAgeEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                    StayProvider.isStayOnEnabled = value;
-                    saveValue(value);
-                      
-                    });
-                  },
-                )
-                  ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: Row(children: [
+                    const Icon(Icons.dark_mode),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Text(AppLocalizations.of(context).translate('Dark Theme'))
+                  ]),
+                  trailing: Switch(
+                    value: themeProvider.isDarkThemeEnabled,
+                    onChanged: (value) {
+                      themeProvider.isDarkThemeEnabled = value;
+                    },
+                  ),
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    AppLocalizations.of(context).translate('Language'),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: Row(children: [
+                    const Icon(IconlyBold.discovery),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Text(
+                      AppLocalizations.of(context)
+                          .translate('Language Selection'),
+                    ),
+                    const Spacer(),
+                    DropdownButton<Language>(
+                      value: _selectedLanguage,
+                      onChanged: _onLanguageSelected,
+                      items: supportedLanguages.map((language) {
+                        return DropdownMenuItem<Language>(
+                          value: language,
+                          child: Text(language.name),
+                        );
+                      }).toList(),
+                    ),
+                  ]),
+                ),
+              ),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    AppLocalizations.of(context).translate('General'),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      const Icon(IconlyBold.notification),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        AppLocalizations.of(context).translate('About'),
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AboutPage()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context).translate(
+                            'Stay on add todo screen when adding ?',
+                          ),
+                          maxLines: 2,
+                        ),
+                      ),
+                      Switch(
+                        value: StayProvider.isStayOnPAgeEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            StayProvider.isStayOnEnabled = value;
+                            saveValue(value);
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
-  void saveValue(bool value) async{
-     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  void saveValue(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('stayOnAddTodoScreen', value);
   }
-
-
 }

@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,9 +6,6 @@ import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +41,6 @@ class TodoApp extends StatefulWidget {
 
 class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   late Locale _locale;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -98,5 +90,3 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
     );
   }
 }
-
-

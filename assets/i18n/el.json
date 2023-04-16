@@ -19,8 +19,17 @@
     "Cancel": "Ακύρωση",
     "Delete": "Διαγραφή",
     "Stay on add todo screen when adding ?": "Μείνετε στην οθόνη προσθήκης εργασιών κατά την προσθήκη ;",
-    "Done": "Ολοκλήρωση"
-
+    "Done": "Ολοκλήρωση",
+    "This app was created by Dimitrios Dimitropoulos.": "Αυτή η εφαρμογή δημιουργήθηκε από τον Δημήτρη Δημητρόπουλο.",
+    "Version app : 1.0 (2023)": "Έκδοση εφαρμογής : 1.0 (2023)",
+    "I hereby give credits to the Developers that made possible for the app to wokr by there flutter packages:": "Με το παρόν δίνω πιστώσεις στους Προγραμματιστές που κατέστησαν δυνατή τη λειτουργία της εφαρμογής μέσω των πακέτων flutter :",
+    "by": "από",
+    "Privacy Policy": "Πολιτική Απορρήτου",
+    "Click here to view our privacy policy": "Κάντε κλικ εδώ για να δείτε την πολιτική απορρήτου μας",
+    "We take your privacy seriously and do not collect any personal information from you. However, we may collect usage data such as app crashes and usage statistics to improve our app.": "Λαμβάνουμε σοβαρά υπόψη το απόρρητό σας και δεν συλλέγουμε προσωπικά δεδομένα από εσάς. Ωστόσο, ενδέχεται να συλλέξουμε δεδομένα χρήσης, όπως σφάλματα εφαρμογών και στατιστικά στοιχεία χρήσης για να βελτιώσουμε την εφαρμογή μας.",
+    "Any data we collect is anonymized and will not be shared with any third-party without your consent.": "Οποιαδήποτε δεδομένα συλλέγουμε είναι ανώνυμα και δεν θα κοινοποιηθούν σε τρίτους χωρίς τη συγκατάθεσή σας.",
+    "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.": "Εάν έχετε οποιεσδήποτε ερωτήσεις ή ανησυχίες σχετικά με την πολιτική απορρήτου μας, επικοινωνήστε μαζί μας στο dimidev1985@gmail.com.",
+    "Accessibility": "Προσιτότητα"
 
 
   }

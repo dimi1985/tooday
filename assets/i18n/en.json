@@ -19,7 +19,19 @@
     "Cancel": "Cancel",
     "Delete": "Delete",
     "Stay on add todo screen when adding ?": "Stay on add todo screen when adding ?",
-    "Done": "Done"
+    "Done": "Done",
+    "This app was created by Dimitrios Dimitropoulos.": "This app was created by Dimitrios Dimitropoulos.",
+    "Version app : 1.0 (2023)": "Version app : 1.0 (2023)",
+    "I hereby give credits to the Developers that made possible for the app to wokr by there flutter packages:": "I hereby give credits to the Developers that made possible for the app to wokr by there flutter packages:",
+    "by": "by",
+    "Privacy Policy": "Privacy Policy",
+    "Click here to view our privacy policy": "Click here to view our privacy policy",
+    "We take your privacy seriously and do not collect any personal information from you. However, we may collect usage data such as app crashes and usage statistics to improve our app.": "We take your privacy seriously and do not collect any personal information from you. However, we may collect usage data such as app crashes and usage statistics to improve our app.",
+    "Any data we collect is anonymized and will not be shared with any third-party without your consent.": "Any data we collect is anonymized and will not be shared with any third-party without your consent.",
+    "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.": "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.",
+    "Accessibility": "Accessibility"
     
+    
+
   }
   
