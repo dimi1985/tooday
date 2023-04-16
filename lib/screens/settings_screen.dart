@@ -1,0 +1,213 @@
+import 'package:flutter/material.dart';
+import 'package:iconly/iconly.dart';
+import 'package:provider/provider.dart';
+import 'package:tooday/main.dart';
+import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/language.dart';
+import 'package:tooday/widgets/stay_on_page_provider.dart';
+import 'package:tooday/widgets/theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  Language? _selectedLanguage;
+
+  final List<Language> supportedLanguages = [
+    Language('English', const Locale('en', 'US')),
+    Language('Greek', const Locale('el', 'GR')),
+  ];
+
+  void _onLanguageSelected(Language? language) async {
+    if (language == null) return;
+
+    setState(() {
+      _selectedLanguage = language;
+    });
+
+    TodoApp.setLocale(context, language.locale);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('languageCode', language.locale.languageCode);
+    prefs.setString('countryCode', language.locale.countryCode ?? '');
+  }
+
+  bool stayOnAddTodoScreen = false;
+  @override
+  void initState() {
+    super.initState();
+
+    SharedPreferences.getInstance().then((prefs) {
+      final languageCode = prefs.getString('languageCode');
+      final countryCode = prefs.getString('countryCode');
+      if (languageCode != null && countryCode != null) {
+        final locale = Locale(languageCode, countryCode);
+        setState(() {
+          _selectedLanguage = supportedLanguages.firstWhere(
+            (language) => language.locale == locale,
+            orElse: () => supportedLanguages[0],
+          );
+        });
+
+        TodoApp.setLocale(context, locale);
+      
+
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+     final StayProvider = Provider.of<StayOnPageProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: themeProvider.isDarkThemeEnabled
+            ? const Color.fromARGB(255, 37, 37, 37)
+            : Colors.blueGrey[800], // Change app bar color here
+
+        title: Text(AppLocalizations.of(context).translate('Settings')),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  AppLocalizations.of(context).translate('Theme'),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                title: Row(children: [
+                  const Icon(Icons.dark_mode),
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Text(AppLocalizations.of(context).translate('Dark Theme'))
+                ]),
+                trailing: Switch(
+                  value: themeProvider.isDarkThemeEnabled,
+                  onChanged: (value) {
+                    themeProvider.isDarkThemeEnabled = value;
+                  },
+                ),
+              ),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  AppLocalizations.of(context).translate('Language'),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                title: Row(children: [
+                  const Icon(IconlyBold.discovery),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    AppLocalizations.of(context)
+                        .translate('Language Selection'),
+                  ),
+                  const Spacer(),
+                  DropdownButton<Language>(
+                    value: _selectedLanguage,
+                    onChanged: _onLanguageSelected,
+                    items: supportedLanguages.map((language) {
+                      return DropdownMenuItem<Language>(
+                        value: language,
+                        child: Text(language.name),
+                      );
+                    }).toList(),
+                  ),
+                ]),
+              ),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  AppLocalizations.of(context).translate('General'),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                  title: Row(
+                children: [
+                  const Icon(IconlyBold.notification),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    AppLocalizations.of(context).translate('About'),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              )),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                title: Row(
+                  children: [
+                    
+                    Expanded(
+                      child: Text(AppLocalizations.of(context).translate('Stay on add todo screen when adding ?',
+                      ),maxLines: 2,),
+                    ),
+                    Switch(
+                  value: StayProvider.isStayOnPAgeEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                    StayProvider.isStayOnEnabled = value;
+                    saveValue(value);
+                      
+                    });
+                  },
+                )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  void saveValue(bool value) async{
+     SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('stayOnAddTodoScreen', value);
+  }
+
+
+}
