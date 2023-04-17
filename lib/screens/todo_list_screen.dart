@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tooday/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/add_edit_todo_screen.dart';
 import 'package:tooday/screens/settings_screen.dart';
@@ -18,19 +18,18 @@ class TodoListScreen extends StatefulWidget {
   @override
   _TodoListScreenState createState() => _TodoListScreenState();
 
-  static Future<List<Todo>> getList() async{
+  static Future<List<Todo>> getList() async {
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
     return todos;
-    }
-
+  }
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
   late List<Todo> _todos = [];
   int checkedTodosCounT = 0;
   DatabaseHelper dbHelper = DatabaseHelper();
-
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -38,20 +37,35 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   Future<void> _fetchTodos() async {
+    setState(() {
+      isLoading = true;
+    });
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
-    
+
     setState(() {
       _todos = todos;
       checkedTodosCounT = getCheckedTodosCount(_todos);
+      isLoading = false;
     });
+    loadOrder();
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
+      backgroundColor: themeProvider.isDarkThemeEnabled
+          ? Color.fromARGB(255, 39, 39, 39)
+          : Colors.white,
       appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
+        ),
+        backgroundColor: themeProvider.isDarkThemeEnabled
+            ? const Color.fromARGB(255, 39, 39, 39)
+            : Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: PopupMenuButton(
@@ -101,70 +115,93 @@ class _TodoListScreenState extends State<TodoListScreen> {
             onPressed: () {},
           ),
         ],
-        title: Text(AppLocalizations.of(context).translate('title')),
-
-        backgroundColor: themeProvider.isDarkThemeEnabled
-            ? const Color.fromARGB(255, 37, 37, 37)
-            : Colors.blueGrey[800], // Change app bar color here
-      ),
-      body: _todos.isEmpty
-          ? Container(
+        title: Text(
+          AppLocalizations.of(context).translate('title'),
+          style: TextStyle(
               color: themeProvider.isDarkThemeEnabled
-                  ? const Color.fromARGB(255, 37, 37, 37)
-                  : const Color.fromARGB(
-                      255, 104, 104, 104), // Change background color here
-              child: Center(
-                  child: Text(
-                      AppLocalizations.of(context).translate('Nothing Here'))),
-            )
-          : ReorderableListView(
-              onReorder: (int oldIndex, int newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = _todos.removeAt(oldIndex);
-                  _todos.insert(newIndex, item);
-                });
-              },
-              children: List.generate(
-                _todos.length,
-                (index) {
-                  final todo = _todos[index];
-
-                  return ListTile(
-                    key: ValueKey(todo.id),
-                    title: Text(todo.title,
-                        style: todo.isDone
-                            ? TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                color: themeProvider.isDarkThemeEnabled
-                                    ? const Color.fromARGB(255, 160, 160, 160)
-                                    : const Color.fromARGB(255, 182, 182, 182),
-                              )
-                            : null),
-                    trailing: CustomCheckbox(
-                      isChecked: todo.isDone,
-                      onChanged: (value) {
-                        setState(() {
-                          todo.isDone = value!;
-
-                          dbHelper.update(todo);
-                          checkedTodosCounT = getCheckedTodosCount(_todos);
-                        });
-                      },
-                    ),
-                    tileColor: todo.isDone
-                        ? themeProvider.isDarkThemeEnabled
-                            ? const Color.fromARGB(255, 110, 110, 110)
-                            : Colors.grey[300]
-                        : null, // gray out done todos
-
-                    onTap: () => _navigateToEditScreen(context, todo),
-                  );
-                },
+                  ? Colors.white
+                  : Colors.black),
+        ),
+      ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  themeProvider.isDarkThemeEnabled
+                      ? Color.fromARGB(255, 131, 175, 197)
+                      : Colors.blueGrey,
+                ),
+                strokeWidth: 5.0, // Replace with your desired value
               ),
-            ),
+            )
+          : _todos.isEmpty
+              ? Container(
+                  color: themeProvider.isDarkThemeEnabled
+                      ? Color.fromARGB(255, 39, 39, 39)
+                      : Colors.white, // Change background color here
+                  child: Center(
+                      child: Text(AppLocalizations.of(context)
+                          .translate('List is appears Empty'))),
+                )
+              // _refreshIndicatorKey
+              : ReorderableListView(
+                  onReorder: (int oldIndex, int newIndex) {
+                    reOrderTodoList(newIndex, oldIndex);
+                  },
+                  children: List.generate(
+                    _todos.length,
+                    (index) {
+                      final todo = _todos[index];
+
+                      return Padding(
+                        key: ValueKey(todo.id),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15),
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color:
+                                      todo.isDone ? Colors.green : Colors.grey,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: ListTile(
+                                title: Text(todo.title,
+                                    style: todo.isDone
+                                        ? const TextStyle(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: Colors.grey)
+                                        : null),
+                                trailing: CustomCheckbox(
+                                  isChecked: todo.isDone,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      todo.isDone = value!;
+
+                                      dbHelper.update(todo);
+                                      checkedTodosCounT =
+                                          getCheckedTodosCount(_todos);
+                                    });
+                                  },
+                                ),
+                                onTap: () => _navigateToEditScreen(
+                                    context, todo, _todos, index),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
       floatingActionButton: Theme(
         data: ThemeData(
           colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -193,8 +230,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            AddEditTodoScreen(todo: newTodo, fetchFunction: _fetchTodos),
+        builder: (context) => AddEditTodoScreen(
+          todo: newTodo,
+          fetchFunction: _fetchTodos,
+        ),
       ),
     ).then((value) {
       if (value == true) {
@@ -203,12 +242,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
     });
   }
 
-  void _navigateToEditScreen(BuildContext context, Todo todo) {
+  void _navigateToEditScreen(
+      BuildContext context, Todo todo, List<Todo> todos, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            AddEditTodoScreen(todo: todo, fetchFunction: _fetchTodos),
+        builder: (context) => AddEditTodoScreen(
+          todo: todo,
+          fetchFunction: _fetchTodos,
+        ),
       ),
     ).then((value) {
       if (value == true) {
@@ -221,7 +263,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const SettingsPage(),
+        builder: (context) => SettingsPage(),
       ),
     ).then((value) {
       if (value == true) {
@@ -232,5 +274,33 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   int getCheckedTodosCount(List<Todo> todos) {
     return todos.where((todo) => todo.isDone).length;
+  }
+
+  void saveOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final order = _todos.map((todo) => todo.id.toString()).toList();
+    await prefs.setStringList('todo_order', order);
+  }
+
+  void loadOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final order = prefs.getStringList('todo_order');
+    if (order != null) {
+      setState(() {
+        _todos.sort((a, b) =>
+            order.indexOf(a.id.toString()) - order.indexOf(b.id.toString()));
+      });
+    }
+  }
+
+  void reOrderTodoList(int newIndex, int oldIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final item = _todos.removeAt(oldIndex);
+      _todos.insert(newIndex, item);
+      saveOrder();
+    });
   }
 }

@@ -13,9 +13,11 @@ class AddEditTodoScreen extends StatefulWidget {
   final Todo todo;
   final Future<void> Function() fetchFunction;
 
-  const AddEditTodoScreen(
-      {Key? key, required this.todo, required this.fetchFunction})
-      : super(key: key);
+  const AddEditTodoScreen({
+    Key? key,
+    required this.todo,
+    required this.fetchFunction,
+  }) : super(key: key);
 
   @override
   _AddEditTodoScreenState createState() => _AddEditTodoScreenState();
@@ -24,7 +26,6 @@ class AddEditTodoScreen extends StatefulWidget {
 class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isStayOnScreen = false;
-
   late bool _isDone;
   TextEditingController titleController = TextEditingController();
   @override
@@ -107,7 +108,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           ),
                         ],
                       ),
-              )
+              ),
             ],
           ),
         ),

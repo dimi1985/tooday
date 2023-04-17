@@ -80,14 +80,12 @@ class DatabaseHelper {
   }
 
   Future<void> deleteDoneTodos() async {
-  final db = await database;
-  await db.delete('todos', where: 'isDone = ?', whereArgs: [1]);
-}
+    final db = await database;
+    await db.delete('todos', where: 'isDone = ?', whereArgs: [1]);
+  }
 
-
-Future<void> deleteAll() async {
-  final db = await database;
-  await db.delete(table);
-}
-
+  Future<void> deleteAll() async {
+    final db = await database;
+    await db.delete(table);
+  }
 }

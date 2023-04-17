@@ -63,15 +63,28 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final StayProvider = Provider.of<StayOnPageProvider>(context);
+    final stayProvider = Provider.of<StayOnPageProvider>(context);
 
     return Scaffold(
+      backgroundColor: themeProvider.isDarkThemeEnabled
+          ? Color.fromARGB(255, 37, 37, 37)
+          : Theme.of(context).colorScheme.onPrimary,
       appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
+        ),
+        elevation: 0,
         backgroundColor: themeProvider.isDarkThemeEnabled
             ? const Color.fromARGB(255, 37, 37, 37)
-            : Colors.blueGrey[800], // Change app bar color here
+            : Colors.white, // Change app bar color here
 
-        title: Text(AppLocalizations.of(context).translate('Settings')),
+        title: Text(
+          AppLocalizations.of(context).translate('Settings'),
+          style: TextStyle(
+              color: themeProvider.isDarkThemeEnabled
+                  ? Colors.white
+                  : Colors.black),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -195,10 +208,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       Switch(
-                        value: StayProvider.isStayOnPAgeEnabled,
+                        value: stayProvider.isStayOnPAgeEnabled,
                         onChanged: (value) {
                           setState(() {
-                            StayProvider.isStayOnEnabled = value;
+                            stayProvider.isStayOnEnabled = value;
                             saveValue(value);
                           });
                         },

@@ -9,7 +9,7 @@
     "Language": "Language",
     "General": "General",
     "About": "About",
-    "Nothing Here": "Nothing Here",
+    "List is appears Empty": "List is appears Empty",
     "Language Selection": "Language Selection",
     "Clear Selected": "Clear Selected",
     "Add Todo": "Add Todo",
@@ -29,7 +29,8 @@
     "We take your privacy seriously and do not collect any personal information from you. However, we may collect usage data such as app crashes and usage statistics to improve our app.": "We take your privacy seriously and do not collect any personal information from you. However, we may collect usage data such as app crashes and usage statistics to improve our app.",
     "Any data we collect is anonymized and will not be shared with any third-party without your consent.": "Any data we collect is anonymized and will not be shared with any third-party without your consent.",
     "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.": "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.",
-    "Accessibility": "Accessibility"
+    "Accessibility": "Accessibility",
+    "Pin": "Pin"
     
     
 
