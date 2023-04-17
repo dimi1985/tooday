@@ -2,12 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/main.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
+
+import '../widgets/theme_provider.dart';
 
 class AddEditTodoScreen extends StatefulWidget {
   final Todo todo;
@@ -28,6 +31,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   bool isStayOnScreen = false;
   late bool _isDone;
   TextEditingController titleController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -44,14 +48,25 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
+      backgroundColor: themeProvider.isDarkThemeEnabled
+          ? Color.fromARGB(255, 37, 37, 37)
+          : Theme.of(context).colorScheme.onPrimary,
       appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
+        ),
+        elevation: 0,
+        backgroundColor: themeProvider.isDarkThemeEnabled
+            ? const Color.fromARGB(255, 37, 37, 37)
+            : Colors.white, // Change app bar color here
         title: Text(
           widget.todo.id == null
               ? AppLocalizations.of(context).translate('Add Todo')
               : AppLocalizations.of(context).translate('Edit Todo'),
         ),
-        backgroundColor: Colors.blueGrey[800],
+
         actions: [
           widget.todo.id == null
               ? Container()
@@ -74,8 +89,17 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                 decoration: InputDecoration(
                   labelText:
                       AppLocalizations.of(context).translate('text_edit_title'),
+                  labelStyle: TextStyle(color: Colors.blueGrey),
                   border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blueGrey),
+                  ),
                 ),
+                cursorColor: Colors.blueGrey, // Set cursor color
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)
