@@ -257,6 +257,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     if (isStayOnScreen) {
       widget.fetchFunction();
       titleController.clear();
+      descriptionController.clear();
       return;
     } else {
       widget.fetchFunction();
