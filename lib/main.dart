@@ -48,7 +48,6 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
-    saveInitialCheckFilters();
   }
 
   @override
@@ -91,11 +90,5 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
         },
       ),
     );
-  }
-
-  void saveInitialCheckFilters() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('filterToCkecked', true);
-    await prefs.setBool('filterToUnCkecked', false);
   }
 }

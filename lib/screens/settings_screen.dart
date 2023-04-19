@@ -65,7 +65,6 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final stayProvider = Provider.of<StayOnPageProvider>(context);
-    final fliterProvider = Provider.of<FilterItemsProvider>(context);
 
     return Scaffold(
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -241,152 +240,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListTile(
                   title: Row(
                     children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text(
-                            AppLocalizations.of(context).translate(
-                              'Select to filter between Checked or Unckecked Items',
-                            ),
-                            maxLines: 3,
-                          ),
-                          subtitle: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      fliterProvider.filterCheckedItemsEnabled =
-                                          true;
-                                      fliterProvider
-                                          .filterUnCheckedItemsEnabled = false;
-                                    });
-
-                                    saveFilterCkeckedValue(fliterProvider
-                                        .filterCheckedItemsEnabled);
-                                    saveFilterUnCkeckedValue(fliterProvider
-                                        .filterUnCheckedItemsEnabled);
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: Duration(seconds: 1),
-                                    curve: Curves.bounceIn,
-                                    width: 75,
-                                    height: 75,
-                                    margin: const EdgeInsets.all(10.0),
-                                    padding: const EdgeInsets.all(10.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: fliterProvider
-                                                  .filterCheckedItemsEnabled
-                                              ? Colors.blueAccent
-                                              : Colors.transparent),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(10)),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.check_box_outlined,
-                                          color: fliterProvider
-                                                  .filterCheckedItemsEnabled
-                                              ? Colors.blueAccent
-                                              : Colors.grey,
-                                        ),
-                                        FittedBox(
-                                          child: Text(
-                                            AppLocalizations.of(context)
-                                                .translate(
-                                              'Checked Items',
-                                            ),
-                                            style: TextStyle(
-                                                color: fliterProvider
-                                                        .filterCheckedItemsEnabled
-                                                    ? Colors.blueAccent
-                                                    : Colors.grey),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      fliterProvider
-                                          .filterUnCheckedItemsEnabled = true;
-                                      fliterProvider.filterCheckedItemsEnabled =
-                                          false;
-                                    });
-                                    saveFilterCkeckedValue(fliterProvider
-                                        .filterCheckedItemsEnabled);
-                                    saveFilterUnCkeckedValue(fliterProvider
-                                        .filterUnCheckedItemsEnabled);
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: Duration(seconds: 1),
-                                    curve: Curves.bounceIn,
-                                    width: 75,
-                                    height: 75,
-                                    margin: const EdgeInsets.all(5.0),
-                                    padding: const EdgeInsets.all(3.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: fliterProvider
-                                                  .filterUnCheckedItemsEnabled
-                                              ? Colors.blueAccent
-                                              : Colors.transparent),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(10)),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons
-                                              .check_box_outline_blank_outlined,
-                                          color: fliterProvider
-                                                  .filterUnCheckedItemsEnabled
-                                              ? Colors.blueAccent
-                                              : Colors.grey,
-                                        ),
-                                        FittedBox(
-                                          child: Text(
-                                            AppLocalizations.of(context)
-                                                .translate('Unchecked Items'),
-                                            style: TextStyle(
-                                                color: fliterProvider
-                                                        .filterUnCheckedItemsEnabled
-                                                    ? Colors.blueAccent
-                                                    : Colors.grey),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(
-                    children: [
                       const Icon(IconlyBold.notification),
                       const SizedBox(
                         width: 10,
@@ -421,10 +274,5 @@ class _SettingsPageState extends State<SettingsPage> {
   void saveFilterCkeckedValue(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('filterToCkecked', value);
-  }
-
-  void saveFilterUnCkeckedValue(bool value) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('filterToUnCkecked', value);
   }
 }
