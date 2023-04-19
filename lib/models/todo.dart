@@ -2,11 +2,13 @@ class Todo {
   final int? id;
   final String title;
   bool isDone;
+  final String description;
 
   Todo({
     this.id,
     required this.title,
     required this.isDone,
+    required this.description,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +16,7 @@ class Todo {
       'id': id,
       'title': title,
       'isDone': isDone ? 1 : 0,
+      'description': description,
     };
   }
 
@@ -22,6 +25,7 @@ class Todo {
       id: map['id'],
       title: map['title'],
       isDone: map['isDone'] == 1,
+      description: map['description'],
     );
   }
 }

@@ -30,9 +30,21 @@
     "Any data we collect is anonymized and will not be shared with any third-party without your consent.": "Any data we collect is anonymized and will not be shared with any third-party without your consent.",
     "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.": "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.",
     "Accessibility": "Accessibility",
-    "Pin": "Pin"
+    "Pin": "Pin",
+    "Filter Done Todos": "Filter Done Todos",
+    "Search...": "Search...",
+    "text_edit_description": "Description",
+    "Please enter a Description (Optional)": "Please enter a Description (Optional)",
+    "Details": "Details",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    "Select to filter between Checked or Unckecked Items": "Select to filter between Checked or Unckecked Items",
+    "Checked Items": "Checked Items",
+    "Unchecked Items": "Unchecked Items",
+    "No Title": "No Title",
+    "No Description": "No Description",
+    "Select All": "Select All"
     
-    
-
+     
   }
   

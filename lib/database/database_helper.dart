@@ -11,6 +11,7 @@ class DatabaseHelper {
   static const columnId = 'id';
   static const columnTitle = 'title';
   static const columnIsDone = 'isDone';
+  static const columnDescription = 'description';
 
   static Database? _database;
 
@@ -39,7 +40,8 @@ class DatabaseHelper {
       CREATE TABLE $table (
         $columnId INTEGER PRIMARY KEY,
         $columnTitle TEXT NOT NULL,
-        $columnIsDone INTEGER NOT NULL
+        $columnIsDone INTEGER NOT NULL,
+        $columnDescription TEXT NOT NULL
       )
     ''');
   }

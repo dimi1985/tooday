@@ -30,8 +30,20 @@
     "Any data we collect is anonymized and will not be shared with any third-party without your consent.": "Οποιαδήποτε δεδομένα συλλέγουμε είναι ανώνυμα και δεν θα κοινοποιηθούν σε τρίτους χωρίς τη συγκατάθεσή σας.",
     "If you have any questions or concerns about our privacy policy, please contact us at dimidev1985@gmail.com.": "Εάν έχετε οποιεσδήποτε ερωτήσεις ή ανησυχίες σχετικά με την πολιτική απορρήτου μας, επικοινωνήστε μαζί μας στο dimidev1985@gmail.com.",
     "Accessibility": "Προσιτότητα",
-    "Pin": "Καρφίτσωμα"
-
+    "Pin": "Καρφίτσωμα",
+    "Filter Done Todos": "Φιλτρο Ολοκληρωμένων",
+    "Search...": "Αναζήτηση...",
+    "text_edit_description": "Περιγραφή και Λεπτομέρειες",
+    "Please enter a Description (Optional)": "Εισαγάγετε μια περιγραφή (Προαιρετικό)",
+    "Details": "Λεπτομέριες",
+    "Enabled": "Ενεργοποιημένο",
+    "Disabled": "Απενεργοποιημένο",
+    "Select to filter between Checked or Unckecked Items": "Επιλέξτε για φιλτράρισμα μεταξύ επιλεγμένων ή μη επιλεγμένων στοιχείων",
+    "Checked Items": "Ελεγμένα στοιχεία",
+    "Unchecked Items": "Μη επιλεγμένα στοιχεία",
+    "No Title": "Χωρίς τίτλο",
+    "No Description": "Χωρίς περιγραφή",
+    "Select All": "Επιλογή όλων"
 
   }
   

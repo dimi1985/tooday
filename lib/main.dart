@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tooday/screens/todo_list_screen.dart';
+import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 
@@ -18,6 +19,7 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => StayOnPageProvider()),
+      ChangeNotifierProvider(create: (_) => FilterItemsProvider()),
     ],
     child: TodoApp(initialLocale: initialLocale),
   ));
@@ -46,6 +48,7 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
+    saveInitialCheckFilters();
   }
 
   @override
@@ -83,10 +86,16 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
               Locale('el', 'GR'),
             ],
             locale: _locale,
-            home: const TodoListScreen(),
+            home: SplashScreen(),
           );
         },
       ),
     );
+  }
+
+  void saveInitialCheckFilters() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('filterToCkecked', true);
+    await prefs.setBool('filterToUnCkecked', false);
   }
 }

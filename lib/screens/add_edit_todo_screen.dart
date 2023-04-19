@@ -5,7 +5,6 @@ import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
-import 'package:tooday/main.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
@@ -30,13 +29,17 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isStayOnScreen = false;
   late bool _isDone;
+  bool hasDescription = false;
   TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     titleController.text = widget.todo.title;
+    descriptionController.text = widget.todo.description;
     _isDone = widget.todo.isDone;
+
     getStayOnScreenBool();
   }
 
@@ -63,8 +66,15 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             : Colors.white, // Change app bar color here
         title: Text(
           widget.todo.id == null
-              ? AppLocalizations.of(context).translate('Add Todo')
+              ? AppLocalizations.of(context).translate(
+                  'Add Todo',
+                )
               : AppLocalizations.of(context).translate('Edit Todo'),
+          style: TextStyle(
+            color: themeProvider.isDarkThemeEnabled
+                ? Colors.white
+                : const Color.fromARGB(255, 37, 37, 37),
+          ),
         ),
 
         actions: [
@@ -77,63 +87,87 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                   icon: Icon(IconlyLight.delete))
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText:
-                      AppLocalizations.of(context).translate('text_edit_title'),
-                  labelStyle: TextStyle(color: Colors.blueGrey),
-                  border: const OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)
+                        .translate('text_edit_title'),
+                    labelStyle: TextStyle(color: Colors.blueGrey),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blueGrey),
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blueGrey),
-                  ),
+                  cursorColor: Colors.blueGrey, // Set cursor color
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppLocalizations.of(context)
+                          .translate('Please enter a title');
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    titleController.text = value!;
+                  },
                 ),
-                cursorColor: Colors.blueGrey, // Set cursor color
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)
-                        .translate('Please enter a title');
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  titleController.text = value!;
-                },
-              ),
-              const SizedBox(height: 24.0),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: widget.todo.id == null
-                    ? Container()
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(AppLocalizations.of(context).translate('Done')),
-                          const Spacer(),
-                          CustomCheckbox(
-                            isChecked: _isDone,
-                            onChanged: (value) {
-                              setState(() {
-                                _isDone = value!;
-                                _doTheMagic('CheckBox_Only');
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-              ),
-            ],
+                const SizedBox(height: 24.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: widget.todo.id == null
+                      ? Container()
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                                AppLocalizations.of(context).translate('Done')),
+                            const Spacer(),
+                            CustomCheckbox(
+                              isChecked: _isDone,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isDone = value!;
+                                  _doTheMagic('CheckBox_Only');
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                ),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)
+                        .translate('text_edit_description'),
+                    labelStyle: TextStyle(color: Colors.blueGrey),
+                    border: const OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blueGrey),
+                    ),
+                  ),
+                  cursorColor: Colors.blueGrey, // Set cursor color
+
+                  onSaved: (value) {
+                    descriptionController.text = value!;
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -167,6 +201,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         id: widget.todo.id,
         title: titleController.text.trim(),
         isDone: _isDone,
+        description: descriptionController.text.trim(),
       );
 
       final dbHelper = DatabaseHelper();

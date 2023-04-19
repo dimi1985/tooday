@@ -8,12 +8,9 @@ class StayOnPageProvider with ChangeNotifier {
     _loadStayPreference();
   }
 
-
-
-
   bool get isStayOnPAgeEnabled => isStayOnEnabled;
 
-  set isDarkThemeEnabled(bool value) {
+  set isStayOnEnabledEnabled(bool value) {
     isStayOnEnabled = value;
     _saveStayPreference();
     notifyListeners();
