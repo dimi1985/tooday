@@ -35,6 +35,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   bool _isSearching = false;
   bool isOverflowed = false;
   bool isListviewFiltered = false;
+  bool isAllSelected = false;
 
   TextEditingController _searchQueryController = TextEditingController();
   String searchQuery = "";
@@ -71,25 +72,29 @@ class _TodoListScreenState extends State<TodoListScreen> {
         backgroundColor: themeProvider.isDarkThemeEnabled
             ? Color.fromARGB(255, 39, 39, 39)
             : Colors.white,
-        appBar: AppBar(
-          iconTheme: IconThemeData(
-            color:
-                themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: AppBar(
+            iconTheme: IconThemeData(
+              color: themeProvider.isDarkThemeEnabled
+                  ? Colors.white
+                  : Colors.black,
+            ),
+            backgroundColor: themeProvider.isDarkThemeEnabled
+                ? const Color.fromARGB(255, 39, 39, 39)
+                : Colors.white,
+            elevation: 0,
+            title: _isSearching
+                ? _buildSearchField()
+                : Text(
+                    AppLocalizations.of(context).translate('title'),
+                    style: TextStyle(
+                        color: themeProvider.isDarkThemeEnabled
+                            ? Colors.white
+                            : Colors.black),
+                  ),
+            actions: _buildActions(themeProvider, filterProvider),
           ),
-          backgroundColor: themeProvider.isDarkThemeEnabled
-              ? const Color.fromARGB(255, 39, 39, 39)
-              : Colors.white,
-          elevation: 0,
-          title: _isSearching
-              ? _buildSearchField()
-              : Text(
-                  AppLocalizations.of(context).translate('title'),
-                  style: TextStyle(
-                      color: themeProvider.isDarkThemeEnabled
-                          ? Colors.white
-                          : Colors.black),
-                ),
-          actions: _buildActions(themeProvider, filterProvider),
         ),
         body: isLoading
             ? Center(
@@ -456,19 +461,20 @@ class _TodoListScreenState extends State<TodoListScreen> {
       ];
     } else {
       bool allItemsNotChecked = _todos.every((element) => !element.isDone);
+      bool allItemsChecked = _todos.every((element) => element.isDone);
       return [
         IconButton(
           icon: Icon(
-            Icons.filter_1,
+            Icons.filter_list,
             color: isListviewFiltered
-                ? Colors.greenAccent
-                : _todos.length == 1 || allItemsNotChecked
+                ? Color.fromARGB(255, 0, 174, 255)
+                : _todos.length == 1 || allItemsNotChecked || allItemsChecked
                     ? Colors.grey
                     : themeProvider.isDarkThemeEnabled
                         ? Colors.white
                         : Colors.black,
           ),
-          onPressed: _todos.length == 1 || allItemsNotChecked
+          onPressed: _todos.length == 1 || allItemsNotChecked || allItemsChecked
               ? null
               : () {
                   setState(() {
@@ -494,11 +500,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
         ),
         IconButton(
           icon: Icon(Icons.search),
-          onPressed: () {
-            setState(() {
-              _isSearching = true;
-            });
-          },
+          onPressed: _todos.isEmpty || _todos.length < 4
+              ? null
+              : () {
+                  setState(() {
+                    _isSearching = true;
+                  });
+                },
         ),
         IconButton(
           icon: PopupMenuButton(

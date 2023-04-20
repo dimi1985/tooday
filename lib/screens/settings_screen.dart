@@ -33,10 +33,6 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     TodoApp.setLocale(context, language.locale);
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('languageCode', language.locale.languageCode);
-    prefs.setString('countryCode', language.locale.countryCode ?? '');
   }
 
   bool stayOnAddTodoScreen = false;
@@ -44,7 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _loadCheckedItems();
+
     SharedPreferences.getInstance().then((prefs) {
       final languageCode = prefs.getString('languageCode');
       final countryCode = prefs.getString('countryCode');
@@ -248,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: ListTile(
                           title: Text(
                             AppLocalizations.of(context).translate(
-                              'Show Checked Items',
+                              'Select to filter between Checked or Unckecked Items',
                             ),
                             maxLines: 3,
                           ),
@@ -337,14 +333,6 @@ class _SettingsPageState extends State<SettingsPage> {
   void saveStayValue(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('stayOnAddTodoScreen', value);
-  }
-
-  void _loadCheckedItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool showChecked = prefs.getBool('showCheckedItems') ?? true;
-    setState(() {
-      showCheckedItems = showChecked;
-    });
   }
 
   void _saveCheckedItems(bool value) async {
