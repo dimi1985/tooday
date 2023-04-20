@@ -455,39 +455,42 @@ class _TodoListScreenState extends State<TodoListScreen> {
         )
       ];
     } else {
+      bool allItemsNotChecked = _todos.every((element) => !element.isDone);
       return [
         IconButton(
           icon: Icon(
             Icons.filter_1,
             color: isListviewFiltered
-                ? Colors.yellow
-                : Theme.of(context).dialogBackgroundColor,
+                ? Colors.greenAccent
+                : _todos.length == 1 || allItemsNotChecked
+                    ? Colors.grey
+                    : themeProvider.isDarkThemeEnabled
+                        ? Colors.white
+                        : Colors.black,
           ),
-          onPressed: () {
-            if (_todos.length == 1) {
-              return;
-            } else {
-              setState(() {
-                isListviewFiltered = !isListviewFiltered;
-                setState(() {
-                  if (filterProvider.showCheckedItems) {
-                    _filteredTodos =
-                        _todos.where((todo) => !todo.isDone).toList();
-                  } else {
-                    _filteredTodos =
-                        _todos.where((todo) => todo.isDone).toList();
-                  }
-                  if (!filterProvider.showCheckedItems) {
-                    _filteredTodos =
-                        _todos.where((todo) => !todo.isDone).toList();
-                  } else {
-                    _filteredTodos =
-                        _todos.where((todo) => todo.isDone).toList();
-                  }
-                });
-              });
-            }
-          },
+          onPressed: _todos.length == 1 || allItemsNotChecked
+              ? null
+              : () {
+                  setState(() {
+                    isListviewFiltered = !isListviewFiltered;
+                    setState(() {
+                      if (filterProvider.showCheckedItems) {
+                        _filteredTodos =
+                            _todos.where((todo) => !todo.isDone).toList();
+                      } else {
+                        _filteredTodos =
+                            _todos.where((todo) => todo.isDone).toList();
+                      }
+                      if (!filterProvider.showCheckedItems) {
+                        _filteredTodos =
+                            _todos.where((todo) => !todo.isDone).toList();
+                      } else {
+                        _filteredTodos =
+                            _todos.where((todo) => todo.isDone).toList();
+                      }
+                    });
+                  });
+                },
         ),
         IconButton(
           icon: Icon(Icons.search),

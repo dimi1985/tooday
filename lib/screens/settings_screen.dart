@@ -242,17 +242,64 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 16),
               Card(
                 child: ListTile(
-                  title: Text(AppLocalizations.of(context).translate(
-                    'Show Checked Items',
-                  )),
-                  trailing: Switch(
-                    value: checkedProvider.isShowGetCheckedItems,
-                    onChanged: (value) {
-                      setState(() {
-                        checkedProvider.showCheckedItems = value;
-                      });
-                      _saveCheckedItems(value);
-                    },
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          title: Text(
+                            AppLocalizations.of(context).translate(
+                              'Show Checked Items',
+                            ),
+                            maxLines: 3,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: checkedProvider.showCheckedItems
+                                          ? Colors.greenAccent
+                                          : Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                ),
+                                child: Text(
+                                  checkedProvider.showCheckedItems
+                                      ? AppLocalizations.of(context).translate(
+                                          'Show Checked Items',
+                                        )
+                                      : AppLocalizations.of(context).translate(
+                                          'Show UnChecked Items',
+                                        ),
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    color: checkedProvider.showCheckedItems
+                                        ? themeProvider.isDarkThemeEnabled
+                                            ? Colors.white
+                                            : Colors.black
+                                        : Color.fromARGB(255, 207, 207, 207),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: checkedProvider.isShowGetCheckedItems,
+                        onChanged: (value) {
+                          setState(() {
+                            checkedProvider.showCheckedItems = value;
+                          });
+                          _saveCheckedItems(value);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
