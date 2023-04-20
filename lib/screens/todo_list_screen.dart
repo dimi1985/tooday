@@ -33,7 +33,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
   DatabaseHelper dbHelper = DatabaseHelper();
   bool isLoading = true;
   bool _isSearching = false;
-  bool showDoneItems = false;
   bool isOverflowed = false;
 
   TextEditingController _searchQueryController = TextEditingController();
@@ -117,11 +116,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       reOrderTodoList(newIndex, oldIndex);
                     },
                     children: List.generate(
-                      _isSearching || showDoneItems
-                          ? _filteredTodos.length
-                          : _todos.length,
+                      _isSearching ? _filteredTodos.length : _todos.length,
                       (index) {
-                        final todo = _isSearching || showDoneItems
+                        final todo = _isSearching
                             ? _filteredTodos[index]
                             : _todos[index];
 
@@ -455,46 +452,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
         )
       ];
     } else {
-      // bool allItemsNotChecked = _todos.every((element) => !element.isDone);
-
       return [
-        // IconButton(
-        //   icon: Icon(
-        //     IconlyLight.filter,
-        //     color: showDoneItems
-        //         ? Color.fromARGB(255, 253, 44, 7)
-        //         : themeProvider.isDarkThemeEnabled
-        //             ? Colors.white
-        //             : Colors.black,
-        //   ),
-        //   onPressed: _todos.isEmpty || allItemsNotChecked
-        //       ? null
-        //       : () {
-        //           if (_todos.length == 1) {
-        //             return;
-        //           } else {
-        //             setState(() {
-        //               showDoneItems = !showDoneItems;
-        //               setState(() {
-        //                 if (filterProvider.isfilterEnabled) {
-        //                   _filteredTodos =
-        //                       _todos.where((todo) => todo.isDone).toList();
-        //                 } else {
-        //                   _filteredTodos =
-        //                       _todos.where((todo) => !todo.isDone).toList();
-        //                 }
-        //                 if (!filterProvider.isfilterEnabled) {
-        //                   _filteredTodos =
-        //                       _todos.where((todo) => !todo.isDone).toList();
-        //                 } else {
-        //                   _filteredTodos =
-        //                       _todos.where((todo) => todo.isDone).toList();
-        //                 }
-        //               });
-        //             });
-        //           }
-        //         },
-        // ),
         IconButton(
           icon: Icon(Icons.search),
           onPressed: () {

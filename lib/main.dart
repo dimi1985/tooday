@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +15,7 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? languageCode = prefs.getString('languageCode');
   String? countryCode = prefs.getString('countryCode');
-  Locale initialLocale = Locale(languageCode ?? 'en', countryCode ?? 'US');
+  Locale initialLocale = Locale(languageCode ?? 'el', countryCode ?? 'GR');
 
   runApp(MultiProvider(
     providers: [

@@ -5,7 +5,6 @@ import 'package:tooday/main.dart';
 import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/language.dart';
-import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -149,6 +148,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     DropdownButton<Language>(
                       value: _selectedLanguage,
                       onChanged: _onLanguageSelected,
+                      hint: Text(
+                          AppLocalizations.of(context).translate('Select')),
                       items: supportedLanguages.map((language) {
                         return DropdownMenuItem<Language>(
                           value: language,
