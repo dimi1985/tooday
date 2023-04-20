@@ -34,6 +34,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   bool isLoading = true;
   bool _isSearching = false;
   bool isOverflowed = false;
+  bool isListviewFiltered = false;
 
   TextEditingController _searchQueryController = TextEditingController();
   String searchQuery = "";
@@ -116,9 +117,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       reOrderTodoList(newIndex, oldIndex);
                     },
                     children: List.generate(
-                      _isSearching ? _filteredTodos.length : _todos.length,
+                      _isSearching || isListviewFiltered
+                          ? _filteredTodos.length
+                          : _todos.length,
                       (index) {
-                        final todo = _isSearching
+                        final todo = _isSearching || isListviewFiltered
                             ? _filteredTodos[index]
                             : _todos[index];
 
@@ -454,6 +457,39 @@ class _TodoListScreenState extends State<TodoListScreen> {
     } else {
       return [
         IconButton(
+          icon: Icon(
+            Icons.filter_1,
+            color: isListviewFiltered
+                ? Colors.yellow
+                : Theme.of(context).dialogBackgroundColor,
+          ),
+          onPressed: () {
+            if (_todos.length == 1) {
+              return;
+            } else {
+              setState(() {
+                isListviewFiltered = !isListviewFiltered;
+                setState(() {
+                  if (filterProvider.showCheckedItems) {
+                    _filteredTodos =
+                        _todos.where((todo) => !todo.isDone).toList();
+                  } else {
+                    _filteredTodos =
+                        _todos.where((todo) => todo.isDone).toList();
+                  }
+                  if (!filterProvider.showCheckedItems) {
+                    _filteredTodos =
+                        _todos.where((todo) => !todo.isDone).toList();
+                  } else {
+                    _filteredTodos =
+                        _todos.where((todo) => todo.isDone).toList();
+                  }
+                });
+              });
+            }
+          },
+        ),
+        IconButton(
           icon: Icon(Icons.search),
           onPressed: () {
             setState(() {
@@ -481,7 +517,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   child: Text(
                       AppLocalizations.of(context).translate('Clear Selected') +
                           ':($checkedTodosCounT)'),
-                )
+                ),
               ];
             },
             onSelected: (value) {

@@ -5,6 +5,7 @@ import 'package:tooday/main.dart';
 import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/language.dart';
+import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,10 +40,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   bool stayOnAddTodoScreen = false;
+  bool showCheckedItems = true;
   @override
   void initState() {
     super.initState();
-
+    _loadCheckedItems();
     SharedPreferences.getInstance().then((prefs) {
       final languageCode = prefs.getString('languageCode');
       final countryCode = prefs.getString('countryCode');
@@ -64,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final stayProvider = Provider.of<StayOnPageProvider>(context);
+    final checkedProvider = Provider.of<FilterItemsProvider>(context);
 
     return Scaffold(
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -239,6 +242,23 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 16),
               Card(
                 child: ListTile(
+                  title: Text(AppLocalizations.of(context).translate(
+                    'Show Checked Items',
+                  )),
+                  trailing: Switch(
+                    value: checkedProvider.isShowGetCheckedItems,
+                    onChanged: (value) {
+                      setState(() {
+                        checkedProvider.showCheckedItems = value;
+                      });
+                      _saveCheckedItems(value);
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
                   title: Row(
                     children: [
                       const Icon(IconlyBold.notification),
@@ -272,8 +292,16 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs.setBool('stayOnAddTodoScreen', value);
   }
 
-  void saveFilterCkeckedValue(bool value) async {
+  void _loadCheckedItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('filterToCkecked', value);
+    bool showChecked = prefs.getBool('showCheckedItems') ?? true;
+    setState(() {
+      showCheckedItems = showChecked;
+    });
+  }
+
+  void _saveCheckedItems(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showCheckedItems', value);
   }
 }
