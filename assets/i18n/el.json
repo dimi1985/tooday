@@ -1,5 +1,6 @@
 {
-    "title": "Tooday",
+  "todo_title": "Tooday",
+  "shopping_title": "Tooday\nΛίστα αγορών",
     "Settings": "Ρυμίσεις",
     "Clear Data": "Απαλοιφή Δεδομ.",
     "text_edit_title": "Τίτλος",
@@ -43,7 +44,17 @@
     "No Description": "Χωρίς περιγραφή",
     "Select": "Επιλέξτε",
     "Show Checked Items": "Εμφάνιση ελεγμένων αντικειμένων",
-    "Show UnChecked Items": "Εμφάνιση μη επιλεγμένων στοιχείων"
+    "Show UnChecked Items": "Εμφάνιση μη επιλεγμένων στοιχείων",
+    "Enable Shopping List? (Beta)": "Ενεργοποίηση λίστας αγορών;(Beta)",
+    "Shopping is Enabled": "Η Λίστα αγορών είναι ενεργοποιημένη",
+    "Disabled : Normal Todo List activated": "Απενεργοποιημένο: Ενεργοποιήθηκε η κανονική λίστα εργασιών",
+    "text_edit_title_shopping": "Προϊόν για αγορά",
+    "Please enter a product": "Εισαγάγετε ένα προϊόν",
+    "Add Shopping Item": "Προσθήκη αντικειμένου αγορών",
+    "Edit Shopping Item": "Επεξεργασία αντικειμένου αγορών",
+    "Restart App": "Επανεκκίνηση Εφαρμογής",
+    "You need to restart the app for changes to take effect.": "Πρέπει να επανεκκινήσετε την εφαρμογή για να τεθούν σε ισχύ οι αλλαγές.",
+    "OK": "Εντάξει"
 
   }
   

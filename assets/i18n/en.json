@@ -1,5 +1,6 @@
 {
-    "title": "Tooday",
+    "todo_title": "Tooday",
+    "shopping_title": "Tooday\nList",
     "Settings": "Settings",
     "Clear Data": "Clear Data",
     "text_edit_title": "Title",
@@ -43,7 +44,17 @@
     "No Description": "No Description",
     "Select": "Select", 
     "Show Checked Items": "Show Checked Items",
-    "Show UnChecked Items": "Show UnChecked Items"
+    "Show UnChecked Items": "Show UnChecked Items",
+    "Enable Shopping List? (Beta)": "Enable Shopping List? (Beta)",
+    "Shopping is Enabled": "Shopping is Enabled",
+    "Disabled : Normal Todo List activated": "Disabled : Normal Todo List activated",
+    "text_edit_title_shopping": "Shopping Item",
+    "Please enter a product": "Please enter a product",
+    "Add Shopping Item": "Add Shopping Item",
+    "Edit Shopping Item": "Edit Shopping Item",
+    "Restart App": "Restart App",
+    "You need to restart the app for changes to take effect.": "You need to restart the app for changes to take effect.",
+    "OK": "OK"
     
      
   }

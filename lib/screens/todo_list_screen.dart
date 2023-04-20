@@ -9,6 +9,7 @@ import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
+import 'package:tooday/widgets/shopping_enabled_provider.dart';
 
 import 'package:tooday/widgets/theme_provider.dart';
 import '../database/database_helper.dart';
@@ -36,17 +37,18 @@ class _TodoListScreenState extends State<TodoListScreen> {
   bool isOverflowed = false;
   bool isListviewFiltered = false;
   bool isAllSelected = false;
-
   TextEditingController _searchQueryController = TextEditingController();
   String searchQuery = "";
   String titleText = "";
   List<Todo> _filteredTodos = [];
+  double totalPrice = 0.0;
   @override
   void initState() {
     super.initState();
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     _fetchTodos();
+    // _updateTotalPrice();
   }
 
   Future<void> _fetchTodos() async {
@@ -59,6 +61,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     setState(() {
       _todos = todos;
       checkedTodosCounT = getCheckedTodosCount(_todos);
+      getAllItemsSetup();
       isLoading = false;
     });
     loadOrder();
@@ -68,173 +71,231 @@ class _TodoListScreenState extends State<TodoListScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final filterProvider = Provider.of<FilterItemsProvider>(context);
+    final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     return Scaffold(
-        backgroundColor: themeProvider.isDarkThemeEnabled
-            ? Color.fromARGB(255, 39, 39, 39)
-            : Colors.white,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: AppBar(
-            iconTheme: IconThemeData(
-              color: themeProvider.isDarkThemeEnabled
-                  ? Colors.white
-                  : Colors.black,
-            ),
-            backgroundColor: themeProvider.isDarkThemeEnabled
-                ? const Color.fromARGB(255, 39, 39, 39)
-                : Colors.white,
-            elevation: 0,
-            title: _isSearching
-                ? _buildSearchField()
-                : Text(
-                    AppLocalizations.of(context).translate('title'),
-                    style: TextStyle(
-                        color: themeProvider.isDarkThemeEnabled
-                            ? Colors.white
-                            : Colors.black),
-                  ),
-            actions: _buildActions(themeProvider, filterProvider),
+      extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
+      backgroundColor: themeProvider.isDarkThemeEnabled
+          ? Color.fromARGB(255, 39, 39, 39)
+          : Colors.white,
+      appBar: PreferredSize(
+        preferredSize: shoppingdProvider.geIsShoppingtEnabled
+            ? Size.fromHeight(kToolbarHeight + 50)
+            : Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          iconTheme: IconThemeData(
+            color:
+                themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
           ),
-        ),
-        body: isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    themeProvider.isDarkThemeEnabled
-                        ? Color.fromARGB(255, 131, 175, 197)
-                        : Colors.blueGrey,
-                  ),
-                  strokeWidth: 5.0, // Replace with your desired value
+          backgroundColor: themeProvider.isDarkThemeEnabled
+              ? const Color.fromARGB(255, 39, 39, 39)
+              : Colors.white,
+          elevation: 0,
+          title: _isSearching
+              ? _buildSearchField()
+              : Text(
+                  AppLocalizations.of(context).translate('todo_title'),
+                  style: TextStyle(
+                      color: themeProvider.isDarkThemeEnabled
+                          ? Colors.white
+                          : Colors.black),
                 ),
-              )
-            : _todos.isEmpty
-                ? Container(
-                    color: themeProvider.isDarkThemeEnabled
-                        ? Color.fromARGB(255, 39, 39, 39)
-                        : Colors.white, // Change background color here
-                    child: Center(
-                        child: Text(AppLocalizations.of(context)
-                            .translate('List is appears Empty'))),
-                  )
-                // _refreshIndicatorKey
-                : ReorderableListView(
-                    onReorder: (int oldIndex, int newIndex) {
-                      reOrderTodoList(newIndex, oldIndex);
-                    },
-                    children: List.generate(
-                      _isSearching || isListviewFiltered
-                          ? _filteredTodos.length
-                          : _todos.length,
-                      (index) {
-                        final todo = _isSearching || isListviewFiltered
-                            ? _filteredTodos[index]
-                            : _todos[index];
+          bottom: shoppingdProvider.geIsShoppingtEnabled
+              ? PreferredSize(
+                  preferredSize: Size.fromHeight(kToolbarHeight + 40),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text(
+                        "Shopping List",
+                        style: TextStyle(fontSize: 40, color: Colors.green),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          actions: _buildActions(themeProvider, filterProvider),
+        ),
+      ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  themeProvider.isDarkThemeEnabled
+                      ? Color.fromARGB(255, 131, 175, 197)
+                      : Colors.blueGrey,
+                ),
+                strokeWidth: 5.0, // Replace with your desired value
+              ),
+            )
+          : _todos.isEmpty
+              ? Container(
+                  color: themeProvider.isDarkThemeEnabled
+                      ? Color.fromARGB(255, 39, 39, 39)
+                      : Colors.white, // Change background color here
+                  child: Center(
+                      child: Text(AppLocalizations.of(context)
+                          .translate('List is appears Empty'))),
+                )
+              // _refreshIndicatorKey
+              : ReorderableListView(
+                  onReorder: (int oldIndex, int newIndex) {
+                    reOrderTodoList(newIndex, oldIndex);
+                  },
+                  children: List.generate(
+                    _isSearching || isListviewFiltered
+                        ? _filteredTodos.length
+                        : _todos.length,
+                    (index) {
+                      final todo = _isSearching || isListviewFiltered
+                          ? _filteredTodos[index]
+                          : _todos[index];
 
-                        titleText = todo.title;
-                        bool isOverflowed =
-                            isTextOverflowed(titleText, context);
+                      titleText = todo.title;
+                      bool isOverflowed = isTextOverflowed(titleText, context);
 
-                        return Padding(
-                          key: ValueKey(todo.id),
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 15),
-                                child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: todo.isDone
-                                        ? Colors.green
-                                        : Colors.grey,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
+                      return Padding(
+                        key: ValueKey(todo.id),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15),
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color:
+                                      todo.isDone ? Colors.green : Colors.grey,
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: ListTile(
-                                    title: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        if (todo.description.isNotEmpty)
-                                          Icon(
-                                            Icons.article_outlined,
-                                            size: 16,
-                                            color: Colors.deepPurple,
-                                          ),
-                                        SizedBox(
-                                          width: 5,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: ListTile(
+                                  title: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      if (todo.description.isNotEmpty)
+                                        Icon(
+                                          Icons.article_outlined,
+                                          size: 16,
+                                          color: Colors.deepPurple,
                                         ),
-                                        Expanded(
-                                          child: Text(titleText,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: todo.isDone
-                                                  ? const TextStyle(
-                                                      decoration: TextDecoration
-                                                          .lineThrough,
-                                                      color: Colors.grey)
-                                                  : null),
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: CustomCheckbox(
-                                      isChecked: todo.isDone,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          todo.isDone = value!;
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Expanded(
+                                        child: Text(titleText,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: todo.isDone
+                                                ? const TextStyle(
+                                                    decoration: TextDecoration
+                                                        .lineThrough,
+                                                    color: Colors.grey)
+                                                : null),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: CustomCheckbox(
+                                    isChecked: todo.isDone,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        if (value == true) {
+                                          totalPrice += todo.quantity *
+                                              todo.totalProductPrice;
+                                        } else {
+                                          totalPrice -= todo.quantity *
+                                              todo.totalProductPrice;
+                                        }
 
-                                          dbHelper.update(todo);
-                                          checkedTodosCounT =
-                                              getCheckedTodosCount(_todos);
-                                        });
-                                      },
-                                    ),
-                                    onTap: () {
+                                        todo.isDone = value!;
+
+                                        final newtodo = Todo(
+                                          id: todo.id,
+                                          title: todo.title,
+                                          isDone: value,
+                                          description: todo.description,
+                                          isShopping: todo.isShopping,
+                                          quantity: todo.quantity,
+                                          productPrice: todo.productPrice,
+                                          totalProductPrice:
+                                              todo.totalProductPrice,
+                                          totalPrice: totalPrice,
+                                        );
+
+                                        dbHelper.update(newtodo);
+                                        checkedTodosCounT =
+                                            getCheckedTodosCount(_todos);
+                                      });
+                                    },
+                                  ),
+                                  onTap: () {
+                                    if (shoppingdProvider
+                                        .geIsShoppingtEnabled) {
+                                      showDescriptionSheet(todo, index,
+                                          titleText, shoppingdProvider);
+                                    } else {
                                       if (todo.description.isNotEmpty ||
                                           isOverflowed) {
-                                        showDescriptionSheet(
-                                            todo, index, titleText);
+                                        showDescriptionSheet(todo, index,
+                                            titleText, shoppingdProvider);
                                       } else {
                                         _navigateToEditScreen(
                                             context, todo, _todos, index);
                                       }
-                                    }),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                                    }
+                                  }),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-        floatingActionButton: Theme(
-          data: ThemeData(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  secondary: themeProvider.isDarkThemeEnabled
-                      ? const Color.fromARGB(255, 93, 122, 133)
-                      : Colors.blueGrey[800], // Change the color of the FAB
                 ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: FloatingActionButton(
-            onPressed: () {
-              _navigateToAddScreen(context);
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(IconlyLight.plus),
-          ),
+      floatingActionButton: Theme(
+        data: ThemeData(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+                secondary: themeProvider.isDarkThemeEnabled
+                    ? const Color.fromARGB(255, 93, 122, 133)
+                    : Colors.blueGrey[800], // Change the color of the FAB
+              ),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat);
+        child: FloatingActionButton(
+          onPressed: () {
+            _navigateToAddScreen(context);
+          },
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(shoppingdProvider.geIsShoppingtEnabled
+              ? Icons.add_shopping_cart
+              : IconlyLight.plus),
+        ),
+      ),
+      floatingActionButtonLocation: shoppingdProvider.geIsShoppingtEnabled
+          ? FloatingActionButtonLocation.endFloat
+          : FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: shoppingdProvider.geIsShoppingtEnabled
+          ? customContainer(totalPrice)
+          : null,
+    );
   }
 
   void _navigateToAddScreen(BuildContext context) {
-    final newTodo = Todo(isDone: false, title: '', description: '');
+    final newTodo = Todo(
+        isDone: false,
+        title: '',
+        description: '',
+        isShopping: false,
+        quantity: 0,
+        productPrice: 0.0,
+        totalProductPrice: 0.0,
+        totalPrice: 0.0);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -250,7 +311,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
     });
   }
 
-  showDescriptionSheet(Todo todo, int index, String textWidget) {
+  showDescriptionSheet(Todo todo, int index, String textWidget,
+      ShoppingEnabledProvider shoppingdProvider) {
+    int modalQuantity = 1;
+    double productPrice = 0.0;
+    double totalProductPrice = modalQuantity * productPrice;
     return showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -259,113 +324,230 @@ class _TodoListScreenState extends State<TodoListScreen> {
         ),
       ),
       builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width / 3,
-                  height: 4,
-                  color: Colors.deepPurple,
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).translate('Details'),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+        return Scaffold(
+          resizeToAvoidBottomInset: true, // set to true
+          body: SingleChildScrollView(
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: MediaQuery.of(context).size.width / 3,
+                          height: 4,
+                          color: shoppingdProvider.geIsShoppingtEnabled
+                              ? Colors.greenAccent
+                              : Colors.deepPurple,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).translate('Details'),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              _navigateToEditScreen(
+                                  context, todo, _todos, index);
+                            },
+                            icon: Icon(
+                              Icons.edit,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        todo.title.isEmpty
+                            ? AppLocalizations.of(context).translate(
+                                'No Title',
+                              )
+                            : todo.title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        todo.description.isEmpty
+                            ? AppLocalizations.of(context).translate(
+                                'No Description',
+                              )
+                            : todo.description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        height: 1,
+                        color: Colors.grey[300],
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? 'Quantity'
+                                : 'Date',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          shoppingdProvider.geIsShoppingtEnabled
+                              ? SizedBox(
+                                  height: 50,
+                                  width: 70,
+                                  child: TextFormField(
+                                    textInputAction: TextInputAction.done,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: todo.quantity.toString(),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        modalQuantity = value.isEmpty
+                                            ? 1
+                                            : int.parse(value);
+                                        totalProductPrice =
+                                            modalQuantity * productPrice;
+
+                                        final newTodo = Todo(
+                                          id: todo.id,
+                                          title: todo.title,
+                                          isDone: todo.isDone,
+                                          description: todo.description,
+                                          isShopping: todo.isShopping,
+                                          quantity: modalQuantity,
+                                          productPrice: productPrice,
+                                          totalProductPrice: totalProductPrice,
+                                          totalPrice: todo.totalPrice,
+                                        );
+
+                                        dbHelper.update(newTodo);
+                                      });
+                                    },
+                                  ),
+                                )
+                              : Text(
+                                  'Date',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? 'Price'
+                                : 'Priority',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          shoppingdProvider.geIsShoppingtEnabled
+                              ? SizedBox(
+                                  height: 50,
+                                  width: 70,
+                                  child: TextFormField(
+                                    textInputAction: TextInputAction.done,
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    decoration: InputDecoration(
+                                      labelText: todo.productPrice.toString(),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        productPrice = value.isEmpty
+                                            ? 0.0
+                                            : double.parse(value);
+                                        totalProductPrice =
+                                            modalQuantity * productPrice;
+
+                                        final newTodo = Todo(
+                                          id: todo.id,
+                                          title: todo.title,
+                                          isDone: todo.isDone,
+                                          description: todo.description,
+                                          isShopping: todo.isShopping,
+                                          quantity: modalQuantity,
+                                          productPrice: productPrice,
+                                          totalProductPrice: totalProductPrice,
+                                          totalPrice: 0.0,
+                                        );
+
+                                        dbHelper.update(newTodo);
+                                      });
+                                    },
+                                  ),
+                                )
+                              : Text(
+                                  'Priority',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                        ],
+                      ),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        SizedBox(
+                          height: 25,
+                        ),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Total Price: \E${totalProductPrice == 0 ? todo.totalProductPrice : totalProductPrice}',
+                              style: TextStyle(
+                                fontSize: 30,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _fetchTodos();
+                                    Navigator.canPop(context);
+                                  });
+                                },
+                                icon: Icon(Icons.update))
+                          ],
+                        ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      _navigateToEditScreen(context, todo, _todos, index);
-                    },
-                    icon: Icon(
-                      Icons.edit,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              if (isTextOverflowed(todo.title, context))
-                Text(
-                  todo.title.isEmpty
-                      ? AppLocalizations.of(context).translate(
-                          'No Title',
-                        )
-                      : todo.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              SizedBox(height: 8),
-              Text(
-                todo.description.isEmpty
-                    ? AppLocalizations.of(context).translate(
-                        'No Description',
-                      )
-                    : todo.description,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-              SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                height: 1,
-                color: Colors.grey[300],
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Date',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'date',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Priority',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'todo.priority',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                );
+              }),
+            ),
           ),
         );
       },
@@ -586,4 +768,63 @@ class _TodoListScreenState extends State<TodoListScreen> {
           .toList();
     });
   }
+
+  void getAllItemsSetup() {
+    final shoppingdProvider =
+        Provider.of<ShoppingEnabledProvider>(context, listen: false);
+
+    if (shoppingdProvider.geIsShoppingtEnabled) {
+      setState(() {
+        _todos.removeWhere((element) => !element.isShopping);
+      });
+    } else {
+      setState(() {
+        _todos.removeWhere((element) => element.isShopping);
+      });
+    }
+  }
+
+  Widget customContainer(double totalPrice) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(10.0),
+          topRight: Radius.circular(10.0),
+        ),
+      ),
+      padding: EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            'Total Price: \E ${totalPrice == 0 ? '0.0' : totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18.0,
+            ),
+          ),
+          MaterialButton(
+            onPressed: () {},
+            child: Text(
+              'Checkout',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18.0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // // void _updateTotalPrice() async {
+
+  // //   setState(() {
+  // //     totalPrice += _todos.where((element) => element.isDone);
+  // //   });
+  // }
 }

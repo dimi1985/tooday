@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
@@ -6,9 +8,11 @@ import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
+import 'package:tooday/widgets/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -63,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final stayProvider = Provider.of<StayOnPageProvider>(context);
     final checkedProvider = Provider.of<FilterItemsProvider>(context);
-
+    final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     return Scaffold(
       backgroundColor: themeProvider.isDarkThemeEnabled
           ? Color.fromARGB(255, 37, 37, 37)
@@ -304,6 +308,100 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListTile(
                   title: Row(
                     children: [
+                      Expanded(
+                        child: ListTile(
+                          title: Text(
+                            AppLocalizations.of(context).translate(
+                              'Enable Shopping List? (Beta)',
+                            ),
+                            maxLines: 3,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(10.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: shoppingdProvider.isSoppingEnabled
+                                          ? Colors.greenAccent
+                                          : Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10)),
+                                ),
+                                child: Text(
+                                  shoppingdProvider.isSoppingEnabled
+                                      ? AppLocalizations.of(context).translate(
+                                          'Shopping is Enabled',
+                                        )
+                                      : AppLocalizations.of(context).translate(
+                                          'Disabled : Normal Todo List activated',
+                                        ),
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    color: shoppingdProvider.isSoppingEnabled
+                                        ? themeProvider.isDarkThemeEnabled
+                                            ? Colors.white
+                                            : Colors.black
+                                        : Color.fromARGB(255, 207, 207, 207),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: shoppingdProvider.geIsShoppingtEnabled,
+                        onChanged: (value) async {
+                          setState(() {
+                            shoppingdProvider.isSoppingEnabled = value;
+                          });
+                          _saveShoppingValue(value);
+
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title:
+                                    Text(AppLocalizations.of(context).translate(
+                                  'Restart App',
+                                )),
+                                content:
+                                    Text(AppLocalizations.of(context).translate(
+                                  'You need to restart the app for changes to take effect.',
+                                )),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      restartApp(context);
+                                    },
+                                    child: Text(
+                                        AppLocalizations.of(context).translate(
+                                      'OK',
+                                    )),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  title: Row(
+                    children: [
                       const Icon(IconlyBold.notification),
                       const SizedBox(
                         width: 10,
@@ -338,5 +436,14 @@ class _SettingsPageState extends State<SettingsPage> {
   void _saveCheckedItems(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showCheckedItems', value);
+  }
+
+  void _saveShoppingValue(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isSoppingEnabled', value);
+  }
+
+  void restartApp(BuildContext ctx) {
+    Phoenix.rebirth(ctx);
   }
 }

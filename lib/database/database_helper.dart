@@ -12,6 +12,11 @@ class DatabaseHelper {
   static const columnTitle = 'title';
   static const columnIsDone = 'isDone';
   static const columnDescription = 'description';
+  static const columnIsShopping = 'isShopping';
+  static const columnQuantity = 'quantity';
+  static const columnProductPrice = 'productPrice';
+  static const columnpTotalProductPrice = 'totalProductPrice';
+  static const columnTotalPrice = 'totalPrice';
 
   static Database? _database;
 
@@ -41,7 +46,12 @@ class DatabaseHelper {
         $columnId INTEGER PRIMARY KEY,
         $columnTitle TEXT NOT NULL,
         $columnIsDone INTEGER NOT NULL,
-        $columnDescription TEXT NOT NULL
+        $columnDescription TEXT NOT NULL,
+        $columnIsShopping INTEGER NOT NULL,
+        $columnQuantity INTEGER NOT NULL,
+        $columnProductPrice REAL NOT NULL,
+        $columnpTotalProductPrice REAL NOT NULL,
+        $columnTotalPrice REAL NOT NULL
       )
     ''');
   }
@@ -89,5 +99,12 @@ class DatabaseHelper {
   Future<void> deleteAll() async {
     final db = await database;
     await db.delete(table);
+  }
+
+  Future<double?> getTotalPrice() async {
+    final db = await database;
+    final result = await db
+        .rawQuery('SELECT SUM(totalPrice) FROM $table WHERE isDone = 1');
+    return result.first.values.first as double?;
   }
 }

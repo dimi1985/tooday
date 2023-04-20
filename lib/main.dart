@@ -1,12 +1,12 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
+import 'package:tooday/widgets/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 
@@ -22,8 +22,9 @@ void main() async {
       ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => StayOnPageProvider()),
       ChangeNotifierProvider(create: (_) => FilterItemsProvider()),
+      ChangeNotifierProvider(create: (_) => ShoppingEnabledProvider()),
     ],
-    child: TodoApp(initialLocale: initialLocale),
+    child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));
 }
 

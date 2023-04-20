@@ -8,6 +8,7 @@ import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
+import 'package:tooday/widgets/shopping_enabled_provider.dart';
 
 import '../widgets/theme_provider.dart';
 
@@ -29,6 +30,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isStayOnScreen = false;
   late bool _isDone;
+
   bool hasDescription = false;
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
@@ -52,6 +54,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     return Scaffold(
       backgroundColor: themeProvider.isDarkThemeEnabled
           ? Color.fromARGB(255, 37, 37, 37)
@@ -67,9 +70,14 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         title: Text(
           widget.todo.id == null
               ? AppLocalizations.of(context).translate(
-                  'Add Todo',
+                  shoppingdProvider.geIsShoppingtEnabled
+                      ? 'Add Shopping Item'
+                      : 'Add Todo',
                 )
-              : AppLocalizations.of(context).translate('Edit Todo'),
+              : AppLocalizations.of(context).translate(
+                  shoppingdProvider.geIsShoppingtEnabled
+                      ? 'Edit Shopping Item'
+                      : 'Edit Todo'),
           style: TextStyle(
             color: themeProvider.isDarkThemeEnabled
                 ? Colors.white
@@ -98,8 +106,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                 TextFormField(
                   controller: titleController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)
-                        .translate('text_edit_title'),
+                    labelText: AppLocalizations.of(context).translate(
+                        shoppingdProvider.geIsShoppingtEnabled
+                            ? 'text_edit_title_shopping'
+                            : 'text_edit_title'),
                     labelStyle: TextStyle(color: Colors.blueGrey),
                     border: const OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
@@ -113,8 +123,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                   cursorColor: Colors.blueGrey, // Set cursor color
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)
-                          .translate('Please enter a title');
+                      return AppLocalizations.of(context).translate(
+                          shoppingdProvider.geIsShoppingtEnabled
+                              ? 'Please enter a product'
+                              : 'Please enter a title');
                     }
                     return null;
                   },
@@ -138,7 +150,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                               onChanged: (value) {
                                 setState(() {
                                   _isDone = value!;
-                                  _doTheMagic('CheckBox_Only');
+                                  _doTheMagic(
+                                      'CheckBox_Only', shoppingdProvider);
                                 });
                               },
                             ),
@@ -181,7 +194,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         ),
         child: FloatingActionButton(
           onPressed: () {
-            _doTheMagic('');
+            _doTheMagic('', shoppingdProvider);
           },
           shape: RoundedRectangleBorder(
             borderRadius:
@@ -193,7 +206,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     );
   }
 
-  void _doTheMagic(String action) {
+  void _doTheMagic(String action, ShoppingEnabledProvider shoppingdProvider) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
@@ -202,6 +215,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         title: titleController.text.trim(),
         isDone: _isDone,
         description: descriptionController.text.trim(),
+        isShopping: shoppingdProvider.geIsShoppingtEnabled ? true : false,
+        quantity: 1,
+        productPrice: 0.0,
+        totalProductPrice: 0.0,
+        totalPrice: 0.0,
       );
 
       final dbHelper = DatabaseHelper();
