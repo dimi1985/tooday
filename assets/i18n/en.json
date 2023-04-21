@@ -54,7 +54,9 @@
     "Edit Shopping Item": "Edit Shopping Item",
     "Restart App": "Restart App",
     "You need to restart the app for changes to take effect.": "You need to restart the app for changes to take effect.",
-    "OK": "OK"
+    "OK": "OK",
+    "Shopping List": "Shopping List",
+    "Total Price: ": "Total Price: "
     
      
   }

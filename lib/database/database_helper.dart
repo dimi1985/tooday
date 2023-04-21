@@ -100,11 +100,4 @@ class DatabaseHelper {
     final db = await database;
     await db.delete(table);
   }
-
-  Future<double?> getTotalPrice() async {
-    final db = await database;
-    final result = await db
-        .rawQuery('SELECT SUM(totalPrice) FROM $table WHERE isDone = 1');
-    return result.first.values.first as double?;
-  }
 }

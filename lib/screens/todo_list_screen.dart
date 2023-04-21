@@ -10,7 +10,6 @@ import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/shopping_enabled_provider.dart';
-
 import 'package:tooday/widgets/theme_provider.dart';
 import '../database/database_helper.dart';
 import 'package:iconly/iconly.dart';
@@ -36,19 +35,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
   bool _isSearching = false;
   bool isOverflowed = false;
   bool isListviewFiltered = false;
-  bool isAllSelected = false;
   TextEditingController _searchQueryController = TextEditingController();
   String searchQuery = "";
   String titleText = "";
   List<Todo> _filteredTodos = [];
   double totalPrice = 0.0;
+  bool isKeyboardOpened = false;
   @override
   void initState() {
     super.initState();
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     _fetchTodos();
-    // _updateTotalPrice();
+    getTotalPrice();
   }
 
   Future<void> _fetchTodos() async {
@@ -60,6 +59,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
     setState(() {
       _todos = todos;
+
       checkedTodosCounT = getCheckedTodosCount(_todos);
       getAllItemsSetup();
       isLoading = false;
@@ -107,7 +107,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20),
                       child: Text(
-                        "Shopping List",
+                        AppLocalizations.of(context).translate('Shopping List'),
                         style: TextStyle(fontSize: 40, color: Colors.green),
                       ),
                     ),
@@ -117,144 +117,235 @@ class _TodoListScreenState extends State<TodoListScreen> {
           actions: _buildActions(themeProvider, filterProvider),
         ),
       ),
-      body: isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  themeProvider.isDarkThemeEnabled
-                      ? Color.fromARGB(255, 131, 175, 197)
-                      : Colors.blueGrey,
-                ),
-                strokeWidth: 5.0, // Replace with your desired value
-              ),
-            )
-          : _todos.isEmpty
-              ? Container(
-                  color: themeProvider.isDarkThemeEnabled
-                      ? Color.fromARGB(255, 39, 39, 39)
-                      : Colors.white, // Change background color here
-                  child: Center(
-                      child: Text(AppLocalizations.of(context)
-                          .translate('List is appears Empty'))),
-                )
-              // _refreshIndicatorKey
-              : ReorderableListView(
-                  onReorder: (int oldIndex, int newIndex) {
-                    reOrderTodoList(newIndex, oldIndex);
-                  },
-                  children: List.generate(
-                    _isSearching || isListviewFiltered
-                        ? _filteredTodos.length
-                        : _todos.length,
-                    (index) {
-                      final todo = _isSearching || isListviewFiltered
-                          ? _filteredTodos[index]
-                          : _todos[index];
-
-                      titleText = todo.title;
-                      bool isOverflowed = isTextOverflowed(titleText, context);
-
-                      return Padding(
-                        key: ValueKey(todo.id),
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15),
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color:
-                                      todo.isDone ? Colors.green : Colors.grey,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: ListTile(
-                                  title: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      if (todo.description.isNotEmpty)
-                                        Icon(
-                                          Icons.article_outlined,
-                                          size: 16,
-                                          color: Colors.deepPurple,
-                                        ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Expanded(
-                                        child: Text(titleText,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: todo.isDone
-                                                ? const TextStyle(
-                                                    decoration: TextDecoration
-                                                        .lineThrough,
-                                                    color: Colors.grey)
-                                                : null),
-                                      ),
-                                    ],
-                                  ),
-                                  trailing: CustomCheckbox(
-                                    isChecked: todo.isDone,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        if (value == true) {
-                                          totalPrice += todo.quantity *
-                                              todo.totalProductPrice;
-                                        } else {
-                                          totalPrice -= todo.quantity *
-                                              todo.totalProductPrice;
-                                        }
-
-                                        todo.isDone = value!;
-
-                                        final newtodo = Todo(
-                                          id: todo.id,
-                                          title: todo.title,
-                                          isDone: value,
-                                          description: todo.description,
-                                          isShopping: todo.isShopping,
-                                          quantity: todo.quantity,
-                                          productPrice: todo.productPrice,
-                                          totalProductPrice:
-                                              todo.totalProductPrice,
-                                          totalPrice: totalPrice,
-                                        );
-
-                                        dbHelper.update(newtodo);
-                                        checkedTodosCounT =
-                                            getCheckedTodosCount(_todos);
-                                      });
-                                    },
-                                  ),
-                                  onTap: () {
-                                    if (shoppingdProvider
-                                        .geIsShoppingtEnabled) {
-                                      showDescriptionSheet(todo, index,
-                                          titleText, shoppingdProvider);
-                                    } else {
-                                      if (todo.description.isNotEmpty ||
-                                          isOverflowed) {
-                                        showDescriptionSheet(todo, index,
-                                            titleText, shoppingdProvider);
-                                      } else {
-                                        _navigateToEditScreen(
-                                            context, todo, _todos, index);
-                                      }
-                                    }
-                                  }),
-                            ),
-                          ],
+      body: Column(
+        children: [
+          if (shoppingdProvider.geIsShoppingtEnabled)
+            _todos.isEmpty
+                ? Container()
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
+                      ),
+                    ),
+                    padding: EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          AppLocalizations.of(context)
+                                  .translate('Total Price: ') +
+                              '\$${totalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18.0,
+                          ),
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
-                ),
+          isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      themeProvider.isDarkThemeEnabled
+                          ? Color.fromARGB(255, 131, 175, 197)
+                          : Colors.blueGrey,
+                    ),
+                    strokeWidth: 5.0, // Replace with your desired value
+                  ),
+                )
+              : _todos.isEmpty
+                  ? Expanded(
+                      child: Container(
+                        color: themeProvider.isDarkThemeEnabled
+                            ? Color.fromARGB(255, 39, 39, 39)
+                            : Colors.white, // Change background color here
+                        child: Center(
+                            child: Text(AppLocalizations.of(context)
+                                .translate('List is appears Empty'))),
+                      ),
+                    )
+                  // _refreshIndicatorKey
+                  : Expanded(
+                      child: ReorderableListView(
+                        onReorder: (int oldIndex, int newIndex) {
+                          reOrderTodoList(newIndex, oldIndex);
+                        },
+                        children: List.generate(
+                          _isSearching || isListviewFiltered
+                              ? _filteredTodos.length
+                              : _todos.length,
+                          (index) {
+                            final todo = _isSearching || isListviewFiltered
+                                ? _filteredTodos[index]
+                                : _todos[index];
+
+                            titleText = todo.title;
+                            bool isOverflowed =
+                                isTextOverflowed(titleText, context);
+
+                            return Padding(
+                              key: ValueKey(todo.id),
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 15),
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: todo.isDone
+                                            ? Colors.green
+                                            : Colors.grey,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: ListTile(
+                                      title: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          if (todo.description.isNotEmpty)
+                                            Icon(
+                                              Icons.article_outlined,
+                                              size: 16,
+                                              color: Color.fromARGB(
+                                                  255, 58, 137, 183),
+                                            ),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Expanded(
+                                            child: Text(titleText,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: todo.isDone
+                                                    ? const TextStyle(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                        color: Colors.grey)
+                                                    : null),
+                                          ),
+                                        ],
+                                      ),
+                                      trailing: CustomCheckbox(
+                                        isChecked: todo.isDone,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            if (value == true) {
+                                              totalPrice +=
+                                                  todo.totalProductPrice;
+                                              saveTotalPrice(totalPrice);
+                                            } else {
+                                              totalPrice -=
+                                                  todo.totalProductPrice;
+                                            }
+
+                                            todo.isDone = value!;
+
+                                            final newtodo = Todo(
+                                              id: todo.id,
+                                              title: todo.title,
+                                              isDone: value,
+                                              description: todo.description,
+                                              isShopping: todo.isShopping,
+                                              quantity: todo.quantity,
+                                              productPrice: todo.productPrice,
+                                              totalProductPrice:
+                                                  todo.totalProductPrice,
+                                              totalPrice: totalPrice,
+                                            );
+
+                                            dbHelper.update(newtodo);
+                                            checkedTodosCounT =
+                                                getCheckedTodosCount(_todos);
+                                          });
+                                        },
+                                      ),
+                                      onTap: () {
+                                        if (shoppingdProvider
+                                            .geIsShoppingtEnabled) {
+                                          if (todo.isDone) {
+                                            setState(() {});
+                                            return;
+                                          } else {
+                                            showDescriptionSheet(todo, index,
+                                                titleText, shoppingdProvider);
+                                          }
+                                        } else {
+                                          if (todo.description.isNotEmpty ||
+                                              isOverflowed) {
+                                            showDescriptionSheet(todo, index,
+                                                titleText, shoppingdProvider);
+                                          } else {
+                                            _navigateToEditScreen(
+                                                context, todo, _todos, index);
+                                          }
+                                        }
+                                      },
+                                      subtitle: shoppingdProvider
+                                              .geIsShoppingtEnabled
+                                          ? todo.totalProductPrice == 0.0
+                                              ? Container()
+                                              : Row(
+                                                  children: [
+                                                    todo.isDone
+                                                        ? Container()
+                                                        : Container(
+                                                            width: 20,
+                                                            height: 20,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color:
+                                                                  Colors.green,
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20),
+                                                            ),
+                                                            child: Icon(
+                                                              Icons
+                                                                  .shopping_bag,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: 12,
+                                                            ),
+                                                          ),
+                                                    SizedBox(width: 5),
+                                                    Text(
+                                                      '\E${todo.totalProductPrice.toStringAsFixed(2)}',
+                                                      style: todo.isDone
+                                                          ? const TextStyle(
+                                                              decoration:
+                                                                  TextDecoration
+                                                                      .lineThrough,
+                                                              color:
+                                                                  Colors.grey)
+                                                          : null,
+                                                    ),
+                                                  ],
+                                                )
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+        ],
+      ),
       floatingActionButton: Theme(
         data: ThemeData(
           colorScheme: Theme.of(context).colorScheme.copyWith(
@@ -266,6 +357,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
           highlightColor: Colors.transparent,
         ),
         child: FloatingActionButton(
+          highlightElevation: 3.0,
           onPressed: () {
             _navigateToAddScreen(context);
           },
@@ -280,9 +372,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
       floatingActionButtonLocation: shoppingdProvider.geIsShoppingtEnabled
           ? FloatingActionButtonLocation.endFloat
           : FloatingActionButtonLocation.centerFloat,
-      bottomNavigationBar: shoppingdProvider.geIsShoppingtEnabled
-          ? customContainer(totalPrice)
-          : null,
     );
   }
 
@@ -324,8 +413,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
         ),
       ),
       builder: (BuildContext context) {
+        print(isKeyboardOpened);
         return Scaffold(
-          resizeToAvoidBottomInset: true, // set to true
+          resizeToAvoidBottomInset: true,
           body: SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height * 0.5,
@@ -361,6 +451,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             onPressed: () {
                               _navigateToEditScreen(
                                   context, todo, _todos, index);
+                              setState(() {
+                                Navigator.canPop(context);
+                              });
                             },
                             icon: Icon(
                               Icons.edit,
@@ -425,7 +518,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     onChanged: (value) {
                                       setState(() {
                                         modalQuantity = value.isEmpty
-                                            ? 1
+                                            ? todo.quantity
                                             : int.parse(value);
                                         totalProductPrice =
                                             modalQuantity * productPrice;
@@ -485,8 +578,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     onChanged: (value) {
                                       setState(() {
                                         productPrice = value.isEmpty
-                                            ? 0.0
-                                            : double.parse(value);
+                                            ? todo.productPrice
+                                            : double.tryParse(value.replaceAll(
+                                                    ',', '.')) ??
+                                                todo.productPrice;
                                         totalProductPrice =
                                             modalQuantity * productPrice;
 
@@ -521,27 +616,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           height: 25,
                         ),
                       if (shoppingdProvider.geIsShoppingtEnabled)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Total Price: \E${totalProductPrice == 0 ? todo.totalProductPrice : totalProductPrice}',
-                              style: TextStyle(
-                                fontSize: 30,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _fetchTodos();
-                                    Navigator.canPop(context);
-                                  });
-                                },
-                                icon: Icon(Icons.update))
-                          ],
+                        Text(
+                          'Total Price: \E${totalProductPrice == 0 ? todo.totalProductPrice : totalProductPrice}',
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: Colors.grey[600],
+                          ),
                         ),
                     ],
                   ),
@@ -551,7 +631,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
         );
       },
-    );
+    ).whenComplete(() => {
+          _fetchTodos(),
+        });
   }
 
   bool isTextOverflowed(String text, BuildContext context) {
@@ -723,13 +805,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   // Handle Clear Data action
 
                   dbHelper.deleteAll();
+                  clearTotalPrice();
                   _fetchTodos();
+
                   break;
                 case 'Clear Selected':
                   // Handle Clear Selected action
                   _todos.removeWhere((todo) => todo.isDone);
 
                   dbHelper.deleteDoneTodos();
+                  clearTotalPrice();
                   _fetchTodos();
                   break;
               }
@@ -784,47 +869,22 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
   }
 
-  Widget customContainer(double totalPrice) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.green,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(10.0),
-          topRight: Radius.circular(10.0),
-        ),
-      ),
-      padding: EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Text(
-            'Total Price: \E ${totalPrice == 0 ? '0.0' : totalPrice.toStringAsFixed(2)}',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18.0,
-            ),
-          ),
-          MaterialButton(
-            onPressed: () {},
-            child: Text(
-              'Checkout',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18.0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void saveTotalPrice(double totalPrice) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('totalPrice', totalPrice);
   }
 
-  // // void _updateTotalPrice() async {
+  void getTotalPrice() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    double doubleValue = prefs.getDouble('totalPrice') ?? 0.0;
 
-  // //   setState(() {
-  // //     totalPrice += _todos.where((element) => element.isDone);
-  // //   });
-  // }
+    setState(() {
+      totalPrice = doubleValue;
+    });
+  }
+
+  void clearTotalPrice() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('totalPrice');
+  }
 }

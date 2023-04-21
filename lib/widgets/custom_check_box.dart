@@ -18,8 +18,8 @@ class CustomCheckbox extends StatelessWidget {
         decoration: BoxDecoration(
           color: isChecked
               ? themeProvider.isDarkThemeEnabled
-                  ? Color.fromARGB(255, 78, 0, 167)
-                  : Color.fromARGB(255, 48, 18, 119)
+                  ? Color.fromARGB(255, 0, 148, 167)
+                  : Color.fromARGB(255, 18, 119, 43)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(5.0),
           border: Border.all(

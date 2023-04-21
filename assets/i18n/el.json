@@ -54,7 +54,9 @@
     "Edit Shopping Item": "Επεξεργασία αντικειμένου αγορών",
     "Restart App": "Επανεκκίνηση Εφαρμογής",
     "You need to restart the app for changes to take effect.": "Πρέπει να επανεκκινήσετε την εφαρμογή για να τεθούν σε ισχύ οι αλλαγές.",
-    "OK": "Εντάξει"
+    "OK": "Εντάξει",
+    "Shopping List": "Λίστα Αγορών",
+    "Total Price: ": "Συνολικό ποσό"
 
   }
   

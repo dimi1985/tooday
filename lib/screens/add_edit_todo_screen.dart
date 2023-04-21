@@ -55,152 +55,161 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
-    return Scaffold(
-      backgroundColor: themeProvider.isDarkThemeEnabled
-          ? Color.fromARGB(255, 37, 37, 37)
-          : Theme.of(context).colorScheme.onPrimary,
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
-        ),
-        elevation: 0,
+    return WillPopScope(
+      onWillPop: () async {
+        // Fetch updated todos here
+        await widget.fetchFunction();
+        return true;
+      },
+      child: Scaffold(
         backgroundColor: themeProvider.isDarkThemeEnabled
-            ? const Color.fromARGB(255, 37, 37, 37)
-            : Colors.white, // Change app bar color here
-        title: Text(
-          widget.todo.id == null
-              ? AppLocalizations.of(context).translate(
-                  shoppingdProvider.geIsShoppingtEnabled
-                      ? 'Add Shopping Item'
-                      : 'Add Todo',
-                )
-              : AppLocalizations.of(context).translate(
-                  shoppingdProvider.geIsShoppingtEnabled
-                      ? 'Edit Shopping Item'
-                      : 'Edit Todo'),
-          style: TextStyle(
-            color: themeProvider.isDarkThemeEnabled
-                ? Colors.white
-                : const Color.fromARGB(255, 37, 37, 37),
+            ? Color.fromARGB(255, 37, 37, 37)
+            : Theme.of(context).colorScheme.onPrimary,
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            color:
+                themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
           ),
+          elevation: 0,
+          backgroundColor: themeProvider.isDarkThemeEnabled
+              ? const Color.fromARGB(255, 37, 37, 37)
+              : Colors.white, // Change app bar color here
+          title: Text(
+            widget.todo.id == null
+                ? AppLocalizations.of(context).translate(
+                    shoppingdProvider.geIsShoppingtEnabled
+                        ? 'Add Shopping Item'
+                        : 'Add Todo',
+                  )
+                : AppLocalizations.of(context).translate(
+                    shoppingdProvider.geIsShoppingtEnabled
+                        ? 'Edit Shopping Item'
+                        : 'Edit Todo'),
+            style: TextStyle(
+              color: themeProvider.isDarkThemeEnabled
+                  ? Colors.white
+                  : const Color.fromARGB(255, 37, 37, 37),
+            ),
+          ),
+
+          actions: [
+            widget.todo.id == null
+                ? Container()
+                : IconButton(
+                    onPressed: () {
+                      _showPopUpDeleteDialog(widget.todo);
+                    },
+                    icon: Icon(IconlyLight.delete))
+          ],
         ),
-
-        actions: [
-          widget.todo.id == null
-              ? Container()
-              : IconButton(
-                  onPressed: () {
-                    _showPopUpDeleteDialog(widget.todo);
-                  },
-                  icon: Icon(IconlyLight.delete))
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context).translate(
-                        shoppingdProvider.geIsShoppingtEnabled
-                            ? 'text_edit_title_shopping'
-                            : 'text_edit_title'),
-                    labelStyle: TextStyle(color: Colors.blueGrey),
-                    border: const OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blueGrey),
-                    ),
-                  ),
-                  cursorColor: Colors.blueGrey, // Set cursor color
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context).translate(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context).translate(
                           shoppingdProvider.geIsShoppingtEnabled
-                              ? 'Please enter a product'
-                              : 'Please enter a title');
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    titleController.text = value!;
-                  },
-                ),
-                const SizedBox(height: 24.0),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: widget.todo.id == null
-                      ? Container()
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text(
-                                AppLocalizations.of(context).translate('Done')),
-                            const Spacer(),
-                            CustomCheckbox(
-                              isChecked: _isDone,
-                              onChanged: (value) {
-                                setState(() {
-                                  _isDone = value!;
-                                  _doTheMagic(
-                                      'CheckBox_Only', shoppingdProvider);
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                ),
-                TextFormField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)
-                        .translate('text_edit_description'),
-                    labelStyle: TextStyle(color: Colors.blueGrey),
-                    border: const OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color.fromARGB(255, 146, 171, 192)),
+                              ? 'text_edit_title_shopping'
+                              : 'text_edit_title'),
+                      labelStyle: TextStyle(color: Colors.blueGrey),
+                      border: const OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Color.fromARGB(255, 146, 171, 192)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blueGrey),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blueGrey),
-                    ),
+                    cursorColor: Colors.blueGrey, // Set cursor color
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppLocalizations.of(context).translate(
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? 'Please enter a product'
+                                : 'Please enter a title');
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      titleController.text = value!;
+                    },
                   ),
-                  cursorColor: Colors.blueGrey, // Set cursor color
+                  const SizedBox(height: 24.0),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: widget.todo.id == null
+                        ? Container()
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(AppLocalizations.of(context)
+                                  .translate('Done')),
+                              const Spacer(),
+                              CustomCheckbox(
+                                isChecked: _isDone,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isDone = value!;
+                                    _doTheMagic(
+                                        'CheckBox_Only', shoppingdProvider);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                  ),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)
+                          .translate('text_edit_description'),
+                      labelStyle: TextStyle(color: Colors.blueGrey),
+                      border: const OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Color.fromARGB(255, 146, 171, 192)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blueGrey),
+                      ),
+                    ),
+                    cursorColor: Colors.blueGrey, // Set cursor color
 
-                  onSaved: (value) {
-                    descriptionController.text = value!;
-                  },
-                ),
-              ],
+                    onSaved: (value) {
+                      descriptionController.text = value!;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-      floatingActionButton: Theme(
-        data: ThemeData(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-                secondary: Colors.blueGrey[800], // Change the color of the FAB
-              ),
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: FloatingActionButton(
-          onPressed: () {
-            _doTheMagic('', shoppingdProvider);
-          },
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(10), // Change the shape of the FAB
+        floatingActionButton: Theme(
+          data: ThemeData(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  secondary:
+                      Colors.blueGrey[800], // Change the color of the FAB
+                ),
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
           ),
-          child: const Icon(Icons.save),
+          child: FloatingActionButton(
+            onPressed: () {
+              _doTheMagic('', shoppingdProvider);
+            },
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(10), // Change the shape of the FAB
+            ),
+            child: const Icon(Icons.save),
+          ),
         ),
       ),
     );
