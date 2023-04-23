@@ -65,10 +65,38 @@ class DatabaseHelper {
     );
   }
 
+  Future<bool> checkIfTodoItemExists(Todo todo) async {
+    final db = await database;
+    final result = await db.rawQuery(
+        "SELECT * FROM $table WHERE title LIKE '%${todo.title}%' AND description LIKE '%${todo.description}%' AND isShopping = 0");
+    return result.isNotEmpty;
+  }
+
+  Future<bool> checkIfShoppingItemExists(Todo todo) async {
+    final db = await database;
+    final result = await db.rawQuery(
+        "SELECT * FROM $table WHERE title LIKE '%${todo.title}%' AND description LIKE '%${todo.description}%' AND isShopping = 1");
+    return result.isNotEmpty;
+  }
+
   Future<List<Todo>> getAllTodos() async {
     final db = await database;
     final result = await db.query(table);
 
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
+  Future<List<Todo>> getTodoItems() async {
+    final db = await database;
+    final result =
+        await db.query(table, where: "isShopping = ?", whereArgs: [1]);
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
+  Future<List<Todo>> getShoppingItems() async {
+    final db = await database;
+    final result =
+        await db.query(table, where: "isShopping = ?", whereArgs: [0]);
     return result.map((map) => Todo.fromMap(map)).toList();
   }
 
@@ -99,5 +127,23 @@ class DatabaseHelper {
   Future<void> deleteAll() async {
     final db = await database;
     await db.delete(table);
+  }
+
+  Future<void> deleteAllShoppingItems() async {
+    final db = await database;
+    await db.delete(
+      table,
+      where: 'isShopping = ?',
+      whereArgs: [1],
+    );
+  }
+
+  Future<void> deleteAllTodoExceptShoppingItems() async {
+    final db = await database;
+    await db.delete(
+      table,
+      where: 'isShopping = ?',
+      whereArgs: [0],
+    );
   }
 }
