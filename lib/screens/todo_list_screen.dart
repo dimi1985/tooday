@@ -34,7 +34,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
   DatabaseHelper dbHelper = DatabaseHelper();
   bool isLoading = true;
   bool _isSearching = false;
-  bool isOverflowed = false;
   bool isListviewFiltered = false;
   TextEditingController _searchQueryController = TextEditingController();
   String searchQuery = "";
@@ -42,14 +41,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
   List<Todo> _filteredTodos = [];
   double totalPrice = 0.0;
   bool isForEdit = false;
-  bool isKeyboardOpened = false;
+  String textError = '';
   @override
   void initState() {
     super.initState();
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     _fetchTodos();
-    getTotalPrice();
+    getAndUpdateTotalPrice(_todos);
   }
 
   Future<void> _fetchTodos() async {
@@ -65,6 +64,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
       getAllItemsSetup();
       isLoading = false;
     });
+
+    getAndUpdateTotalPrice(_todos);
   }
 
   @override
@@ -160,22 +161,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       children: <Widget>[
                         Row(
                           children: [
-                            IconButton(
-                              onPressed: () {
-                                //SetState of the item bag
-                                clearTotalPrice();
-                              },
-                              icon: Icon(
-                                _todos.isEmpty
-                                    ? Icons.shopping_cart
-                                    : Icons.shopping_cart_checkout,
-                                color: Colors.white,
-                              ),
+                            Icon(
+                              _todos.isEmpty
+                                  ? Icons.shopping_cart
+                                  : Icons.shopping_cart_checkout,
+                              color: Colors.white,
                             ),
                             SizedBox(width: 8.0),
                             Text(
                               AppLocalizations.of(context)
-                                  .translate('Total Price: '),
+                                  .translate('Total Price:'),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -307,7 +302,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                           if (value == true) {
                                             totalPrice +=
                                                 todo.totalProductPrice;
-                                            saveTotalPrice(totalPrice);
                                           } else {
                                             totalPrice -=
                                                 todo.totalProductPrice;
@@ -335,9 +329,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                       },
                                     ),
                                     onTap: () {
-                                      if (todo.isDone) {
-                                        return;
-                                      }
                                       _navigateToEditScreen(context, todo,
                                           _todos, index, isForEdit);
                                     },
@@ -522,13 +513,18 @@ class _TodoListScreenState extends State<TodoListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => AddEditTodoScreen(
-          todo: newTodo,
-          fetchFunction: _fetchTodos,
-          isForEdit: false,
-        ),
+            todo: newTodo,
+            fetchFunction: _fetchTodos,
+            isForEdit: false,
+            changePriceFunction: getAndUpdateTotalPrice,
+            listTodos: _todos),
       ),
     ).then((value) {
       if (value == true) {
+        print(value);
+        setState(() {
+          textError = value;
+        });
         _fetchTodos();
       }
     });
@@ -540,14 +536,17 @@ class _TodoListScreenState extends State<TodoListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => AddEditTodoScreen(
-          todo: todo,
-          fetchFunction: _fetchTodos,
-          isForEdit: true,
-        ),
+            todo: todo,
+            fetchFunction: _fetchTodos,
+            isForEdit: true,
+            changePriceFunction: getAndUpdateTotalPrice,
+            listTodos: _todos),
       ),
     ).then((value) {
       if (value == true) {
-        _fetchTodos();
+        setState(() {
+          _fetchTodos();
+        });
       }
     });
   }
@@ -672,12 +671,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   // Handle Clear Data action
                   if (shoppingdProvider.geIsShoppingtEnabled) {
                     dbHelper.deleteAllShoppingItems();
-                    clearTotalPrice();
-                    _fetchTodos();
+
+                    // _fetchTodos();
                   } else {
                     dbHelper.deleteAllTodoExceptShoppingItems();
 
-                    _fetchTodos();
+                    // _fetchTodos();
                   }
 
                   break;
@@ -686,8 +685,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   _todos.removeWhere((todo) => todo.isDone);
 
                   dbHelper.deleteDoneTodos();
-                  clearTotalPrice();
-                  _fetchTodos();
+
+                  // _fetchTodos();
                   break;
               }
             },
@@ -743,28 +742,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
   }
 
-  void saveTotalPrice(double totalPrice) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('totalPrice', totalPrice);
-  }
-
-  void getTotalPrice() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    double doubleValue = prefs.getDouble('totalPrice') ?? 0.0;
-
-    setState(() {
-      totalPrice = doubleValue;
-    });
-  }
-
-  void clearTotalPrice() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('totalPrice');
-    setState(() {
-      totalPrice = 0.0;
-    });
-  }
-
   void showExitsSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -780,5 +757,23 @@ class _TodoListScreenState extends State<TodoListScreen> {
       }
     }
     return true;
+  }
+
+  getAndUpdateTotalPrice(List<Todo> todos) async {
+    for (Todo todo in _todos) {
+      if (todo.isDone) {
+        setState(() {
+          totalPrice = 0.0;
+          double sum = _todos.fold(0.0,
+              (acc, todo) => todo.isDone ? acc + todo.totalProductPrice : acc);
+
+          totalPrice = sum;
+        });
+      } else if (allChecked(_todos)) {
+        setState(() {
+          totalPrice = 0.0;
+        });
+      }
+    }
   }
 }

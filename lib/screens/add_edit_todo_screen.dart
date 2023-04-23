@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, must_be_immutable
 
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
@@ -16,12 +16,16 @@ class AddEditTodoScreen extends StatefulWidget {
   final Todo todo;
   final Future<void> Function() fetchFunction;
   bool isForEdit;
+  Function(List<Todo> todos) changePriceFunction;
+  List<Todo> listTodos;
 
   AddEditTodoScreen({
     Key? key,
     required this.todo,
     required this.fetchFunction,
     required this.isForEdit,
+    required this.changePriceFunction,
+    required this.listTodos,
   }) : super(key: key);
 
   @override
@@ -74,6 +78,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       onWillPop: () async {
         // Fetch updated todos here
         await widget.fetchFunction();
+        await widget.changePriceFunction(widget.listTodos);
         return true;
       },
       child: Scaffold(
@@ -135,7 +140,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         body: SingleChildScrollView(
           child: widget.isForEdit
               ? Container(
-                  height: MediaQuery.of(context).size.height * 0.5,
+                  height: MediaQuery.of(context).size.height * 0.7,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -198,6 +203,52 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             color: Colors.grey[600],
                           ),
                         ),
+                        SizedBox(height: 32),
+                        widget.todo.id == null
+                            ? Container()
+                            : Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(AppLocalizations.of(context).translate(
+                                      shoppingdProvider.geIsShoppingtEnabled
+                                          ? 'Put in Cart'
+                                          : 'Done')),
+                                  const Spacer(),
+                                  CustomCheckbox(
+                                    isChecked: _isDone,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _isDone = value!;
+                                        final todo = Todo(
+                                          id: widget.todo.id,
+                                          title: widget.todo.title,
+                                          isDone: _isDone,
+                                          description: widget.todo.description,
+                                          isShopping: shoppingdProvider
+                                                  .geIsShoppingtEnabled
+                                              ? true
+                                              : false,
+                                          quantity: widget.todo.quantity,
+                                          productPrice:
+                                              widget.todo.productPrice,
+                                          totalProductPrice:
+                                              widget.todo.totalProductPrice,
+                                          totalPrice: widget.todo.totalPrice,
+                                        );
+                                        setState(() {
+                                          widget.changePriceFunction(
+                                              widget.listTodos);
+                                          widget.fetchFunction();
+                                        });
+
+                                        final dbHelper = DatabaseHelper();
+                                        dbHelper.update(todo);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                         SizedBox(height: 16),
                         Container(
                           width: double.infinity,
@@ -205,144 +256,159 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           color: Colors.grey[300],
                         ),
                         SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              shoppingdProvider.geIsShoppingtEnabled
-                                  ? 'Quantity'
-                                  : 'Date',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                shoppingdProvider.geIsShoppingtEnabled
+                                    ? 'Quantity'
+                                    : 'Date',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            shoppingdProvider.geIsShoppingtEnabled
-                                ? SizedBox(
-                                    height: 50,
-                                    width: 70,
-                                    child: TextFormField(
-                                      controller: quantityController,
-                                      textInputAction: TextInputAction.done,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText:
-                                            widget.todo.quantity.toString(),
-                                        border: OutlineInputBorder(),
+                              shoppingdProvider.geIsShoppingtEnabled
+                                  ? SizedBox(
+                                      height: 50,
+                                      width: 70,
+                                      child: TextFormField(
+                                        controller: quantityController,
+                                        textInputAction: TextInputAction.done,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText:
+                                              widget.todo.quantity.toString(),
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            modalQuantity = value.isEmpty
+                                                ? int.parse(widget.todo.quantity
+                                                    .toString())
+                                                : int.parse(value);
+                                            totalProductPrice =
+                                                widget.todo.quantity *
+                                                    productPrice;
+
+                                            final newTodo = Todo(
+                                              id: widget.todo.id,
+                                              title: widget.todo.title,
+                                              isDone: true,
+                                              description:
+                                                  widget.todo.description,
+                                              isShopping:
+                                                  widget.todo.isShopping,
+                                              quantity: modalQuantity,
+                                              productPrice: productPrice,
+                                              totalProductPrice:
+                                                  totalProductPrice,
+                                              totalPrice:
+                                                  widget.todo.totalPrice,
+                                            );
+
+                                            dbHelper.update(newTodo);
+                                          });
+                                        },
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          modalQuantity = value.isEmpty
-                                              ? int.parse(widget.todo.quantity
-                                                  .toString())
-                                              : int.parse(value);
-                                          totalProductPrice =
-                                              widget.todo.quantity *
-                                                  productPrice;
-
-                                          final newTodo = Todo(
-                                            id: widget.todo.id,
-                                            title: widget.todo.title,
-                                            isDone: widget.todo.isDone,
-                                            description:
-                                                widget.todo.description,
-                                            isShopping: widget.todo.isShopping,
-                                            quantity: modalQuantity,
-                                            productPrice: productPrice,
-                                            totalProductPrice:
-                                                totalProductPrice,
-                                            totalPrice: widget.todo.totalPrice,
-                                          );
-
-                                          dbHelper.update(newTodo);
-                                        });
-                                      },
+                                    )
+                                  : Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  )
-                                : Text(
-                                    'Date',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                          ],
+                            ],
+                          ),
                         ),
                         SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              shoppingdProvider.geIsShoppingtEnabled
-                                  ? 'Price'
-                                  : 'Priority',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                shoppingdProvider.geIsShoppingtEnabled
+                                    ? 'Price'
+                                    : 'Priority',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            shoppingdProvider.geIsShoppingtEnabled
-                                ? SizedBox(
-                                    height: 50,
-                                    width: 70,
-                                    child: TextFormField(
-                                      textInputAction: TextInputAction.done,
-                                      keyboardType:
-                                          TextInputType.numberWithOptions(
-                                              decimal: true),
-                                      decoration: InputDecoration(
-                                        labelText:
-                                            widget.todo.productPrice.toString(),
-                                        border: OutlineInputBorder(),
+                              shoppingdProvider.geIsShoppingtEnabled
+                                  ? SizedBox(
+                                      height: 50,
+                                      width: 70,
+                                      child: TextFormField(
+                                        textInputAction: TextInputAction.done,
+                                        keyboardType:
+                                            TextInputType.numberWithOptions(
+                                                decimal: true),
+                                        decoration: InputDecoration(
+                                          labelText: widget.todo.productPrice
+                                              .toString(),
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            productPrice = value.isEmpty
+                                                ? widget.todo.productPrice
+                                                : double.tryParse(
+                                                        value.replaceAll(
+                                                            ',', '.')) ??
+                                                    widget.todo.productPrice;
+                                            totalProductPrice =
+                                                modalQuantity * productPrice;
+
+                                            final newTodo = Todo(
+                                              id: widget.todo.id,
+                                              title: widget.todo.title,
+                                              isDone: true,
+                                              description:
+                                                  widget.todo.description,
+                                              isShopping:
+                                                  widget.todo.isShopping,
+                                              quantity: modalQuantity,
+                                              productPrice: productPrice,
+                                              totalProductPrice:
+                                                  totalProductPrice,
+                                              totalPrice: 0.0,
+                                            );
+
+                                            dbHelper.update(newTodo);
+                                            widget.fetchFunction();
+                                          });
+                                        },
                                       ),
-                                      onChanged: (value) {
-                                        setState(() {
-                                          productPrice = value.isEmpty
-                                              ? widget.todo.productPrice
-                                              : double.tryParse(value
-                                                      .replaceAll(',', '.')) ??
-                                                  widget.todo.productPrice;
-                                          totalProductPrice =
-                                              modalQuantity * productPrice;
-
-                                          final newTodo = Todo(
-                                            id: widget.todo.id,
-                                            title: widget.todo.title,
-                                            isDone: widget.todo.isDone,
-                                            description:
-                                                widget.todo.description,
-                                            isShopping: widget.todo.isShopping,
-                                            quantity: modalQuantity,
-                                            productPrice: productPrice,
-                                            totalProductPrice:
-                                                totalProductPrice,
-                                            totalPrice: 0.0,
-                                          );
-
-                                          dbHelper.update(newTodo);
-                                        });
-                                      },
+                                    )
+                                  : Text(
+                                      'Priority',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
-                                  )
-                                : Text(
-                                    'Priority',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                          ],
+                            ],
+                          ),
                         ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
                           SizedBox(
                             height: 25,
                           ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
-                          Text(
-                            'Total Price: \E${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 30,
-                              color: Colors.grey[600],
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                AppLocalizations.of(context)
+                                        .translate('Total Price:') +
+                                    ' ${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -398,32 +464,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           },
                         ),
                         const SizedBox(height: 24.0),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: widget.todo.id == null
-                              ? Container()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Text(AppLocalizations.of(context).translate(
-                                        shoppingdProvider.geIsShoppingtEnabled
-                                            ? '"Put in Cart'
-                                            : 'Done')),
-                                    const Spacer(),
-                                    CustomCheckbox(
-                                      isChecked: _isDone,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _isDone = value!;
-                                          _doTheMagic('CheckBox_Only',
-                                              shoppingdProvider);
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                        ),
                         TextFormField(
                           focusNode: _focusNodeDescription,
                           controller: descriptionController,
@@ -495,7 +535,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       );
 
       final dbHelper = DatabaseHelper();
-// todoExists
+
       Future<bool> shoppingItemExists =
           dbHelper.checkIfShoppingItemExists(todo);
       Future<bool> todoItemListExists = dbHelper.checkIfTodoItemExists(todo);

@@ -56,9 +56,11 @@
     "You need to restart the app for changes to take effect.": "You need to restart the app for changes to take effect.",
     "OK": "OK",
     "Shopping List": "Shopping List",
-    "Total Price: ": "Total Price: ",
+    "Total Price:": "Total Price:",
     "Put in Cart": "Put in Cart",
-    "Already Exists": "Already Exists"
+    "Already Exists": "Already Exists",
+    "Price": "Price",
+    "Quantity": "Quantity"
     
     
      

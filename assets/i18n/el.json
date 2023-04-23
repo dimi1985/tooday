@@ -56,9 +56,11 @@
     "You need to restart the app for changes to take effect.": "Πρέπει να επανεκκινήσετε την εφαρμογή για να τεθούν σε ισχύ οι αλλαγές.",
     "OK": "Εντάξει",
     "Shopping List": "Λίστα Αγορών",
-    "Total Price: ": "Συνολικό ποσό",
+    "Total Price:": "Συνολικό ποσό:",
     "Put in Cart": "Μπήκε στο καλάθι",
-    "Already Exists": "Υπάρχει ήδη"
+    "Already Exists": "Υπάρχει ήδη",
+    "Price": "Τιμή",
+    "Quantity": "Ποσότητα"
 
   }
   
