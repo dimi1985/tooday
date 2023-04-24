@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/models/todo.dart';
+import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/shopping_enabled_provider.dart';
@@ -77,8 +78,24 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     return WillPopScope(
       onWillPop: () async {
         // Fetch updated todos here
-        await widget.fetchFunction();
-        await widget.changePriceFunction(widget.listTodos);
+
+        int numDone = 0;
+        for (Todo todo in widget.listTodos) {
+          if (todo.isDone) {
+            numDone++;
+          }
+        }
+
+        if (numDone == 1) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => TodoListScreen()),
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          await widget.fetchFunction();
+          await widget.changePriceFunction(widget.listTodos);
+        }
         return true;
       },
       child: Scaffold(
@@ -236,14 +253,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               widget.todo.totalProductPrice,
                                           totalPrice: widget.todo.totalPrice,
                                         );
-                                        setState(() {
-                                          widget.changePriceFunction(
-                                              widget.listTodos);
-                                          widget.fetchFunction();
-                                        });
 
                                         final dbHelper = DatabaseHelper();
                                         dbHelper.update(todo);
+
+                                        widget.fetchFunction();
                                       });
                                     },
                                   ),
@@ -528,7 +542,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         isDone: _isDone,
         description: descriptionController.text.trim(),
         isShopping: shoppingdProvider.geIsShoppingtEnabled ? true : false,
-        quantity: widget.todo.quantity,
+        quantity: shoppingdProvider.geIsShoppingtEnabled ? 1 : 0,
         productPrice: widget.todo.productPrice,
         totalProductPrice: widget.todo.totalProductPrice,
         totalPrice: widget.todo.totalPrice,
