@@ -8,6 +8,7 @@ import 'package:tooday/screens/add_edit_todo_screen.dart';
 import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
+import 'package:tooday/widgets/custom_page_route.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
@@ -42,6 +43,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   double totalPrice = 0.0;
   bool isForEdit = false;
   String textError = '';
+  double budgetLimit = 0.0;
   @override
   void initState() {
     super.initState();
@@ -49,6 +51,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     _filteredTodos = _todos;
     _fetchTodos();
     getAndUpdateTotalPrice(_todos);
+    _getBudgetValue();
   }
 
   Future<void> _fetchTodos() async {
@@ -156,55 +159,112 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     padding:
                         EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                     duration: Duration(seconds: 1),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
+                    child: Column(
+                      children: [
                         Row(
-                          children: [
-                            Icon(
-                              _todos.isEmpty
-                                  ? Icons.shopping_cart
-                                  : Icons.shopping_cart_checkout,
-                              color: Colors.white,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Row(
+                              children: [
+                                Icon(
+                                  _todos.isEmpty
+                                      ? Icons.shopping_cart
+                                      : Icons.shopping_cart_checkout,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 8.0),
+                                Text(
+                                  AppLocalizations.of(context)
+                                      .translate('Total Price:'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 8.0),
-                            Text(
-                              AppLocalizations.of(context)
-                                  .translate('Total Price:'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.0,
-                              ),
-                            ),
+                            TweenAnimationBuilder<double>(
+                              duration: Duration(milliseconds: 500),
+                              tween: Tween<double>(
+                                  begin: totalPrice, end: totalPrice),
+                              builder: (context, value, child) {
+                                return AnimatedContainer(
+                                  curve: Curves.bounceIn,
+                                  duration: Duration(milliseconds: 500),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    color: allChecked(_todos)
+                                        ? Color.fromARGB(255, 0, 146, 85)
+                                        : null,
+                                  ),
+                                  padding: EdgeInsets.all(10.0),
+                                  child: Text(
+                                    '${totalPrice.toStringAsFixed(2)}€',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
                           ],
                         ),
-                        TweenAnimationBuilder<double>(
-                          duration: Duration(milliseconds: 500),
-                          tween:
-                              Tween<double>(begin: totalPrice, end: totalPrice),
-                          builder: (context, value, child) {
-                            return AnimatedContainer(
-                              curve: Curves.bounceIn,
-                              duration: Duration(milliseconds: 500),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                color: allChecked(_todos)
-                                    ? Color.fromARGB(255, 0, 146, 85)
-                                    : null,
+                        budgetLimit == 0.0
+                            ? Container()
+                            : Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline_rounded,
+                                        color: Colors.yellowAccent,
+                                      ),
+                                      SizedBox(width: 8.0),
+                                      Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Budget Limit:'),
+                                        style: TextStyle(
+                                          color: Colors.yellowAccent,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  TweenAnimationBuilder<double>(
+                                    duration: Duration(milliseconds: 500),
+                                    tween: Tween<double>(
+                                        begin: totalPrice, end: totalPrice),
+                                    builder: (context, value, child) {
+                                      return AnimatedContainer(
+                                        curve: Curves.bounceIn,
+                                        duration: Duration(milliseconds: 500),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          color: allChecked(_todos)
+                                              ? Color.fromARGB(255, 0, 146, 85)
+                                              : null,
+                                        ),
+                                        padding: EdgeInsets.all(10.0),
+                                        child: Text(
+                                          '${budgetLimit.toStringAsFixed(2)}€',
+                                          style: TextStyle(
+                                            color: Colors.yellowAccent,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18.0,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                ],
                               ),
-                              padding: EdgeInsets.all(10.0),
-                              child: Text(
-                                '${totalPrice.toStringAsFixed(2)}€',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.0,
-                                ),
-                              ),
-                            );
-                          },
-                        )
                       ],
                     ),
                   ),
@@ -319,7 +379,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                             productPrice: todo.productPrice,
                                             totalProductPrice:
                                                 todo.totalProductPrice,
-                                            totalPrice: totalPrice,
                                           );
 
                                           dbHelper.update(newtodo);
@@ -501,30 +560,30 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void _navigateToAddScreen(BuildContext context, bool isForEdit) {
     final newTodo = Todo(
-        isDone: false,
-        title: '',
-        description: '',
-        isShopping: false,
-        quantity: 0,
-        productPrice: 0.0,
-        totalProductPrice: 0.0,
-        totalPrice: 0.0);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditTodoScreen(
+      isDone: false,
+      title: '',
+      description: '',
+      isShopping: false,
+      quantity: 0,
+      productPrice: 0.0,
+      totalProductPrice: 0.0,
+    );
+
+    Navigator.of(context)
+        .push(
+      CustomPageRoute(
+        child: AddEditTodoScreen(
             todo: newTodo,
             fetchFunction: _fetchTodos,
             isForEdit: false,
             changePriceFunction: getAndUpdateTotalPrice,
             listTodos: _todos),
+        forwardAnimation: true,
+        duration: Duration(milliseconds: 700),
       ),
-    ).then((value) {
+    )
+        .then((value) {
       if (value == true) {
-        print(value);
-        setState(() {
-          textError = value;
-        });
         _fetchTodos();
       }
     });
@@ -532,32 +591,36 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void _navigateToEditScreen(BuildContext context, Todo todo, List<Todo> todos,
       int index, bool isForEdit) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditTodoScreen(
+    Navigator.of(context)
+        .push(
+      CustomPageRoute(
+        child: AddEditTodoScreen(
             todo: todo,
             fetchFunction: _fetchTodos,
             isForEdit: true,
             changePriceFunction: getAndUpdateTotalPrice,
             listTodos: _todos),
+        forwardAnimation: true,
+        duration: Duration(milliseconds: 700),
       ),
-    ).then((value) {
+    )
+        .then((value) {
       if (value == true) {
-        setState(() {
-          _fetchTodos();
-        });
+        _fetchTodos();
       }
     });
   }
 
-  void _navigateToSettingsScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SettingsPage(),
+  void _navigateToSettingsScreen(BuildContext context, List<Todo> todos) {
+    Navigator.of(context)
+        .push(
+      CustomPageRoute(
+        child: SettingsPage(itemsChecked: checkedTodosCounT, listTodos: todos),
+        forwardAnimation: true,
+        duration: Duration(milliseconds: 700),
       ),
-    ).then((value) {
+    )
+        .then((value) {
       if (value == true) {
         _fetchTodos();
       }
@@ -639,60 +702,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 },
         ),
         IconButton(
-          icon: PopupMenuButton(
-            icon: const Icon(IconlyLight.more_square),
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  value: 'Settings',
-                  child:
-                      Text(AppLocalizations.of(context).translate('Settings')),
-                ),
-                PopupMenuItem(
-                  value: 'Clear Data',
-                  child: Text(
-                      AppLocalizations.of(context).translate('Clear Data')),
-                ),
-                PopupMenuItem(
-                  value: 'Clear Selected',
-                  child: Text(
-                      AppLocalizations.of(context).translate('Clear Selected') +
-                          ':($checkedTodosCounT)'),
-                ),
-              ];
+            onPressed: () {
+              _navigateToSettingsScreen(context, _todos);
             },
-            onSelected: (value) {
-              switch (value) {
-                case 'Settings':
-                  // Handle Settings action
-                  _navigateToSettingsScreen(context);
-                  break;
-                case 'Clear Data':
-                  // Handle Clear Data action
-                  if (shoppingdProvider.geIsShoppingtEnabled) {
-                    dbHelper.deleteAllShoppingItems();
-
-                    // _fetchTodos();
-                  } else {
-                    dbHelper.deleteAllTodoExceptShoppingItems();
-
-                    // _fetchTodos();
-                  }
-
-                  break;
-                case 'Clear Selected':
-                  // Handle Clear Selected action
-                  _todos.removeWhere((todo) => todo.isDone);
-
-                  dbHelper.deleteDoneTodos();
-
-                  // _fetchTodos();
-                  break;
-              }
-            },
-          ),
-          onPressed: () {},
-        ),
+            icon: const Icon(IconlyLight.setting))
       ];
     }
   }
@@ -775,5 +788,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
         });
       }
     }
+  }
+
+  void _getBudgetValue() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      budgetLimit = prefs.getDouble(
+            'budgetValue',
+          ) ??
+          0;
+    });
   }
 }

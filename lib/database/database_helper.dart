@@ -16,7 +16,6 @@ class DatabaseHelper {
   static const columnQuantity = 'quantity';
   static const columnProductPrice = 'productPrice';
   static const columnpTotalProductPrice = 'totalProductPrice';
-  static const columnTotalPrice = 'totalPrice';
 
   static Database? _database;
 
@@ -50,8 +49,7 @@ class DatabaseHelper {
         $columnIsShopping INTEGER NOT NULL,
         $columnQuantity INTEGER NOT NULL,
         $columnProductPrice REAL NOT NULL,
-        $columnpTotalProductPrice REAL NOT NULL,
-        $columnTotalPrice REAL NOT NULL
+        $columnpTotalProductPrice REAL NOT NULL
       )
     ''');
   }

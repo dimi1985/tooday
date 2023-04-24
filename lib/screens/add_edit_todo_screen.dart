@@ -9,6 +9,7 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
+import 'package:tooday/widgets/custom_page_route.dart';
 import 'package:tooday/widgets/shopping_enabled_provider.dart';
 
 import '../widgets/theme_provider.dart';
@@ -71,6 +72,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     _focusNodeDescription.dispose();
   }
 
+  double calculateTotalProductPrice() {
+    return modalQuantity * productPrice;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -87,10 +92,13 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         }
 
         if (numDone == 1) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => TodoListScreen()),
-            (Route<dynamic> route) => false,
+          Navigator.of(context).pushAndRemoveUntil(
+            CustomPageRoute(
+              child: TodoListScreen(),
+              forwardAnimation: false,
+              duration: Duration(milliseconds: 500),
+            ),
+            (route) => false, // Remove all previous routes
           );
         } else {
           await widget.fetchFunction();
@@ -251,7 +259,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               widget.todo.productPrice,
                                           totalProductPrice:
                                               widget.todo.totalProductPrice,
-                                          totalPrice: widget.todo.totalPrice,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -298,14 +305,13 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                         ),
                                         onChanged: (value) {
                                           setState(() {
-                                            modalQuantity = value.isEmpty
-                                                ? int.parse(widget.todo.quantity
-                                                    .toString())
-                                                : int.parse(value);
+                                            modalQuantity =
+                                                int.tryParse(value) ??
+                                                    widget.todo.quantity;
+                                            productPrice =
+                                                widget.todo.productPrice;
                                             totalProductPrice =
-                                                widget.todo.quantity *
-                                                    productPrice;
-
+                                                calculateTotalProductPrice();
                                             final newTodo = Todo(
                                               id: widget.todo.id,
                                               title: widget.todo.title,
@@ -318,8 +324,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               productPrice: productPrice,
                                               totalProductPrice:
                                                   totalProductPrice,
-                                              totalPrice:
-                                                  widget.todo.totalPrice,
                                             );
 
                                             dbHelper.update(newTodo);
@@ -356,6 +360,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       height: 50,
                                       width: 70,
                                       child: TextFormField(
+                                        controller: priceController,
                                         textInputAction: TextInputAction.done,
                                         keyboardType:
                                             TextInputType.numberWithOptions(
@@ -367,14 +372,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                         ),
                                         onChanged: (value) {
                                           setState(() {
-                                            productPrice = value.isEmpty
-                                                ? widget.todo.productPrice
-                                                : double.tryParse(
-                                                        value.replaceAll(
-                                                            ',', '.')) ??
-                                                    widget.todo.productPrice;
+                                            productPrice = double.tryParse(value
+                                                    .replaceAll(',', '.')) ??
+                                                widget.todo.productPrice;
                                             totalProductPrice =
-                                                modalQuantity * productPrice;
+                                                calculateTotalProductPrice();
 
                                             final newTodo = Todo(
                                               id: widget.todo.id,
@@ -388,7 +390,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               productPrice: productPrice,
                                               totalProductPrice:
                                                   totalProductPrice,
-                                              totalPrice: 0.0,
                                             );
 
                                             dbHelper.update(newTodo);
@@ -545,7 +546,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         quantity: shoppingdProvider.geIsShoppingtEnabled ? 1 : 0,
         productPrice: widget.todo.productPrice,
         totalProductPrice: widget.todo.totalProductPrice,
-        totalPrice: widget.todo.totalPrice,
       );
 
       final dbHelper = DatabaseHelper();

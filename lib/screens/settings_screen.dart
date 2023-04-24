@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
+import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/main.dart';
+import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/about_screen.dart';
+import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
@@ -14,8 +17,13 @@ import 'package:tooday/widgets/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 
+import '../widgets/custom_page_route.dart';
+
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final int itemsChecked;
+  final List<Todo> listTodos;
+  const SettingsPage(
+      {super.key, required this.itemsChecked, required this.listTodos});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -39,8 +47,6 @@ class _SettingsPageState extends State<SettingsPage> {
     TodoApp.setLocale(context, language.locale);
   }
 
-  bool stayOnAddTodoScreen = false;
-  bool showCheckedItems = true;
   @override
   void initState() {
     super.initState();
@@ -60,7 +66,24 @@ class _SettingsPageState extends State<SettingsPage> {
         TodoApp.setLocale(context, locale);
       }
     });
+
+    _getBudgetValue();
   }
+
+  @override
+  void dispose() {
+    _budgetLimitController.dispose();
+    super.dispose();
+  }
+
+  DatabaseHelper dbHelper = DatabaseHelper();
+  late bool isForDataManagement = false;
+  bool stayOnAddTodoScreen = false;
+  bool isDataErased = false;
+  bool isCheckedItemsErased = false;
+  final _budgetLimitController = TextEditingController();
+  double budgetLimit = 0.0;
+  bool budgetLimitEntered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -68,360 +91,530 @@ class _SettingsPageState extends State<SettingsPage> {
     final stayProvider = Provider.of<StayOnPageProvider>(context);
     final checkedProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
-    return Scaffold(
-      backgroundColor: themeProvider.isDarkThemeEnabled
-          ? Color.fromARGB(255, 37, 37, 37)
-          : Theme.of(context).colorScheme.onPrimary,
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
-        ),
-        elevation: 0,
+    return WillPopScope(
+      onWillPop: () {
+        if (isForDataManagement || budgetLimitEntered) {
+          Navigator.of(context).pushAndRemoveUntil(
+            CustomPageRoute(
+              child: TodoListScreen(),
+              forwardAnimation: false,
+              duration: Duration(milliseconds: 500),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+        }
+        return Future.value(true);
+      },
+      child: Scaffold(
         backgroundColor: themeProvider.isDarkThemeEnabled
-            ? const Color.fromARGB(255, 37, 37, 37)
-            : Colors.white, // Change app bar color here
+            ? Color.fromARGB(255, 37, 37, 37)
+            : Theme.of(context).colorScheme.onPrimary,
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            color:
+                themeProvider.isDarkThemeEnabled ? Colors.white : Colors.black,
+          ),
+          elevation: 0,
+          backgroundColor: themeProvider.isDarkThemeEnabled
+              ? const Color.fromARGB(255, 37, 37, 37)
+              : Colors.white, // Change app bar color here
 
-        title: Text(
-          AppLocalizations.of(context).translate('Settings'),
-          style: TextStyle(
-              color: themeProvider.isDarkThemeEnabled
-                  ? Colors.white
-                  : Colors.black),
+          title: Text(
+            AppLocalizations.of(context).translate('Settings'),
+            style: TextStyle(
+                color: themeProvider.isDarkThemeEnabled
+                    ? Colors.white
+                    : Colors.black),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    AppLocalizations.of(context).translate('Theme'),
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(children: [
-                    const Icon(Icons.dark_mode),
-                    const SizedBox(
-                      width: 5,
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      AppLocalizations.of(context).translate('Theme'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    Text(AppLocalizations.of(context).translate('Dark Theme'))
-                  ]),
-                  trailing: Switch(
-                    value: themeProvider.isDarkThemeEnabled,
-                    onChanged: (value) {
-                      themeProvider.isDarkThemeEnabled = value;
-                    },
                   ),
                 ),
-              ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    AppLocalizations.of(context).translate('Language'),
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(children: [
-                    const Icon(IconlyBold.discovery),
-                    const SizedBox(
-                      width: 10,
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Row(children: [
+                      const Icon(Icons.dark_mode),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Text(AppLocalizations.of(context).translate('Dark Theme'))
+                    ]),
+                    trailing: Switch(
+                      value: themeProvider.isDarkThemeEnabled,
+                      onChanged: (value) {
+                        themeProvider.isDarkThemeEnabled = value;
+                      },
                     ),
-                    Text(
-                      AppLocalizations.of(context)
-                          .translate('Language Selection'),
+                  ),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      AppLocalizations.of(context).translate('Language'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    const Spacer(),
-                    DropdownButton<Language>(
-                      value: _selectedLanguage,
-                      onChanged: _onLanguageSelected,
-                      hint: Text(
-                          AppLocalizations.of(context).translate('Select')),
-                      items: supportedLanguages.map((language) {
-                        return DropdownMenuItem<Language>(
-                          value: language,
-                          child: Text(language.name),
-                        );
-                      }).toList(),
-                    ),
-                  ]),
-                ),
-              ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    AppLocalizations.of(context).translate('General'),
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text(
-                            AppLocalizations.of(context).translate(
-                              'Stay on add todo screen when adding ?',
-                            ),
-                            maxLines: 3,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(10.0),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: stayProvider.isStayOnPAgeEnabled
-                                          ? Colors.blueAccent
-                                          : Colors.grey),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10)),
-                                ),
-                                child: Text(
-                                  stayProvider.isStayOnPAgeEnabled
-                                      ? AppLocalizations.of(context).translate(
-                                          'Enabled',
-                                        )
-                                      : AppLocalizations.of(context).translate(
-                                          'Disabled',
-                                        ),
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    color: stayProvider.isStayOnPAgeEnabled
-                                        ? themeProvider.isDarkThemeEnabled
-                                            ? Colors.white
-                                            : Colors.black
-                                        : Color.fromARGB(255, 207, 207, 207),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Switch(
-                        value: stayProvider.isStayOnPAgeEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            stayProvider.isStayOnEnabled = value;
-                            saveStayValue(value);
-                          });
-                        },
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text(
-                            AppLocalizations.of(context).translate(
-                              'Select to filter between Checked or Unckecked Items',
-                            ),
-                            maxLines: 3,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(10.0),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: checkedProvider.showCheckedItems
-                                          ? Colors.greenAccent
-                                          : Colors.grey),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10)),
-                                ),
-                                child: Text(
-                                  checkedProvider.showCheckedItems
-                                      ? AppLocalizations.of(context).translate(
-                                          'Show Checked Items',
-                                        )
-                                      : AppLocalizations.of(context).translate(
-                                          'Show UnChecked Items',
-                                        ),
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    color: checkedProvider.showCheckedItems
-                                        ? themeProvider.isDarkThemeEnabled
-                                            ? Colors.white
-                                            : Colors.black
-                                        : Color.fromARGB(255, 207, 207, 207),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Switch(
-                        value: checkedProvider.isShowGetCheckedItems,
-                        onChanged: (value) {
-                          setState(() {
-                            checkedProvider.showCheckedItems = value;
-                          });
-                          _saveCheckedItems(value);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text(
-                            AppLocalizations.of(context).translate(
-                              'Enable Shopping List? (Beta)',
-                            ),
-                            maxLines: 3,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(10.0),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      color: shoppingdProvider.isSoppingEnabled
-                                          ? Colors.greenAccent
-                                          : Colors.grey),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(10)),
-                                ),
-                                child: Text(
-                                  shoppingdProvider.isSoppingEnabled
-                                      ? AppLocalizations.of(context).translate(
-                                          'Shopping is Enabled',
-                                        )
-                                      : AppLocalizations.of(context).translate(
-                                          'Disabled : Normal Todo List activated',
-                                        ),
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    color: shoppingdProvider.isSoppingEnabled
-                                        ? themeProvider.isDarkThemeEnabled
-                                            ? Colors.white
-                                            : Colors.black
-                                        : Color.fromARGB(255, 207, 207, 207),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Switch(
-                        value: shoppingdProvider.geIsShoppingtEnabled,
-                        onChanged: (value) async {
-                          setState(() {
-                            shoppingdProvider.isSoppingEnabled = value;
-                          });
-                          _saveShoppingValue(value);
-
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title:
-                                    Text(AppLocalizations.of(context).translate(
-                                  'Restart App',
-                                )),
-                                content:
-                                    Text(AppLocalizations.of(context).translate(
-                                  'You need to restart the app for changes to take effect.',
-                                )),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      restartApp(context);
-                                    },
-                                    child: Text(
-                                        AppLocalizations.of(context).translate(
-                                      'OK',
-                                    )),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      const Icon(IconlyBold.notification),
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Row(children: [
+                      const Icon(IconlyBold.discovery),
                       const SizedBox(
                         width: 10,
                       ),
                       Text(
-                        AppLocalizations.of(context).translate('About'),
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        AppLocalizations.of(context)
+                            .translate('Language Selection'),
                       ),
-                    ],
+                      const Spacer(),
+                      DropdownButton<Language>(
+                        value: _selectedLanguage,
+                        onChanged: _onLanguageSelected,
+                        hint: Text(
+                            AppLocalizations.of(context).translate('Select')),
+                        items: supportedLanguages.map((language) {
+                          return DropdownMenuItem<Language>(
+                            value: language,
+                            child: Text(language.name),
+                          );
+                        }).toList(),
+                      ),
+                    ]),
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AboutPage()),
-                    );
-                  },
                 ),
-              ),
-            ],
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      AppLocalizations.of(context).translate('General'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: Text(
+                              AppLocalizations.of(context).translate(
+                                'Stay on add todo screen when adding ?',
+                              ),
+                              maxLines: 3,
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(10.0),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: stayProvider.isStayOnPAgeEnabled
+                                            ? Colors.blueAccent
+                                            : Colors.grey),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  child: Text(
+                                    stayProvider.isStayOnPAgeEnabled
+                                        ? AppLocalizations.of(context)
+                                            .translate(
+                                            'Enabled',
+                                          )
+                                        : AppLocalizations.of(context)
+                                            .translate(
+                                            'Disabled',
+                                          ),
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                      color: stayProvider.isStayOnPAgeEnabled
+                                          ? themeProvider.isDarkThemeEnabled
+                                              ? Colors.white
+                                              : Colors.black
+                                          : Color.fromARGB(255, 207, 207, 207),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Switch(
+                          value: stayProvider.isStayOnPAgeEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              stayProvider.isStayOnEnabled = value;
+                              saveStayValue(value);
+                            });
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      AppLocalizations.of(context).translate('Data Settings'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                title: Text(
+                                  AppLocalizations.of(context).translate(
+                                    'Select to filter between Checked or Unckecked Items',
+                                  ),
+                                  maxLines: 3,
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(10.0),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color:
+                                                checkedProvider.showCheckedItems
+                                                    ? Colors.greenAccent
+                                                    : Colors.grey),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                      ),
+                                      child: Text(
+                                        checkedProvider.showCheckedItems
+                                            ? AppLocalizations.of(context)
+                                                .translate(
+                                                'Show Checked Items',
+                                              )
+                                            : AppLocalizations.of(context)
+                                                .translate(
+                                                'Show UnChecked Items',
+                                              ),
+                                        maxLines: 2,
+                                        style: TextStyle(
+                                          color: checkedProvider
+                                                  .showCheckedItems
+                                              ? themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black
+                                              : Color.fromARGB(
+                                                  255, 207, 207, 207),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: checkedProvider.isShowGetCheckedItems,
+                              onChanged: (value) {
+                                setState(() {
+                                  checkedProvider.showCheckedItems = value;
+                                });
+                                _saveCheckedItems(value);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Column(
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 1.5,
+                              child: MaterialButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                color: Colors.red,
+                                onPressed: () {
+                                  setState(() {
+                                    isForDataManagement = true;
+                                    isDataErased = false;
+                                  });
+                                  if (shoppingdProvider.geIsShoppingtEnabled) {
+                                    dbHelper.deleteAllShoppingItems();
+                                    setState(() {
+                                      isDataErased = true;
+                                    });
+                                  } else {
+                                    dbHelper.deleteAllTodoExceptShoppingItems();
+                                    setState(() {
+                                      isDataErased = true;
+                                    });
+                                  }
+                                },
+                                child: Text(
+                                  isDataErased
+                                      ? AppLocalizations.of(context)
+                                          .translate('Data  Cleared')
+                                      : AppLocalizations.of(context)
+                                          .translate('Clear Data'),
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 1.5,
+                              child: MaterialButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                color: Colors.red,
+                                onPressed: () {
+                                  // Handle Clear Selected action
+
+                                  setState(() {
+                                    isForDataManagement = true;
+                                    isCheckedItemsErased = false;
+                                  });
+
+                                  widget.listTodos
+                                      .removeWhere((todo) => todo.isDone);
+
+                                  dbHelper.deleteDoneTodos();
+                                  setState(() {
+                                    isCheckedItemsErased = true;
+                                  });
+                                },
+                                child: Text(
+                                  isCheckedItemsErased
+                                      ? 'Checked Items Cleared'
+                                      : 'Clear Checked Items: (${widget.itemsChecked})',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ListTile(
+                                title: Text(
+                                  AppLocalizations.of(context).translate(
+                                    'Enable Shopping List? (Beta)',
+                                  ),
+                                  maxLines: 3,
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(10.0),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: shoppingdProvider
+                                                    .isSoppingEnabled
+                                                ? Colors.greenAccent
+                                                : Colors.grey),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)),
+                                      ),
+                                      child: Text(
+                                        shoppingdProvider.isSoppingEnabled
+                                            ? AppLocalizations.of(context)
+                                                .translate(
+                                                'Shopping is Enabled',
+                                              )
+                                            : AppLocalizations.of(context)
+                                                .translate(
+                                                'Disabled : Normal Todo List activated',
+                                              ),
+                                        maxLines: 2,
+                                        style: TextStyle(
+                                          color: shoppingdProvider
+                                                  .isSoppingEnabled
+                                              ? themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black
+                                              : Color.fromARGB(
+                                                  255, 207, 207, 207),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: shoppingdProvider.geIsShoppingtEnabled,
+                              onChanged: (value) async {
+                                setState(() {
+                                  shoppingdProvider.isSoppingEnabled = value;
+                                });
+                                _saveShoppingValue(value);
+
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(AppLocalizations.of(context)
+                                          .translate(
+                                        'Restart App',
+                                      )),
+                                      content: Text(AppLocalizations.of(context)
+                                          .translate(
+                                        'You need to restart the app for changes to take effect.',
+                                      )),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            restartApp(context);
+                                          },
+                                          child: Text(
+                                              AppLocalizations.of(context)
+                                                  .translate(
+                                            'OK',
+                                          )),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        shoppingdProvider.geIsShoppingtEnabled
+                            ? Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context).translate(
+                                        'Budget Limit',
+                                      ),
+                                      style: TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 2.0),
+                                    Text(
+                                      AppLocalizations.of(context).translate(
+                                        'Ηint: 0 equal to unlimit',
+                                      ),
+                                      style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    SizedBox(height: 8.0),
+                                    TextField(
+                                      controller: _budgetLimitController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        hintText: budgetLimit == 0.0
+                                            ? AppLocalizations.of(context)
+                                                .translate(
+                                                'Enter your budget limit',
+                                              )
+                                            : budgetLimit.toStringAsFixed(2),
+                                      ),
+                                      onChanged: (value) {
+                                        double parsedValue =
+                                            double.parse(value);
+                                        _saveBudgetValue(parsedValue);
+                                        setState(() {
+                                          budgetLimitEntered = true;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Container(),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        const Icon(IconlyBold.notification),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          AppLocalizations.of(context).translate('About'),
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AboutPage()),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -445,5 +638,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void restartApp(BuildContext ctx) {
     Phoenix.rebirth(ctx);
+  }
+
+  bool returnTrue() {
+    return true;
+  }
+
+  void _saveBudgetValue(double value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('budgetValue', value);
+  }
+
+  void _getBudgetValue() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      budgetLimit = prefs.getDouble(
+            'budgetValue',
+          ) ??
+          0;
+    });
   }
 }

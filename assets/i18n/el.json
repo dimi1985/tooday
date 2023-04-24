@@ -3,6 +3,7 @@
   "shopping_title": "Tooday\nΛίστα αγορών",
     "Settings": "Ρυμίσεις",
     "Clear Data": "Απαλοιφή Δεδομ.",
+    "Data  Cleared": "Τα δεδομένα εκκαθαρίστηκαν",
     "text_edit_title": "Τίτλος",
     "Please enter a title": "Εισαγάγετε έναν τίτλο",
     "Theme": "Θέμα",
@@ -60,7 +61,11 @@
     "Put in Cart": "Μπήκε στο καλάθι",
     "Already Exists": "Υπάρχει ήδη",
     "Price": "Τιμή",
-    "Quantity": "Ποσότητα"
+    "Quantity": "Ποσότητα",
+    "Data Settings": "Ρυθμίσεις δεδομένων",
+    "Budget Limit": "Όριο προϋπολογισμού",
+    "Enter your budget limit": "Όριο προϋπολογισμού",
+    "Ηint: 0 equal to unlimit": "Υπόδειξη: 0 ίσο με απεριόριστο"
 
   }
   
