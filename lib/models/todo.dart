@@ -7,6 +7,9 @@ class Todo {
   int quantity;
   double productPrice;
   double totalProductPrice;
+  String entryDate;
+  String dueDate;
+  final int priority;
 
   Todo({
     this.id,
@@ -17,6 +20,9 @@ class Todo {
     required this.quantity,
     required this.productPrice,
     required this.totalProductPrice,
+    required this.entryDate,
+    required this.dueDate,
+    required this.priority,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +35,9 @@ class Todo {
       'quantity': quantity,
       'productPrice': productPrice,
       'totalProductPrice': totalProductPrice,
+      'entryDate': entryDate,
+      'dueDate': dueDate,
+      'priority': priority,
     };
   }
 
@@ -42,6 +51,9 @@ class Todo {
       quantity: map['quantity'],
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
+      entryDate: map['entryDate'],
+      dueDate: map['dueDate'],
+      priority: map['priority'],
     );
   }
 }

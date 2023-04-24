@@ -65,7 +65,14 @@
     "Data Settings": "Data Settings",
     "Budget Limit": "Budget Limit",
     "Enter your budget limit": "Enter your budget limit",
-    "Ηint: 0 equal to unlimit": "Ηint: 0 equal to unlimit"
+    "Ηint: 0 equal to unlimit": "Ηint: 0 equal to unlimit",
+    "Low": "Low",
+    "Medium": "Medium",
+    "High": "High",
+    "Priority": "Priority",
+    "Date": "Date",
+    "Due date": "Due date"
+    
     
     
      

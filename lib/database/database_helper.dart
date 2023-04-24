@@ -16,6 +16,9 @@ class DatabaseHelper {
   static const columnQuantity = 'quantity';
   static const columnProductPrice = 'productPrice';
   static const columnpTotalProductPrice = 'totalProductPrice';
+  static const columnEntryDate = 'entryDate';
+  static const columnDueDate = 'dueDate';
+  static const columnPriority = 'priority';
 
   static Database? _database;
 
@@ -49,7 +52,10 @@ class DatabaseHelper {
         $columnIsShopping INTEGER NOT NULL,
         $columnQuantity INTEGER NOT NULL,
         $columnProductPrice REAL NOT NULL,
-        $columnpTotalProductPrice REAL NOT NULL
+        $columnpTotalProductPrice REAL NOT NULL,
+        $columnEntryDate TEXT NOT NULL,
+        $columnDueDate TEXT NOT NULL,
+        $columnPriority INTEGER NOT NULL
       )
     ''');
   }

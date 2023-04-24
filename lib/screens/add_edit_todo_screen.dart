@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
@@ -48,19 +49,45 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController quantityController = TextEditingController();
   TextEditingController priceController = TextEditingController();
+  TextEditingController dueDateController = TextEditingController();
+  TextEditingController priorityController = TextEditingController();
   double totalPrice = 0.0;
   int modalQuantity = 1;
   double productPrice = 0.0;
   double totalProductPrice = 0.0;
   final dbHelper = DatabaseHelper();
+  late DateTime parsedDate = DateTime.now();
+  late String stringDate = formatDate(parsedDate);
+  int _selectedPriority = 0;
+  late List<DropdownMenuItem<int>> priorityItem = [];
+
   @override
   void initState() {
     super.initState();
     titleController.text = widget.todo.title;
     descriptionController.text = widget.todo.description;
     _isDone = widget.todo.isDone;
-
+    parsedDate = DateTime.parse(widget.todo.dueDate);
     getStayOnScreenBool();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    priorityItem = [
+      DropdownMenuItem(
+        value: 0,
+        child: Text(AppLocalizations.of(context).translate('Low')),
+      ),
+      DropdownMenuItem(
+        value: 1,
+        child: Text(AppLocalizations.of(context).translate('Medium')),
+      ),
+      DropdownMenuItem(
+        value: 2,
+        child: Text(AppLocalizations.of(context).translate('High')),
+      ),
+    ];
   }
 
   @override
@@ -68,12 +95,20 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     super.dispose();
     titleController.clear();
     descriptionController.clear();
+    dueDateController.clear();
+    priorityController.clear();
     _focusNodeTitle.dispose();
     _focusNodeDescription.dispose();
   }
 
   double calculateTotalProductPrice() {
     return modalQuantity * productPrice;
+  }
+
+  String formatDate(DateTime dateTime) {
+    final DateFormat formatter = DateFormat('MMMM d, yyyy');
+    final String formatted = formatter.format(dateTime);
+    return formatted;
   }
 
   @override
@@ -217,17 +252,19 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           ),
                         ),
                         SizedBox(height: 8),
-                        Text(
-                          widget.todo.description.isEmpty
-                              ? AppLocalizations.of(context).translate(
-                                  'No Description',
-                                )
-                              : widget.todo.description,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
+                        shoppingdProvider.geIsShoppingtEnabled
+                            ? Text(
+                                widget.todo.description.isEmpty
+                                    ? AppLocalizations.of(context).translate(
+                                        'No Description',
+                                      )
+                                    : widget.todo.description,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              )
+                            : Container(),
                         SizedBox(height: 32),
                         widget.todo.id == null
                             ? Container()
@@ -259,6 +296,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               widget.todo.productPrice,
                                           totalProductPrice:
                                               widget.todo.totalProductPrice,
+                                          entryDate: widget.todo.entryDate,
+                                          dueDate: widget.todo.dueDate,
+                                          priority: widget.todo.priority,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -277,136 +317,150 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           color: Colors.grey[300],
                         ),
                         SizedBox(height: 16),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                shoppingdProvider.geIsShoppingtEnabled
-                                    ? 'Quantity'
-                                    : 'Date',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
                               shoppingdProvider.geIsShoppingtEnabled
-                                  ? SizedBox(
-                                      height: 50,
-                                      width: 70,
-                                      child: TextFormField(
-                                        controller: quantityController,
-                                        textInputAction: TextInputAction.done,
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          labelText:
-                                              widget.todo.quantity.toString(),
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            modalQuantity =
-                                                int.tryParse(value) ??
-                                                    widget.todo.quantity;
-                                            productPrice =
-                                                widget.todo.productPrice;
-                                            totalProductPrice =
-                                                calculateTotalProductPrice();
-                                            final newTodo = Todo(
-                                              id: widget.todo.id,
-                                              title: widget.todo.title,
-                                              isDone: true,
-                                              description:
-                                                  widget.todo.description,
-                                              isShopping:
-                                                  widget.todo.isShopping,
-                                              quantity: modalQuantity,
-                                              productPrice: productPrice,
-                                              totalProductPrice:
-                                                  totalProductPrice,
-                                            );
+                                  ? AppLocalizations.of(context)
+                                      .translate('Quantity')
+                                  : AppLocalizations.of(context)
+                                      .translate('Date'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? SizedBox(
+                                    height: 50,
+                                    width: 70,
+                                    child: TextFormField(
+                                      controller: quantityController,
+                                      textInputAction: TextInputAction.done,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            widget.todo.quantity.toString(),
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          modalQuantity = int.tryParse(value) ??
+                                              widget.todo.quantity;
+                                          productPrice =
+                                              widget.todo.productPrice;
+                                          totalProductPrice =
+                                              calculateTotalProductPrice();
+                                          final newTodo = Todo(
+                                            id: widget.todo.id,
+                                            title: widget.todo.title,
+                                            isDone: true,
+                                            description:
+                                                widget.todo.description,
+                                            isShopping: widget.todo.isShopping,
+                                            quantity: modalQuantity,
+                                            productPrice: productPrice,
+                                            totalProductPrice:
+                                                totalProductPrice,
+                                            entryDate: widget.todo.entryDate,
+                                            dueDate: widget.todo.dueDate,
+                                            priority: widget.todo.priority,
+                                          );
 
-                                            dbHelper.update(newTodo);
-                                          });
-                                        },
-                                      ),
-                                    )
-                                  : Text(
-                                      'Date',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
+                                          dbHelper.update(newTodo);
+                                        });
+                                      },
                                     ),
-                            ],
-                          ),
+                                  )
+                                : Text(
+                                    stringDate,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                          ],
                         ),
                         SizedBox(height: 8),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                shoppingdProvider.geIsShoppingtEnabled
-                                    ? 'Price'
-                                    : 'Priority',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
                               shoppingdProvider.geIsShoppingtEnabled
-                                  ? SizedBox(
-                                      height: 50,
-                                      width: 70,
-                                      child: TextFormField(
-                                        controller: priceController,
-                                        textInputAction: TextInputAction.done,
-                                        keyboardType:
-                                            TextInputType.numberWithOptions(
-                                                decimal: true),
-                                        decoration: InputDecoration(
-                                          labelText: widget.todo.productPrice
-                                              .toString(),
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            productPrice = double.tryParse(value
-                                                    .replaceAll(',', '.')) ??
-                                                widget.todo.productPrice;
-                                            totalProductPrice =
-                                                calculateTotalProductPrice();
-
-                                            final newTodo = Todo(
-                                              id: widget.todo.id,
-                                              title: widget.todo.title,
-                                              isDone: true,
-                                              description:
-                                                  widget.todo.description,
-                                              isShopping:
-                                                  widget.todo.isShopping,
-                                              quantity: modalQuantity,
-                                              productPrice: productPrice,
-                                              totalProductPrice:
-                                                  totalProductPrice,
-                                            );
-
-                                            dbHelper.update(newTodo);
-                                            widget.fetchFunction();
-                                          });
-                                        },
+                                  ? AppLocalizations.of(context)
+                                      .translate('Price')
+                                  : AppLocalizations.of(context)
+                                      .translate('Priority'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? SizedBox(
+                                    height: 50,
+                                    width: 70,
+                                    child: TextFormField(
+                                      controller: priceController,
+                                      textInputAction: TextInputAction.done,
+                                      keyboardType:
+                                          TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            widget.todo.productPrice.toString(),
+                                        border: OutlineInputBorder(),
                                       ),
-                                    )
-                                  : Text(
-                                      'Priority',
+                                      onChanged: (value) {
+                                        setState(() {
+                                          productPrice = double.tryParse(
+                                                  value.replaceAll(',', '.')) ??
+                                              widget.todo.productPrice;
+                                          totalProductPrice =
+                                              calculateTotalProductPrice();
+
+                                          final newTodo = Todo(
+                                            id: widget.todo.id,
+                                            title: widget.todo.title,
+                                            isDone: true,
+                                            description:
+                                                widget.todo.description,
+                                            isShopping: widget.todo.isShopping,
+                                            quantity: modalQuantity,
+                                            productPrice: productPrice,
+                                            totalProductPrice:
+                                                totalProductPrice,
+                                            entryDate: widget.todo.entryDate,
+                                            dueDate: widget.todo.dueDate,
+                                            priority: widget.todo.priority,
+                                          );
+
+                                          dbHelper.update(newTodo);
+                                          widget.fetchFunction();
+                                        });
+                                      },
+                                    ),
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: widget.todo.isDone
+                                          ? Colors.grey
+                                          : getPriorityColor(
+                                              widget.todo.priority),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    child: Text(
+                                      priorityToString(widget.todo.priority),
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.grey[600],
+                                        color: Colors.white,
                                       ),
                                     ),
-                            ],
-                          ),
+                                  ),
+                          ],
                         ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
                           SizedBox(
@@ -426,6 +480,43 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                               ),
                             ),
                           ),
+                        if (!shoppingdProvider.geIsShoppingtEnabled)
+                          SizedBox(
+                            height: 25,
+                          ),
+                        !shoppingdProvider.geIsShoppingtEnabled
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)
+                                        .translate('text_edit_description'),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 25,
+                                  ),
+                                  Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Text(
+                                      widget.todo.description.isEmpty
+                                          ? AppLocalizations.of(context)
+                                              .translate(
+                                              'No Description',
+                                            )
+                                          : widget.todo.description,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              )
+                            : Container()
                       ],
                     ),
                   ))
@@ -501,6 +592,64 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             descriptionController.text = value!;
                           },
                         ),
+                        if (!shoppingdProvider.geIsShoppingtEnabled)
+                          const SizedBox(height: 24.0),
+                        if (!shoppingdProvider.geIsShoppingtEnabled)
+                          TextFormField(
+                            controller: dueDateController,
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(context)
+                                  .translate('Due date'),
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              border: const OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color.fromARGB(255, 146, 171, 192),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.blueGrey),
+                              ),
+                            ),
+                            onTap: () async {
+                              DateTime? selectedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime(DateTime.now().year + 10),
+                              );
+                              if (selectedDate != null) {
+                                setState(() {
+                                  dueDateController.text =
+                                      DateFormat('yyyy-MM-dd')
+                                          .format(selectedDate);
+                                });
+                              } else {
+                                // add this else block
+                                setState(() {
+                                  dueDateController.text = '2022-01-01';
+                                });
+                              }
+                            },
+                          ),
+                        if (!shoppingdProvider.geIsShoppingtEnabled)
+                          const SizedBox(height: 24.0),
+                        if (!shoppingdProvider.geIsShoppingtEnabled)
+                          DropdownButtonFormField<int>(
+                            value: _selectedPriority,
+                            decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context)
+                                    .translate('Priority')),
+                            items: priorityItem,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedPriority = value!;
+                              });
+                            },
+                            onSaved: (value) {
+                              _selectedPriority = value!;
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -537,6 +686,13 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+      DateTime now = DateTime.now();
+      DateFormat format = DateFormat("yyyy-MM-dd");
+      DateTime selectedDate = format.parse(
+          shoppingdProvider.geIsShoppingtEnabled
+              ? '2022-01-01'
+              : dueDateController.text.trim());
+
       final todo = Todo(
         id: widget.todo.id,
         title: titleController.text.trim(),
@@ -546,6 +702,14 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         quantity: shoppingdProvider.geIsShoppingtEnabled ? 1 : 0,
         productPrice: widget.todo.productPrice,
         totalProductPrice: widget.todo.totalProductPrice,
+        entryDate: shoppingdProvider.geIsShoppingtEnabled
+            ? '2022-01-01'
+            : now.toIso8601String(),
+        dueDate: shoppingdProvider.geIsShoppingtEnabled
+            ? '2022-01-01'
+            : selectedDate.toIso8601String(),
+        priority:
+            shoppingdProvider.geIsShoppingtEnabled ? 0 : _selectedPriority,
       );
 
       final dbHelper = DatabaseHelper();
@@ -642,5 +806,29 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         content: Text(AppLocalizations.of(context).translate('Already Exists')),
       ),
     );
+  }
+
+  String priorityToString(int priority) {
+    switch (priority) {
+      case 0:
+        return 'Low';
+      case 1:
+        return 'Medium';
+      case 2:
+        return 'High';
+      default:
+        return '';
+    }
+  }
+
+  getPriorityColor(int priority) {
+    switch (priority) {
+      case 2:
+        return Colors.red;
+      case 1:
+        return Colors.yellow;
+      case 0:
+        return Colors.green;
+    }
   }
 }
