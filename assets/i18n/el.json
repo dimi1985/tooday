@@ -46,9 +46,9 @@
     "Select": "Επιλέξτε",
     "Show Checked Items": "Εμφάνιση ελεγμένων αντικειμένων",
     "Show UnChecked Items": "Εμφάνιση μη επιλεγμένων στοιχείων",
-    "Enable Shopping List? (Beta)": "Ενεργοποίηση λίστας αγορών;(Beta)",
+    "Enable Shopping List": "Ενεργοποίηση λίστας αγορών",
     "Shopping is Enabled": "Η Λίστα αγορών είναι ενεργοποιημένη",
-    "Disabled : Normal Todo List activated": "Απενεργοποιημένο: Ενεργοποιήθηκε η κανονική λίστα εργασιών",
+    "Normal Todo List activated": "Ενεργοποιήθηκε η κανονική λίστα εργασιών",
     "text_edit_title_shopping": "Προϊόν για αγορά",
     "Please enter a product": "Εισαγάγετε ένα προϊόν",
     "Add Shopping Item": "Προσθήκη αντικειμένου αγορών",
@@ -71,7 +71,12 @@
     "High": "Υψηλή",
     "Priority": "Προτεραιότητα",
     "Date": "Ημερομηνία",
-    "Due date": "Ημερομηνία λήξης"
+    "Due date": "Ημερομηνία λήξης",
+    "No Date": "Χωρίς ημερομηνία",
+    "Greek": "Ελληνικά",
+    "English": "Αγγλικά",
+    "Remaining:": "Παραμένουν:",
+    "You are above by:": "Έχετε ξεπεραστεί κατα:"
 
   }
   

@@ -44,6 +44,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   bool isForEdit = false;
   String textError = '';
   double budgetLimit = 0.0;
+  double progress = 0.0;
+  late Color color;
   @override
   void initState() {
     super.initState();
@@ -52,6 +54,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
     _fetchTodos();
     getAndUpdateTotalPrice(_todos);
     _getBudgetValue();
+    setState(() {
+      if (totalPrice == 0.0) {
+        progress = 0.0;
+      } else {
+        progress = totalPrice / budgetLimit;
+      }
+    });
   }
 
   Future<void> _fetchTodos() async {
@@ -136,11 +145,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           allChecked(_todos)
-                              ? Color.fromARGB(255, 45, 61, 42)
-                              : Color(0xFF2A2E3D),
+                              ? Color.fromARGB(255, 0, 146, 139)
+                              : Color.fromARGB(255, 0, 46, 44),
                           allChecked(_todos)
-                              ? Color.fromARGB(255, 31, 48, 47)
-                              : Color(0xFF1F2230),
+                              ? Color.fromARGB(255, 0, 91, 119)
+                              : Color.fromARGB(255, 0, 91, 119),
                         ],
                       ),
                       borderRadius: BorderRadius.only(
@@ -149,7 +158,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
+                          color: themeProvider.isDarkThemeEnabled
+                              ? Color.fromARGB(255, 34, 31, 36).withOpacity(0.5)
+                              : Color.fromARGB(255, 119, 119, 119)
+                                  .withOpacity(0.5),
                           spreadRadius: 2,
                           blurRadius: 3,
                           offset: Offset(0, 3), // changes position of shadow
@@ -194,9 +206,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   duration: Duration(milliseconds: 500),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20.0),
-                                    color: allChecked(_todos)
-                                        ? Color.fromARGB(255, 0, 146, 85)
-                                        : null,
+                                    color:
+                                        allChecked(_todos) && totalPrice > 0.0
+                                            ? Color.fromARGB(255, 0, 146, 85)
+                                            : null,
                                   ),
                                   padding: EdgeInsets.all(10.0),
                                   child: Text(
@@ -214,56 +227,25 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         ),
                         budgetLimit == 0.0
                             ? Container()
-                            : Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.info_outline_rounded,
-                                        color: Colors.yellowAccent,
-                                      ),
-                                      SizedBox(width: 8.0),
-                                      Text(
-                                        AppLocalizations.of(context)
-                                            .translate('Budget Limit:'),
-                                        style: TextStyle(
-                                          color: Colors.yellowAccent,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.0,
-                                        ),
-                                      ),
-                                    ],
+                            : Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Text(
+                                    AppLocalizations.of(context).translate(
+                                            totalPrice > budgetLimit
+                                                ? 'You are above by:'
+                                                : 'Remaining:') +
+                                        ' ${(totalPrice > budgetLimit ? totalPrice - budgetLimit : budgetLimit - totalPrice).toStringAsFixed(2)}€',
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: budgetLimit > totalPrice
+                                          ? Colors.blue
+                                          : Colors.red,
+                                    ),
                                   ),
-                                  TweenAnimationBuilder<double>(
-                                    duration: Duration(milliseconds: 500),
-                                    tween: Tween<double>(
-                                        begin: totalPrice, end: totalPrice),
-                                    builder: (context, value, child) {
-                                      return AnimatedContainer(
-                                        curve: Curves.bounceIn,
-                                        duration: Duration(milliseconds: 500),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                          color: allChecked(_todos)
-                                              ? Color.fromARGB(255, 0, 146, 85)
-                                              : null,
-                                        ),
-                                        padding: EdgeInsets.all(10.0),
-                                        child: Text(
-                                          '${budgetLimit.toStringAsFixed(2)}€',
-                                          style: TextStyle(
-                                            color: Colors.yellowAccent,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18.0,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  )
-                                ],
+                                ),
                               ),
                       ],
                     ),
@@ -416,45 +398,50 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                       _navigateToEditScreen(context, todo,
                                           _todos, index, isForEdit);
                                     },
-                                    subtitle: shoppingdProvider
-                                            .geIsShoppingtEnabled
-                                        ? todo.totalProductPrice == 0.0
-                                            ? Container()
-                                            : Row(
-                                                children: [
-                                                  todo.isDone
-                                                      ? Container()
-                                                      : Container(
-                                                          width: 20,
-                                                          height: 20,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: Colors.green,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20),
-                                                          ),
-                                                          child: Icon(
-                                                            Icons.shopping_bag,
-                                                            color: Colors.white,
-                                                            size: 12,
-                                                          ),
-                                                        ),
-                                                  SizedBox(width: 5),
-                                                  Text(
-                                                    '\E${todo.totalProductPrice.toStringAsFixed(2)}',
-                                                    style: todo.isDone
-                                                        ? const TextStyle(
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .lineThrough,
-                                                            color: Colors.grey)
-                                                        : null,
-                                                  ),
-                                                ],
-                                              )
-                                        : null,
+                                    subtitle: todo.totalProductPrice == 0
+                                        ? null
+                                        : shoppingdProvider.geIsShoppingtEnabled
+                                            ? todo.totalProductPrice == 0.0
+                                                ? Container()
+                                                : Row(
+                                                    children: [
+                                                      todo.isDone
+                                                          ? Container()
+                                                          : Container(
+                                                              width: 20,
+                                                              height: 20,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: Colors
+                                                                    .green,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                              ),
+                                                              child: Icon(
+                                                                Icons
+                                                                    .shopping_bag,
+                                                                color: Colors
+                                                                    .white,
+                                                                size: 12,
+                                                              ),
+                                                            ),
+                                                      SizedBox(width: 5),
+                                                      Text(
+                                                        '\E${todo.totalProductPrice.toStringAsFixed(2)}',
+                                                        style: todo.isDone
+                                                            ? const TextStyle(
+                                                                decoration:
+                                                                    TextDecoration
+                                                                        .lineThrough,
+                                                                color:
+                                                                    Colors.grey)
+                                                            : null,
+                                                      ),
+                                                    ],
+                                                  )
+                                            : null,
                                   ),
                                 ),
                               ],
@@ -471,30 +458,32 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          allChecked(_todos)
-                              ? Color.fromARGB(255, 53, 70, 116)
-                              : Colors.transparent,
-                          allChecked(_todos)
-                              ? Color.fromARGB(255, 4, 16, 36)
-                              : Colors.transparent,
-                        ],
+                        colors: allChecked(_todos)
+                            ? [
+                                Color.fromARGB(255, 39, 40, 41),
+                                Color.fromARGB(255, 58, 99, 187),
+                              ]
+                            : [Colors.transparent, Colors.transparent],
                       ),
-                      borderRadius: !allChecked(_todos)
-                          ? BorderRadius.zero
-                          : BorderRadius.only(
-                              topLeft: Radius.circular(20.0),
-                              topRight: Radius.circular(20.0),
-                            ),
-                      boxShadow: [
-                        if (allChecked(_todos))
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 2,
-                            blurRadius: 3,
-                            offset: Offset(0, 3), // changes position of shadow
-                          ),
-                      ],
+                      borderRadius: allChecked(_todos)
+                          ? BorderRadius.only(
+                              topLeft: Radius.circular(15.0),
+                              topRight: Radius.circular(15.0),
+                            )
+                          : BorderRadius.zero,
+                      boxShadow: allChecked(_todos)
+                          ? [
+                              BoxShadow(
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Color.fromARGB(255, 46, 46, 46)
+                                        .withOpacity(0.5)
+                                    : Colors.grey.withOpacity(0.5),
+                                spreadRadius: 2,
+                                blurRadius: 3,
+                                offset: Offset(0, 3),
+                              ),
+                            ]
+                          : [],
                     ),
                     padding:
                         EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
@@ -511,9 +500,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             SizedBox(width: 8.0),
                             Text(
                               AppLocalizations.of(context)
-                                  .translate('All Items  are Checked!'),
+                                  .translate('All items are checked!'),
                               style: TextStyle(
-                                color: Colors.white,
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.blueGrey,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18.0,
                               ),
@@ -529,19 +520,24 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               curve: Curves.bounceIn,
                               duration: Duration(milliseconds: 500),
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
+                                borderRadius: BorderRadius.circular(15.0),
                                 color: allChecked(_todos)
                                     ? Color.fromARGB(255, 34, 31, 36)
                                     : null,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1.0,
+                                ),
                               ),
                               padding: EdgeInsets.all(10.0),
                               child: Icon(
                                 Icons.check_box_sharp,
                                 color: Colors.white,
+                                size: 24.0,
                               ),
                             );
                           },
-                        )
+                        ),
                       ],
                     ),
                   )
@@ -582,7 +578,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
       floatingActionButtonLocation: shoppingdProvider.geIsShoppingtEnabled
           ? FloatingActionButtonLocation.endFloat
           : allChecked(_todos) && _todos.length >= 1
-              ? FloatingActionButtonLocation.miniStartFloat
+              ? FloatingActionButtonLocation.miniEndFloat
               : FloatingActionButtonLocation.centerFloat,
     );
   }

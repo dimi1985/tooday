@@ -91,6 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final stayProvider = Provider.of<StayOnPageProvider>(context);
     final checkedProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
+
     return WillPopScope(
       onWillPop: () {
         if (isForDataManagement || budgetLimitEntered) {
@@ -138,67 +139,141 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.topLeft,
                     child: Text(
                       AppLocalizations.of(context).translate('Theme'),
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: themeProvider.isDarkThemeEnabled
+                            ? Colors.white
+                            : Colors.blueGrey[800],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                   child: ListTile(
-                    title: Row(children: [
-                      const Icon(Icons.dark_mode),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Text(AppLocalizations.of(context).translate('Dark Theme'))
-                    ]),
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.dark_mode,
+                          color: themeProvider.isDarkThemeEnabled
+                              ? Color.fromARGB(255, 146, 198, 224)
+                              : Colors.blueGrey[800],
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          AppLocalizations.of(context).translate('Dark Theme'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: themeProvider.isDarkThemeEnabled
+                                ? Color.fromARGB(255, 146, 198, 224)
+                                : Colors.blueGrey[800],
+                          ),
+                        ),
+                      ],
+                    ),
                     trailing: Switch(
                       value: themeProvider.isDarkThemeEnabled,
                       onChanged: (value) {
                         themeProvider.isDarkThemeEnabled = value;
                       },
+                      activeColor: themeProvider.isDarkThemeEnabled
+                          ? Color.fromARGB(255, 146, 198, 224)
+                          : Colors.blueGrey[800],
                     ),
                   ),
                 ),
                 const Divider(),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      AppLocalizations.of(context).translate('Language'),
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  child: ListTile(
-                    title: Row(children: [
-                      const Icon(IconlyBold.discovery),
-                      const SizedBox(
-                        width: 10,
-                      ),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        AppLocalizations.of(context)
-                            .translate('Language Selection'),
+                        AppLocalizations.of(context).translate('Language'),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: themeProvider.isDarkThemeEnabled
+                              ? Colors.white
+                              : Colors.grey[800],
+                        ),
                       ),
-                      const Spacer(),
-                      DropdownButton<Language>(
-                        value: _selectedLanguage,
-                        onChanged: _onLanguageSelected,
-                        hint: Text(
-                            AppLocalizations.of(context).translate('Select')),
-                        items: supportedLanguages.map((language) {
-                          return DropdownMenuItem<Language>(
-                            value: language,
-                            child: Text(language.name),
-                          );
-                        }).toList(),
+                      SizedBox(height: 16),
+                      Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                size: 32,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context)
+                                          .translate('Language Selection'),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: themeProvider.isDarkThemeEnabled
+                                            ? Colors.white
+                                            : Colors.grey[800],
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    DropdownButton<Language>(
+                                      value: _selectedLanguage,
+                                      onChanged: _onLanguageSelected,
+                                      hint: Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Select'),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color:
+                                              themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.grey[500],
+                                        ),
+                                      ),
+                                      underline: SizedBox(),
+                                      items: supportedLanguages.map((language) {
+                                        return DropdownMenuItem<Language>(
+                                          value: language,
+                                          child: Text(
+                                            language.name,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w500,
+                                              color: themeProvider
+                                                      .isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.grey[800],
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ]),
+                    ],
                   ),
                 ),
                 const Divider(),
@@ -209,12 +284,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: Text(
                       AppLocalizations.of(context).translate('General'),
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 1,
                   child: ListTile(
                     title: Row(
                       children: [
@@ -225,40 +306,46 @@ class _SettingsPageState extends State<SettingsPage> {
                                 'Stay on add todo screen when adding ?',
                               ),
                               maxLines: 3,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(
-                                  height: 10,
-                                ),
+                                const SizedBox(height: 10),
                                 Container(
                                   padding: const EdgeInsets.all(10.0),
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                        color: stayProvider.isStayOnPAgeEnabled
-                                            ? Colors.blueAccent
-                                            : Colors.grey),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                      color: stayProvider.isStayOnPAgeEnabled
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .secondary
+                                          : Colors.grey,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: stayProvider.isStayOnPAgeEnabled
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .secondary
+                                        : null,
                                   ),
                                   child: Text(
                                     stayProvider.isStayOnPAgeEnabled
                                         ? AppLocalizations.of(context)
-                                            .translate(
-                                            'Enabled',
-                                          )
+                                            .translate('Enabled')
                                         : AppLocalizations.of(context)
-                                            .translate(
-                                            'Disabled',
-                                          ),
+                                            .translate('Disabled'),
                                     maxLines: 2,
                                     style: TextStyle(
                                       color: stayProvider.isStayOnPAgeEnabled
-                                          ? themeProvider.isDarkThemeEnabled
-                                              ? Colors.white
-                                              : Colors.black
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onSecondary
                                           : Color.fromARGB(255, 207, 207, 207),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -274,7 +361,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               saveStayValue(value);
                             });
                           },
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -305,6 +392,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                     'Select to filter between Checked or Unckecked Items',
                                   ),
                                   maxLines: 3,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,38 +404,63 @@ class _SettingsPageState extends State<SettingsPage> {
                                       height: 10,
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.all(10.0),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 10, horizontal: 16),
                                       decoration: BoxDecoration(
                                         border: Border.all(
+                                          color:
+                                              checkedProvider.showCheckedItems
+                                                  ? Colors.greenAccent
+                                                  : Colors.grey,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: checkedProvider.showCheckedItems
+                                            ? Colors.greenAccent
+                                                .withOpacity(0.1)
+                                            : null,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            checkedProvider.showCheckedItems
+                                                ? Icons.check_box_outlined
+                                                : Icons.check_box_outline_blank,
                                             color:
                                                 checkedProvider.showCheckedItems
                                                     ? Colors.greenAccent
-                                                    : Colors.grey),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                      ),
-                                      child: Text(
-                                        checkedProvider.showCheckedItems
-                                            ? AppLocalizations.of(context)
-                                                .translate(
-                                                'Show Checked Items',
-                                              )
-                                            : AppLocalizations.of(context)
-                                                .translate(
-                                                'Show UnChecked Items',
+                                                    : Color.fromARGB(
+                                                        255, 207, 207, 207),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              checkedProvider.showCheckedItems
+                                                  ? AppLocalizations.of(context)
+                                                      .translate(
+                                                          'Show Checked Items')
+                                                  : AppLocalizations.of(context)
+                                                      .translate(
+                                                          'Show UnChecked Items'),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                                color: checkedProvider
+                                                        .showCheckedItems
+                                                    ? themeProvider
+                                                            .isDarkThemeEnabled
+                                                        ? Colors.white
+                                                        : Colors.black
+                                                    : Color.fromARGB(
+                                                        255, 207, 207, 207),
                                               ),
-                                        maxLines: 2,
-                                        style: TextStyle(
-                                          color: checkedProvider
-                                                  .showCheckedItems
-                                              ? themeProvider.isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.black
-                                              : Color.fromARGB(
-                                                  255, 207, 207, 207),
-                                        ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),
@@ -361,74 +477,85 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Column(
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 1.5,
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
-                                color: Colors.red,
-                                onPressed: () {
-                                  setState(() {
-                                    isForDataManagement = true;
-                                    isDataErased = false;
-                                  });
-                                  if (shoppingdProvider.geIsShoppingtEnabled) {
-                                    dbHelper.deleteAllShoppingItems();
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 1.5,
+                                child: MaterialButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                      side: BorderSide(color: Colors.red)),
+                                  onPressed: () {
                                     setState(() {
-                                      isDataErased = true;
+                                      isForDataManagement = true;
+                                      isDataErased = false;
                                     });
-                                  } else {
-                                    dbHelper.deleteAllTodoExceptShoppingItems();
-                                    setState(() {
-                                      isDataErased = true;
-                                    });
-                                  }
-                                },
-                                child: Text(
-                                  isDataErased
-                                      ? AppLocalizations.of(context)
-                                          .translate('Data  Cleared')
-                                      : AppLocalizations.of(context)
-                                          .translate('Clear Data'),
-                                  style: TextStyle(color: Colors.white),
+                                    if (shoppingdProvider
+                                        .geIsShoppingtEnabled) {
+                                      dbHelper.deleteAllShoppingItems();
+                                      setState(() {
+                                        isDataErased = true;
+                                      });
+                                    } else {
+                                      dbHelper
+                                          .deleteAllTodoExceptShoppingItems();
+                                      setState(() {
+                                        isDataErased = true;
+                                      });
+                                    }
+                                  },
+                                  child: Text(
+                                    isDataErased
+                                        ? AppLocalizations.of(context)
+                                            .translate('Data  Cleared')
+                                        : AppLocalizations.of(context)
+                                            .translate('Clear Data'),
+                                    style: TextStyle(
+                                        color: themeProvider.isDarkThemeEnabled
+                                            ? Colors.white
+                                            : Colors.black),
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 1.5,
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15.0),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 1.5,
+                                child: MaterialButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                      side: BorderSide(color: Colors.red)),
+                                  onPressed: () {
+                                    // Handle Clear Selected action
+
+                                    setState(() {
+                                      isForDataManagement = true;
+                                      isCheckedItemsErased = false;
+                                    });
+
+                                    widget.listTodos
+                                        .removeWhere((todo) => todo.isDone);
+
+                                    dbHelper.deleteDoneTodos();
+                                    setState(() {
+                                      isCheckedItemsErased = true;
+                                    });
+                                  },
+                                  child: Text(
+                                    isCheckedItemsErased
+                                        ? 'Checked Items Cleared'
+                                        : 'Clear Checked Items: (${widget.itemsChecked})',
+                                    style: TextStyle(
+                                        color: themeProvider.isDarkThemeEnabled
+                                            ? Colors.white
+                                            : Colors.black),
+                                  ),
                                 ),
-                                color: Colors.red,
-                                onPressed: () {
-                                  // Handle Clear Selected action
-
-                                  setState(() {
-                                    isForDataManagement = true;
-                                    isCheckedItemsErased = false;
-                                  });
-
-                                  widget.listTodos
-                                      .removeWhere((todo) => todo.isDone);
-
-                                  dbHelper.deleteDoneTodos();
-                                  setState(() {
-                                    isCheckedItemsErased = true;
-                                  });
-                                },
-                                child: Text(
-                                  isCheckedItemsErased
-                                      ? 'Checked Items Cleared'
-                                      : 'Clear Checked Items: (${widget.itemsChecked})',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            )
-                          ],
+                              )
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -445,9 +572,13 @@ class _SettingsPageState extends State<SettingsPage> {
                               child: ListTile(
                                 title: Text(
                                   AppLocalizations.of(context).translate(
-                                    'Enable Shopping List? (Beta)',
+                                    'Enable Shopping List',
                                   ),
                                   maxLines: 3,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,33 +589,40 @@ class _SettingsPageState extends State<SettingsPage> {
                                     Container(
                                       padding: const EdgeInsets.all(10.0),
                                       decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: shoppingdProvider
-                                                    .isSoppingEnabled
+                                        color:
+                                            shoppingdProvider.isSoppingEnabled
                                                 ? Colors.greenAccent
-                                                : Colors.grey),
+                                                : Colors.blueGrey,
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(10)),
+                                        border: Border.all(
+                                          color:
+                                              shoppingdProvider.isSoppingEnabled
+                                                  ? Colors.greenAccent
+                                                  : Colors.grey,
+                                          width: 2,
+                                        ),
                                       ),
                                       child: Text(
                                         shoppingdProvider.isSoppingEnabled
                                             ? AppLocalizations.of(context)
                                                 .translate(
-                                                'Shopping is Enabled',
-                                              )
+                                                    'Shopping is Enabled')
                                             : AppLocalizations.of(context)
                                                 .translate(
-                                                'Disabled : Normal Todo List activated',
-                                              ),
+                                                    'Normal Todo List activated'),
                                         maxLines: 2,
                                         style: TextStyle(
                                           color: shoppingdProvider
                                                   .isSoppingEnabled
                                               ? themeProvider.isDarkThemeEnabled
                                                   ? Colors.white
-                                                  : Colors.black
-                                              : Color.fromARGB(
-                                                  255, 207, 207, 207),
+                                                  : Colors.white
+                                              : themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
                                         ),
                                       ),
                                     ),
@@ -504,14 +642,22 @@ class _SettingsPageState extends State<SettingsPage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: Text(AppLocalizations.of(context)
-                                          .translate(
-                                        'Restart App',
-                                      )),
-                                      content: Text(AppLocalizations.of(context)
-                                          .translate(
-                                        'You need to restart the app for changes to take effect.',
-                                      )),
+                                      title: Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Restart App'),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      content: Text(
+                                        AppLocalizations.of(context).translate(
+                                          'You need to restart the app for changes to take effect.',
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                        ),
+                                      ),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
@@ -519,10 +665,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                             restartApp(context);
                                           },
                                           child: Text(
-                                              AppLocalizations.of(context)
-                                                  .translate(
-                                            'OK',
-                                          )),
+                                            AppLocalizations.of(context)
+                                                .translate('OK'),
+                                            style: TextStyle(
+                                              color: themeProvider
+                                                      .isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     );
@@ -546,20 +699,22 @@ class _SettingsPageState extends State<SettingsPage> {
                                         'Budget Limit',
                                       ),
                                       style: TextStyle(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(height: 2.0),
-                                    Text(
-                                      AppLocalizations.of(context).translate(
-                                        'Ηint: 0 equal to unlimit',
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.bold),
                                     ),
                                     SizedBox(height: 8.0),
+                                    Text(
+                                      AppLocalizations.of(context).translate(
+                                        'Hint: 0 equals to unlimited',
+                                      ),
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14.0,
+                                      ),
+                                    ),
+                                    SizedBox(height: 16.0),
                                     TextField(
                                       controller: _budgetLimitController,
                                       keyboardType: TextInputType.number,
@@ -571,6 +726,15 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 'Enter your budget limit',
                                               )
                                             : budgetLimit.toStringAsFixed(2),
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16.0,
+                                          vertical: 16.0,
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[100],
                                       ),
                                       onChanged: (value) {
                                         double parsedValue =
@@ -591,19 +755,27 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 16),
                 Card(
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                   child: ListTile(
-                    title: Row(
-                      children: [
-                        const Icon(IconlyBold.notification),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          AppLocalizations.of(context).translate('About'),
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    leading: Icon(
+                      IconlyBold.notification,
+                      size: 30.0,
+                      color: themeProvider.isDarkThemeEnabled
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                    title: Text(
+                      AppLocalizations.of(context).translate('About'),
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: themeProvider.isDarkThemeEnabled
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                     ),
                     onTap: () {
                       Navigator.push(
@@ -612,7 +784,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       );
                     },
                   ),
-                ),
+                )
               ],
             ),
           ),

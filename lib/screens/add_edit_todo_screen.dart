@@ -60,6 +60,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   late String stringDate = formatDate(parsedDate);
   int _selectedPriority = 0;
   late List<DropdownMenuItem<int>> priorityItem = [];
+  bool itInGreekLanguage = false;
+  String tranlatedDateTtitle = '';
+  final dateFormat = DateFormat.yMMMMd('el_GR');
 
   @override
   void initState() {
@@ -74,6 +77,13 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    if (mounted) {
+      setState(() {
+        tranlatedDateTtitle = AppLocalizations.of(context).translate('Date');
+      });
+    }
+
     priorityItem = [
       DropdownMenuItem(
         value: 0,
@@ -324,8 +334,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                               shoppingdProvider.geIsShoppingtEnabled
                                   ? AppLocalizations.of(context)
                                       .translate('Quantity')
-                                  : AppLocalizations.of(context)
-                                      .translate('Date'),
+                                  : tranlatedDateTtitle,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -373,12 +382,27 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       },
                                     ),
                                   )
-                                : Text(
-                                    stringDate,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                    ),
+                                : Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {},
+                                        icon: Icon(Icons.alarm),
+                                      ),
+                                      Text(
+                                        widget.todo.dueDate
+                                                .contains('2022-01-01')
+                                            ? AppLocalizations.of(context)
+                                                .translate('No Date')
+                                            : tranlatedDateTtitle
+                                                    .contains('Ημερομηνία')
+                                                ? dateFormat.format(parsedDate)
+                                                : stringDate,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                           ],
                         ),
@@ -636,10 +660,21 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           const SizedBox(height: 24.0),
                         if (!shoppingdProvider.geIsShoppingtEnabled)
                           DropdownButtonFormField<int>(
-                            value: _selectedPriority,
+                            value: widget.todo.priority,
                             decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)
-                                    .translate('Priority')),
+                              labelText: AppLocalizations.of(context)
+                                  .translate('Priority'),
+                              labelStyle: TextStyle(color: Colors.blueGrey),
+                              border: const OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Color.fromARGB(255, 146, 171, 192),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.blueGrey),
+                              ),
+                            ),
                             items: priorityItem,
                             onChanged: (value) {
                               setState(() {
@@ -649,7 +684,14 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             onSaved: (value) {
                               _selectedPriority = value!;
                             },
-                          ),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[800],
+                            ),
+                            icon: Icon(Icons.arrow_drop_down),
+                            iconSize: 24,
+                            dropdownColor: Colors.white,
+                          )
                       ],
                     ),
                   ),
@@ -689,7 +731,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       DateTime now = DateTime.now();
       DateFormat format = DateFormat("yyyy-MM-dd");
       DateTime selectedDate = format.parse(
-          shoppingdProvider.geIsShoppingtEnabled
+          shoppingdProvider.geIsShoppingtEnabled ||
+                  dueDateController.text.isEmpty
               ? '2022-01-01'
               : dueDateController.text.trim());
 
@@ -705,7 +748,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         entryDate: shoppingdProvider.geIsShoppingtEnabled
             ? '2022-01-01'
             : now.toIso8601String(),
-        dueDate: shoppingdProvider.geIsShoppingtEnabled
+        dueDate: shoppingdProvider.geIsShoppingtEnabled ||
+                dueDateController.text.isEmpty
             ? '2022-01-01'
             : selectedDate.toIso8601String(),
         priority:
@@ -811,11 +855,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   String priorityToString(int priority) {
     switch (priority) {
       case 0:
-        return 'Low';
+        return AppLocalizations.of(context).translate('Low');
       case 1:
-        return 'Medium';
+        return AppLocalizations.of(context).translate('Medium');
       case 2:
-        return 'High';
+        return AppLocalizations.of(context).translate('High');
       default:
         return '';
     }

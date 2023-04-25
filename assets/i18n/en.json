@@ -46,9 +46,9 @@
     "Select": "Select", 
     "Show Checked Items": "Show Checked Items",
     "Show UnChecked Items": "Show UnChecked Items",
-    "Enable Shopping List? (Beta)": "Enable Shopping List? (Beta)",
+    "Enable Shopping List": "Enable Shopping List",
     "Shopping is Enabled": "Shopping is Enabled",
-    "Disabled : Normal Todo List activated": "Disabled : Normal Todo List activated",
+    "Normal Todo List activated": "Normal Todo List activated",
     "text_edit_title_shopping": "Shopping Item",
     "Please enter a product": "Please enter a product",
     "Add Shopping Item": "Add Shopping Item",
@@ -71,7 +71,12 @@
     "High": "High",
     "Priority": "Priority",
     "Date": "Date",
-    "Due date": "Due date"
+    "Due date": "Due date",
+    "No Date": "No Date",
+    "Greek": "Greek",
+    "English": "English",
+    "Remaining:": "Remaining:",
+    "You are above by:": "You are above by:"
     
     
     
