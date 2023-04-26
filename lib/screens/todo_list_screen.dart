@@ -14,6 +14,8 @@ import 'package:tooday/widgets/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/theme_provider.dart';
 import '../database/database_helper.dart';
 import 'package:iconly/iconly.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:external_app_launcher/external_app_launcher.dart';
 
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({super.key});
@@ -522,7 +524,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15.0),
                                 color: allChecked(_todos)
-                                    ? Color.fromARGB(255, 34, 31, 36)
+                                    ? Color.fromARGB(255, 60, 62, 97)
                                     : null,
                                 border: Border.all(
                                   color: Colors.white,
@@ -542,6 +544,83 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     ),
                   )
                 : Container(),
+          Visibility(
+            visible: shoppingdProvider.geIsShoppingtEnabled &&
+                _todos.length >= 1 &&
+                allChecked(_todos),
+            child: AnimatedContainer(
+              height: shoppingdProvider.geIsShoppingtEnabled &&
+                      _todos.length >= 1 &&
+                      allChecked(_todos)
+                  ? 150.0
+                  : 0.0,
+              duration: Duration(seconds: 5),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15)),
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)
+                                .translate('Google Pay'),
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Icon(
+                            Icons.payment,
+                            color: Color.fromARGB(255, 42, 7, 82),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.0),
+                      MaterialButton(
+                        onPressed: () {
+                          launchGooglePay();
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                          side: BorderSide(color: Colors.blueGrey.shade100),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        color: Colors.white,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/google_pay.png',
+                              height: 30.0,
+                            ),
+                            SizedBox(width: 16.0),
+                            Text(
+                              AppLocalizations.of(context)
+                                  .translate('Open Google Pay'),
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          )
         ],
       ),
       floatingActionButton: Theme(
@@ -560,7 +639,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       !shoppingdProvider.geIsShoppingtEnabled &&
                       _todos.length >= 1
                   ? 70
-                  : 0),
+                  : allChecked(_todos) &&
+                          shoppingdProvider.geIsShoppingtEnabled &&
+                          _todos.length >= 1
+                      ? 150
+                      : 0),
           child: FloatingActionButton(
             highlightElevation: 3.0,
             onPressed: () {
@@ -850,6 +933,25 @@ class _TodoListScreenState extends State<TodoListScreen> {
         return Colors.yellow;
       case 0:
         return Colors.green;
+    }
+  }
+
+  launchGooglePay() async {
+    bool result = await LaunchApp.isAppInstalled(
+      androidPackageName: "com.google.android.apps.walletnfcrel",
+      iosUrlScheme: "googlepay://",
+    );
+
+    if (result) {
+      // Google Pay is installed, launch the app
+      LaunchApp.openApp(
+        androidPackageName: "com.google.android.apps.walletnfcrel",
+        iosUrlScheme: "googlepay://",
+      );
+    } else {
+      // Google Pay is not installed, open Google Play store
+      launchUrl(Uri.parse(
+          'market://details?id=com.google.android.apps.walletnfcrel'));
     }
   }
 }

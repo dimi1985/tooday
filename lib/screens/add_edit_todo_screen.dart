@@ -382,27 +382,18 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       },
                                     ),
                                   )
-                                : Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Icon(Icons.alarm),
-                                      ),
-                                      Text(
-                                        widget.todo.dueDate
-                                                .contains('2022-01-01')
-                                            ? AppLocalizations.of(context)
-                                                .translate('No Date')
-                                            : tranlatedDateTtitle
-                                                    .contains('Ημερομηνία')
-                                                ? dateFormat.format(parsedDate)
-                                                : stringDate,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
+                                : Text(
+                                    widget.todo.dueDate.contains('2022-01-01')
+                                        ? AppLocalizations.of(context)
+                                            .translate('No Date')
+                                        : tranlatedDateTtitle
+                                                .contains('Ημερομηνία')
+                                            ? dateFormat.format(parsedDate)
+                                            : stringDate,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
                           ],
                         ),
@@ -651,7 +642,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                               } else {
                                 // add this else block
                                 setState(() {
-                                  dueDateController.text = '2022-01-01';
+                                  dueDateController.text = '';
                                 });
                               }
                             },

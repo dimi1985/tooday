@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
@@ -68,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     _getBudgetValue();
+    getNotificationAlalrm();
   }
 
   @override
@@ -84,6 +83,8 @@ class _SettingsPageState extends State<SettingsPage> {
   final _budgetLimitController = TextEditingController();
   double budgetLimit = 0.0;
   bool budgetLimitEntered = false;
+  bool isRunning = false;
+  bool isGooglePayEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -545,8 +546,12 @@ class _SettingsPageState extends State<SettingsPage> {
                                   },
                                   child: Text(
                                     isCheckedItemsErased
-                                        ? 'Checked Items Cleared'
-                                        : 'Clear Checked Items: (${widget.itemsChecked})',
+                                        ? AppLocalizations.of(context)
+                                            .translate('Checked Items Cleared')
+                                        : AppLocalizations.of(context)
+                                                .translate(
+                                                    'Clear Checked Items') +
+                                            '(${widget.itemsChecked})',
                                     style: TextStyle(
                                         color: themeProvider.isDarkThemeEnabled
                                             ? Colors.white
@@ -760,6 +765,88 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: ListTile(
+                    title: Row(
+                      children: [
+                        Container(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/google_pay.png',
+                                height: 30.0,
+                              ),
+                              SizedBox(width: 16.0),
+                              Text(
+                                AppLocalizations.of(context)
+                                    .translate('Enable Google Pay'),
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isGooglePayEnabled = !isGooglePayEnabled;
+                            });
+                            saveGooglePay(isGooglePayEnabled);
+                          },
+                          icon: Icon(
+                            Icons.payment_outlined,
+                            color: isRunning
+                                ? Colors.green
+                                : themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Text(AppLocalizations.of(context).translate(
+                          'Enable Notifications',
+                        )),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isRunning = !isRunning;
+                            });
+                            saveNotificationAlalrm(isRunning);
+                          },
+                          icon: Icon(
+                            Icons.alarm,
+                            color: isRunning
+                                ? Colors.green
+                                : themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: ListTile(
                     leading: Icon(
                       IconlyBold.notification,
                       size: 30.0,
@@ -829,5 +916,31 @@ class _SettingsPageState extends State<SettingsPage> {
           ) ??
           0;
     });
+  }
+
+  getNotificationAlalrm() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? valueBool = prefs.getBool('isRunning') ?? false;
+    setState(() {
+      isRunning = valueBool;
+    });
+  }
+
+  void saveNotificationAlalrm(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isRunning', value);
+  }
+
+  getGooglePay() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? valueBool = prefs.getBool('isGooglePayEnabled') ?? false;
+    setState(() {
+      isGooglePayEnabled = valueBool;
+    });
+  }
+
+  void saveGooglePay(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isGooglePayEnabled', value);
   }
 }

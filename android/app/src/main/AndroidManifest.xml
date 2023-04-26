@@ -2,7 +2,15 @@
     package="com.dimitek.tooday.tooday">
 
      <uses-permission android:name="android.permission.INTERNET" />
-     
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+<uses-permission android:name="android.permission.VIBRATE"/>
+
+
+      <queries>
+   <package android:name="com.google.android.apps.walletnfcrel" /> 
+ </queries>
    <application
         android:label="tooday"
         android:name="${applicationName}"
@@ -28,6 +36,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/> 
+<category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

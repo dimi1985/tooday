@@ -53,6 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Icon(
                 Icons.shopping_bag,
                 size: 50,
+                color: Colors.white,
               ),
             if (!shoppingdProvider.geIsShoppingtEnabled)
               SizedBox(

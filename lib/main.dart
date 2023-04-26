@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/background_service.dart';
 import 'package:tooday/widgets/filterItemsProvider.dart';
 import 'package:tooday/widgets/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/stay_on_page_provider.dart';
@@ -46,16 +50,33 @@ class TodoApp extends StatefulWidget {
 
 class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   late Locale _locale;
+  late AppLifecycleState _appLifecycleState;
 
   @override
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {}
+    setState(() {
+      _appLifecycleState = state;
+      if (_appLifecycleState == AppLifecycleState.detached) {
+        Future.delayed(Duration(minutes: 1), () async {
+          BackgroundService.start();
+        });
+      } else if (_appLifecycleState == AppLifecycleState.resumed) {
+        BackgroundService.stop();
+      }
+    });
   }
 
   void setLocale(Locale locale) async {
