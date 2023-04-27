@@ -9,10 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/background_service.dart';
-import 'package:tooday/widgets/filterItemsProvider.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
-import 'package:tooday/widgets/stay_on_page_provider.dart';
-import 'package:tooday/widgets/theme_provider.dart';
+import 'package:tooday/utils/filterItemsProvider.dart';
+import 'package:tooday/utils/google_pay_enable_provider.dart';
+import 'package:tooday/utils/notifications_enable_provider.dart';
+import 'package:tooday/utils/stay_on_page_provider.dart';
+import 'package:tooday/utils/theme_provider.dart';
+
+import 'utils/shopping_enabled_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +30,8 @@ void main() async {
       ChangeNotifierProvider(create: (_) => StayOnPageProvider()),
       ChangeNotifierProvider(create: (_) => FilterItemsProvider()),
       ChangeNotifierProvider(create: (_) => ShoppingEnabledProvider()),
+      ChangeNotifierProvider(create: (_) => GooglePayEnabledProvider()),
+      ChangeNotifierProvider(create: (_) => NotificationsEnabledProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));

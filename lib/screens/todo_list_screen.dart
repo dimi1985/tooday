@@ -7,11 +7,12 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/add_edit_todo_screen.dart';
 import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/google_pay_enable_provider.dart';
+import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
-import 'package:tooday/widgets/filterItemsProvider.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
-import 'package:tooday/widgets/theme_provider.dart';
+import 'package:tooday/utils/filterItemsProvider.dart';
+import 'package:tooday/utils/theme_provider.dart';
 import '../database/database_helper.dart';
 import 'package:iconly/iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -87,7 +88,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final filterProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
-
+    final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
     return Scaffold(
       extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -547,7 +548,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
           Visibility(
             visible: shoppingdProvider.geIsShoppingtEnabled &&
                 _todos.length >= 1 &&
-                allChecked(_todos),
+                allChecked(_todos) &&
+                googlePaydProvider.geIsGooglePaytEnabled,
             child: AnimatedContainer(
               height: shoppingdProvider.geIsShoppingtEnabled &&
                       _todos.length >= 1 &&
@@ -641,7 +643,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   ? 70
                   : allChecked(_todos) &&
                           shoppingdProvider.geIsShoppingtEnabled &&
-                          _todos.length >= 1
+                          _todos.length >= 1 &&
+                          googlePaydProvider.geIsGooglePaytEnabled
                       ? 150
                       : 0),
           child: FloatingActionButton(

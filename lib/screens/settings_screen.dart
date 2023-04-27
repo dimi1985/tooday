@@ -7,11 +7,13 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
-import 'package:tooday/widgets/filterItemsProvider.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
-import 'package:tooday/widgets/stay_on_page_provider.dart';
-import 'package:tooday/widgets/theme_provider.dart';
+import 'package:tooday/utils/filterItemsProvider.dart';
+import 'package:tooday/utils/notifications_enable_provider.dart';
+import 'package:tooday/utils/shopping_enabled_provider.dart';
+import 'package:tooday/utils/stay_on_page_provider.dart';
+import 'package:tooday/utils/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 
@@ -66,7 +68,6 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     _getBudgetValue();
-    getNotificationAlalrm();
   }
 
   @override
@@ -77,14 +78,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   DatabaseHelper dbHelper = DatabaseHelper();
   late bool isForDataManagement = false;
-  bool stayOnAddTodoScreen = false;
   bool isDataErased = false;
   bool isCheckedItemsErased = false;
   final _budgetLimitController = TextEditingController();
   double budgetLimit = 0.0;
   bool budgetLimitEntered = false;
-  bool isRunning = false;
-  bool isGooglePayEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +90,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final stayProvider = Provider.of<StayOnPageProvider>(context);
     final checkedProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
+    final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
+    final notificationsdProvider =
+        Provider.of<NotificationsEnabledProvider>(context);
 
     return WillPopScope(
       onWillPop: () {
@@ -765,46 +766,54 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: ListTile(
-                    title: Row(
-                      children: [
-                        Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/images/google_pay.png',
-                                height: 30.0,
-                              ),
-                              SizedBox(width: 16.0),
-                              Text(
-                                AppLocalizations.of(context)
-                                    .translate('Enable Google Pay'),
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueGrey.shade800,
+                    title: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/google_pay.png',
+                                  height: 30.0,
                                 ),
+                                SizedBox(width: 16.0),
+                                Text(
+                                  AppLocalizations.of(context)
+                                      .translate('Enable Google Pay'),
+                                  style: TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: themeProvider.isDarkThemeEnabled
+                                          ? Colors.white
+                                          : Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  googlePaydProvider.isGooglePaytEnabled =
+                                      !googlePaydProvider.isGooglePaytEnabled;
+                                });
+                                saveGooglePay(
+                                    googlePaydProvider.isGooglePaytEnabled);
+                              },
+                              icon: Icon(
+                                Icons.payment_outlined,
+                                color: googlePaydProvider.geIsGooglePaytEnabled
+                                    ? Color.fromARGB(255, 16, 186, 192)
+                                    : themeProvider.isDarkThemeEnabled
+                                        ? Colors.white
+                                        : Colors.black,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isGooglePayEnabled = !isGooglePayEnabled;
-                            });
-                            saveGooglePay(isGooglePayEnabled);
-                          },
-                          icon: Icon(
-                            Icons.payment_outlined,
-                            color: isRunning
-                                ? Colors.green
-                                : themeProvider.isDarkThemeEnabled
-                                    ? Colors.white
-                                    : Colors.black,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -815,28 +824,35 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: ListTile(
-                    title: Row(
-                      children: [
-                        Text(AppLocalizations.of(context).translate(
-                          'Enable Notifications',
-                        )),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isRunning = !isRunning;
-                            });
-                            saveNotificationAlalrm(isRunning);
-                          },
-                          icon: Icon(
-                            Icons.alarm,
-                            color: isRunning
-                                ? Colors.green
-                                : themeProvider.isDarkThemeEnabled
-                                    ? Colors.white
-                                    : Colors.black,
+                    title: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Text(AppLocalizations.of(context).translate(
+                            'Enable Notifications',
+                          )),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                notificationsdProvider.isNotificationstEnabled =
+                                    !notificationsdProvider
+                                        .isNotificationstEnabled;
+                              });
+                              saveNotificationAlalrm(notificationsdProvider
+                                  .isNotificationstEnabled);
+                            },
+                            icon: Icon(
+                              Icons.alarm,
+                              color: notificationsdProvider
+                                      .geIsNotificationstEnabled
+                                  ? Color.fromARGB(255, 16, 186, 192)
+                                  : themeProvider.isDarkThemeEnabled
+                                      ? Colors.white
+                                      : Colors.black,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -918,25 +934,9 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  getNotificationAlalrm() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? valueBool = prefs.getBool('isRunning') ?? false;
-    setState(() {
-      isRunning = valueBool;
-    });
-  }
-
   void saveNotificationAlalrm(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isRunning', value);
-  }
-
-  getGooglePay() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? valueBool = prefs.getBool('isGooglePayEnabled') ?? false;
-    setState(() {
-      isGooglePayEnabled = valueBool;
-    });
   }
 
   void saveGooglePay(bool value) async {

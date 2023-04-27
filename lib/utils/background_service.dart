@@ -19,7 +19,7 @@ class BackgroundService {
 
   static Future<void> start() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    isRunning = prefs.getBool('isRunning') ?? false;
+    isRunning = prefs.getBool('isNotificationstEnabled') ?? false;
     if (isRunning) return;
     isRunning = true;
 

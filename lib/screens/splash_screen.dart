@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
+import 'package:tooday/utils/shopping_enabled_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

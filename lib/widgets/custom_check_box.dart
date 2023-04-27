@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
-import 'package:tooday/widgets/theme_provider.dart';
+import 'package:tooday/utils/shopping_enabled_provider.dart';
+import 'package:tooday/utils/theme_provider.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool isChecked;

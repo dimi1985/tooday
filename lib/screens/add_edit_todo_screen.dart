@@ -9,11 +9,11 @@ import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
-import 'package:tooday/widgets/shopping_enabled_provider.dart';
 
-import '../widgets/theme_provider.dart';
+import '../utils/theme_provider.dart';
 
 class AddEditTodoScreen extends StatefulWidget {
   final Todo todo;
