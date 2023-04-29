@@ -722,6 +722,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ),
                                     SizedBox(height: 16.0),
                                     TextField(
+                                      style: TextStyle(color: Colors.black),
                                       controller: _budgetLimitController,
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
@@ -733,7 +734,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                               )
                                             : budgetLimit.toStringAsFixed(2),
                                         hintStyle: TextStyle(
-                                          color: Colors.grey[400],
+                                          color: Colors.black,
                                         ),
                                         contentPadding: EdgeInsets.symmetric(
                                           horizontal: 16.0,
@@ -744,7 +745,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                       ),
                                       onChanged: (value) {
                                         double parsedValue =
-                                            double.parse(value);
+                                            _budgetLimitController.text.isEmpty
+                                                ? 0.0
+                                                : double.parse(value);
+
                                         _saveBudgetValue(parsedValue);
                                         setState(() {
                                           budgetLimitEntered = true;

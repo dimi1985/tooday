@@ -7,6 +7,7 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/add_edit_todo_screen.dart';
 import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
@@ -57,28 +58,33 @@ class _TodoListScreenState extends State<TodoListScreen> {
     _fetchTodos();
     getAndUpdateTotalPrice(_todos);
     _getBudgetValue();
-    setState(() {
-      if (totalPrice == 0.0) {
-        progress = 0.0;
-      } else {
-        progress = totalPrice / budgetLimit;
-      }
-    });
+    if (mounted) {
+      setState(() {
+        if (totalPrice == 0.0) {
+          progress = 0.0;
+        } else {
+          progress = totalPrice / budgetLimit;
+        }
+      });
+    }
   }
 
   Future<void> _fetchTodos() async {
-    setState(() {
-      isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
+    if (mounted) {
+      setState(() {
+        _todos = todos;
 
-    setState(() {
-      _todos = todos;
-
-      getAllItemsSetup();
-      isLoading = false;
-    });
+        getAllItemsSetup();
+        isLoading = false;
+      });
+    }
 
     getAndUpdateTotalPrice(_todos);
   }
@@ -89,6 +95,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     final filterProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
+    final connectivityProvider = Provider.of<ConnectivityStatus>(context);
     return Scaffold(
       extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -109,12 +116,25 @@ class _TodoListScreenState extends State<TodoListScreen> {
           elevation: 0,
           title: _isSearching
               ? _buildSearchField()
-              : Text(
-                  AppLocalizations.of(context).translate('todo_title'),
-                  style: TextStyle(
-                      color: themeProvider.isDarkThemeEnabled
-                          ? Colors.white
-                          : Colors.black),
+              : Row(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).translate('todo_title'),
+                      style: TextStyle(
+                          color: themeProvider.isDarkThemeEnabled
+                              ? Colors.white
+                              : Colors.black),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Icon(
+                      Icons.online_prediction,
+                      color: connectivityProvider.isConnected
+                          ? Colors.green
+                          : Colors.grey,
+                    ),
+                  ],
                 ),
           bottom: shoppingdProvider.geIsShoppingtEnabled
               ? PreferredSize(
@@ -131,8 +151,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   ),
                 )
               : null,
-          actions:
-              _buildActions(themeProvider, filterProvider, shoppingdProvider),
+          actions: _buildActions(themeProvider, filterProvider,
+              shoppingdProvider, connectivityProvider),
         ),
       ),
       body: Column(
@@ -753,7 +773,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   List<Widget> _buildActions(
       ThemeProvider themeProvider,
       FilterItemsProvider filterProvider,
-      ShoppingEnabledProvider shoppingdProvider) {
+      ShoppingEnabledProvider shoppingdProvider,
+      ConnectivityStatus connectivityProvider) {
     if (_isSearching) {
       return [
         IconButton(

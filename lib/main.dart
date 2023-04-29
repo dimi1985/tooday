@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/background_service.dart';
+import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/notifications_enable_provider.dart';
@@ -32,6 +32,7 @@ void main() async {
       ChangeNotifierProvider(create: (_) => ShoppingEnabledProvider()),
       ChangeNotifierProvider(create: (_) => GooglePayEnabledProvider()),
       ChangeNotifierProvider(create: (_) => NotificationsEnabledProvider()),
+      ChangeNotifierProvider(create: (_) => ConnectivityStatus()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));
