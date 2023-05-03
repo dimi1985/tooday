@@ -1,5 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api, must_be_immutable
 
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:intl/intl.dart';
@@ -39,6 +43,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isStayOnScreen = false;
   late bool _isDone;
+  late bool _isSynced;
   late bool shoppingExists = false;
   late bool todoItemExists = false;
   final _focusNodeTitle = FocusNode();
@@ -63,6 +68,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   bool itInGreekLanguage = false;
   String tranlatedDateTtitle = '';
   final dateFormat = DateFormat.yMMMMd('el_GR');
+  late FirebaseAuth _auth = FirebaseAuth.instance;
+  late User? user = _auth.currentUser;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  String userID = '';
 
   @override
   void initState() {
@@ -70,8 +79,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     titleController.text = widget.todo.title;
     descriptionController.text = widget.todo.description;
     _isDone = widget.todo.isDone;
+    _isSynced = widget.todo.isSync;
     parsedDate = DateTime.parse(widget.todo.dueDate);
-    getStayOnScreenBool();
+    getStayOnScreen();
   }
 
   @override
@@ -292,6 +302,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                     onChanged: (value) {
                                       setState(() {
                                         _isDone = value!;
+                                        DateTime now = DateTime.now();
                                         final todo = Todo(
                                           id: widget.todo.id,
                                           title: widget.todo.title,
@@ -309,6 +320,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           entryDate: widget.todo.entryDate,
                                           dueDate: widget.todo.dueDate,
                                           priority: widget.todo.priority,
+                                          lastUpdated: now.toIso8601String(),
+                                          isSync: false,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -320,6 +333,52 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                   ),
                                 ],
                               ),
+                        SizedBox(height: 16),
+                        if (user != null)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text(AppLocalizations.of(context)
+                                  .translate('Sync Online')),
+                              const Spacer(),
+                              CustomCheckbox(
+                                isChecked: _isSynced,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isSynced = value!;
+                                    DateTime now = DateTime.now();
+                                    final todo = Todo(
+                                      id: widget.todo.id,
+                                      title: widget.todo.title,
+                                      isDone: _isDone,
+                                      description: widget.todo.description,
+                                      isShopping:
+                                          shoppingdProvider.geIsShoppingtEnabled
+                                              ? true
+                                              : false,
+                                      quantity: widget.todo.quantity,
+                                      productPrice: widget.todo.productPrice,
+                                      totalProductPrice:
+                                          widget.todo.totalProductPrice,
+                                      entryDate: widget.todo.entryDate,
+                                      dueDate: widget.todo.dueDate,
+                                      priority: widget.todo.priority,
+                                      lastUpdated: now.toIso8601String(),
+                                      isSync: _isSynced,
+                                    );
+
+                                    final dbHelper = DatabaseHelper();
+                                    dbHelper.update(todo);
+
+                                    widget.fetchFunction();
+                                    if (user != null) {
+                                      uploadToFireStore(widget.todo.id);
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         SizedBox(height: 16),
                         Container(
                           width: double.infinity,
@@ -354,6 +413,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                         border: OutlineInputBorder(),
                                       ),
                                       onChanged: (value) {
+                                        DateTime now = DateTime.now();
                                         setState(() {
                                           modalQuantity = int.tryParse(value) ??
                                               widget.todo.quantity;
@@ -375,6 +435,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             entryDate: widget.todo.entryDate,
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
+                                            lastUpdated: now.toIso8601String(),
+                                            isSync: false,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -435,6 +497,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           totalProductPrice =
                                               calculateTotalProductPrice();
 
+                                          DateTime now = DateTime.now();
+
                                           final newTodo = Todo(
                                             id: widget.todo.id,
                                             title: widget.todo.title,
@@ -449,6 +513,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             entryDate: widget.todo.entryDate,
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
+                                            lastUpdated: now.toIso8601String(),
+                                            isSync: false,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -745,6 +811,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             : selectedDate.toIso8601String(),
         priority:
             shoppingdProvider.geIsShoppingtEnabled ? 0 : _selectedPriority,
+        lastUpdated: now.toIso8601String(),
+        isSync: false,
       );
 
       final dbHelper = DatabaseHelper();
@@ -771,6 +839,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           dbHelper.insert(todo);
         }
       } else {
+        if (user != null) {
+          uploadToFireStore(widget.todo.id);
+        }
+
         dbHelper.update(todo);
       }
 
@@ -827,9 +899,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     }
   }
 
-  void getStayOnScreenBool() async {
+  void getStayOnScreen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool stayOnAddTodoScreen = prefs.getBool('stayOnAddTodoScreen') ?? false;
+
     setState(() {
       isStayOnScreen = stayOnAddTodoScreen;
     });
@@ -864,6 +937,86 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         return Colors.yellow;
       case 0:
         return Colors.green;
+    }
+  }
+
+  void uploadToFireStore(int? id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String valueUserId = prefs.getString('userId') ?? '';
+
+    final dbHelper = DatabaseHelper();
+    final todos = await dbHelper.getAllTodos();
+    DocumentReference docRef = firestore.collection('todos').doc();
+    DocumentSnapshot docSnapshot =
+        await firestore.collection('todos').doc(docRef.id.toString()).get();
+    if (user != null && todos.isNotEmpty) {
+      if (!_isSynced) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('todos')
+            .where('docRefId', isEqualTo: id)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          final todoRef = querySnapshot.docs.first.reference;
+          await todoRef.delete();
+
+          print('Document deleted successfully');
+        }
+      } else {
+        for (Todo todo in todos) {
+          // Check if the document already exists
+
+          if (docSnapshot.exists) {
+            // Compare the lastUpdated timestamp with the one in the SQLite database
+            Map<String, dynamic> data =
+                docSnapshot.data() as Map<String, dynamic>;
+            if (data['lastUpdated'] == todo.lastUpdated) {
+              print('Document already exists and was not updated');
+              return;
+            }
+
+            // Update the document with the new data
+            await firestore.collection('todos').doc(todo.id.toString()).set({
+              'id': todo.id,
+              'docRefId': todo.id,
+              'title': todo.title,
+              'isDone': todo.isDone,
+              'description': todo.description,
+              'isShopping': todo.isShopping,
+              'quantity': todo.quantity,
+              'productPrice': todo.productPrice,
+              'totalProductPrice': todo.totalProductPrice,
+              'entryDate': todo.entryDate,
+              'dueDate': todo.dueDate,
+              'priority': todo.priority,
+              'lastUpdated': todo.lastUpdated,
+              'isSync': _isSynced,
+              'userId': valueUserId,
+            }, SetOptions(merge: true));
+            print('Document updated successfully');
+          } else {
+            // Create a new document with the ID from the SQLite database
+            await firestore.collection('todos').doc(todo.id.toString()).set({
+              'id': todo.id,
+              'docRefId': todo.id,
+              'title': todo.title,
+              'isDone': todo.isDone,
+              'description': todo.description,
+              'isShopping': todo.isShopping,
+              'quantity': todo.quantity,
+              'productPrice': todo.productPrice,
+              'totalProductPrice': todo.totalProductPrice,
+              'entryDate': todo.entryDate,
+              'dueDate': todo.dueDate,
+              'priority': todo.priority,
+              'lastUpdated': todo.lastUpdated,
+              'isSync': _isSynced,
+              'userId': valueUserId,
+            });
+            print('Document added successfully');
+          }
+        }
+      }
     }
   }
 }

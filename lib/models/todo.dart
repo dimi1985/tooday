@@ -10,6 +10,8 @@ class Todo {
   String entryDate;
   String dueDate;
   final int priority;
+  String lastUpdated;
+  bool isSync;
 
   Todo({
     this.id,
@@ -23,6 +25,8 @@ class Todo {
     required this.entryDate,
     required this.dueDate,
     required this.priority,
+    required this.lastUpdated,
+    required this.isSync,
   });
 
   Map<String, dynamic> toMap() {
@@ -38,6 +42,8 @@ class Todo {
       'entryDate': entryDate,
       'dueDate': dueDate,
       'priority': priority,
+      'lastUpdated': lastUpdated,
+      'isSync': isSync ? 1 : 0,
     };
   }
 
@@ -54,6 +60,8 @@ class Todo {
       entryDate: map['entryDate'],
       dueDate: map['dueDate'],
       priority: map['priority'],
+      lastUpdated: map['lastUpdated'],
+      isSync: map['isSync'] == 1,
     );
   }
 }

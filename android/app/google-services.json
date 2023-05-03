@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "772060969779",
+    "project_id": "tooday-1f67b",
+    "storage_bucket": "tooday-1f67b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:772060969779:android:d1ef9f69fb51887dab9c46",
+        "android_client_info": {
+          "package_name": "com.dimitek.tooday"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "772060969779-1ifl1is4hueglga28894aomn4lif1s7g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dimitek.tooday",
+            "certificate_hash": "a96bfd52d53f7d75d4bb62076162e90cbc6273c6"
+          }
+        },
+        {
+          "client_id": "772060969779-bcbivjg937m8cpsggrru8b7h0o00jfps.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD18xfELYG-V6A1A1xbUq7TySy_4VfiA-E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "772060969779-bcbivjg937m8cpsggrru8b7h0o00jfps.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

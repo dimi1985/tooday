@@ -19,6 +19,8 @@ class DatabaseHelper {
   static const columnEntryDate = 'entryDate';
   static const columnDueDate = 'dueDate';
   static const columnPriority = 'priority';
+  static const columnLastUpdated = 'lastUpdated';
+  static const columnIsSync = 'isSync';
 
   static Database? _database;
 
@@ -55,7 +57,9 @@ class DatabaseHelper {
         $columnpTotalProductPrice REAL NOT NULL,
         $columnEntryDate TEXT NOT NULL,
         $columnDueDate TEXT NOT NULL,
-        $columnPriority INTEGER NOT NULL
+        $columnPriority INTEGER NOT NULL,
+        $columnLastUpdated TEXT NOT NULL,
+        $columnIsSync INTEGER NOT NULL
       )
     ''');
   }

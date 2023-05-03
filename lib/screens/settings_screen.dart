@@ -16,14 +16,18 @@ import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-
+import 'package:tooday/widgets/google_button.dart';
 import '../widgets/custom_page_route.dart';
 
 class SettingsPage extends StatefulWidget {
   final int itemsChecked;
   final List<Todo> listTodos;
-  const SettingsPage(
-      {super.key, required this.itemsChecked, required this.listTodos});
+
+  const SettingsPage({
+    super.key,
+    required this.itemsChecked,
+    required this.listTodos,
+  });
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -106,6 +110,7 @@ class _SettingsPageState extends State<SettingsPage> {
             (route) => false, // Remove all previous routes
           );
         }
+
         return Future.value(true);
       },
       child: Scaffold(
@@ -860,6 +865,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                GoogleSignInButton(), // Add the Google Sign-In button here
                 const SizedBox(height: 16),
                 Card(
                   elevation: 4.0,

@@ -1,5 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,18 +18,13 @@ import '../database/database_helper.dart';
 import 'package:iconly/iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:external_app_launcher/external_app_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({super.key});
 
   @override
   _TodoListScreenState createState() => _TodoListScreenState();
-
-  static Future<List<Todo>> getList() async {
-    final dbHelper = DatabaseHelper();
-    final todos = await dbHelper.getAllTodos();
-    return todos;
-  }
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
@@ -50,13 +45,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
   double budgetLimit = 0.0;
   double progress = 0.0;
   late Color color;
+  late FirebaseAuth _auth = FirebaseAuth.instance;
+  late User? user = _auth.currentUser;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   @override
   void initState() {
     super.initState();
+
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     _fetchTodos();
     getAndUpdateTotalPrice(_todos);
+
     _getBudgetValue();
     if (mounted) {
       setState(() {
@@ -77,6 +78,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
+
     if (mounted) {
       setState(() {
         _todos = todos;
@@ -134,6 +136,20 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           ? Colors.green
                           : Colors.grey,
                     ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    user != null
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: Image(
+                              image:
+                                  AssetImage('assets/images/google_logo.png'),
+                              height: 35.0,
+                            ),
+                          )
+                        : Container(),
                   ],
                 ),
           bottom: shoppingdProvider.geIsShoppingtEnabled
@@ -337,6 +353,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
+                                        if (todo.isSync)
+                                          Icon(
+                                            Icons.cloud_sync,
+                                            size: 16,
+                                            color: Color.fromARGB(
+                                                255, 58, 137, 183),
+                                          ),
                                         if (todo.description.isNotEmpty)
                                           Icon(
                                             Icons.article_outlined,
@@ -409,6 +432,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                             entryDate: todo.entryDate,
                                             dueDate: todo.dueDate,
                                             priority: todo.priority,
+                                            lastUpdated: todo.lastUpdated,
+                                            isSync: false,
                                           );
 
                                           dbHelper.update(newtodo);
@@ -702,6 +727,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
       entryDate: now.toIso8601String(),
       dueDate: now.toIso8601String(),
       priority: 0,
+      lastUpdated: now.toIso8601String(),
+      isSync: false,
     );
 
     Navigator.of(context)
@@ -750,7 +777,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
     Navigator.of(context)
         .push(
       CustomPageRoute(
-        child: SettingsPage(itemsChecked: checkedTodosCounT, listTodos: todos),
+        child: SettingsPage(
+          itemsChecked: checkedTodosCounT,
+          listTodos: todos,
+        ),
         forwardAnimation: true,
         duration: Duration(milliseconds: 700),
       ),

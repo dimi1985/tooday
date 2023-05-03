@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -7,18 +5,19 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
-import 'package:tooday/utils/background_service.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
+import 'package:tooday/utils/firebase_user_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/notifications_enable_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'utils/shopping_enabled_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? languageCode = prefs.getString('languageCode');
   String? countryCode = prefs.getString('countryCode');
@@ -33,6 +32,7 @@ void main() async {
       ChangeNotifierProvider(create: (_) => GooglePayEnabledProvider()),
       ChangeNotifierProvider(create: (_) => NotificationsEnabledProvider()),
       ChangeNotifierProvider(create: (_) => ConnectivityStatus()),
+      ChangeNotifierProvider(create: (_) => FirebaseUserProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));
@@ -56,7 +56,6 @@ class TodoApp extends StatefulWidget {
 
 class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   late Locale _locale;
-  late AppLifecycleState _appLifecycleState;
 
   @override
   void initState() {
@@ -69,20 +68,6 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _appLifecycleState = state;
-      if (_appLifecycleState == AppLifecycleState.detached) {
-        Future.delayed(Duration(minutes: 1), () async {
-          BackgroundService.start();
-        });
-      } else if (_appLifecycleState == AppLifecycleState.resumed) {
-        BackgroundService.stop();
-      }
-    });
   }
 
   void setLocale(Locale locale) async {
