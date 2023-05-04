@@ -69,7 +69,7 @@ class DatabaseHelper {
     return await db.insert(
       table,
       todo.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
   }
 

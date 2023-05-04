@@ -48,6 +48,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   late FirebaseAuth _auth = FirebaseAuth.instance;
   late User? user = _auth.currentUser;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
 
   @override
   void initState() {
@@ -118,39 +120,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
           elevation: 0,
           title: _isSearching
               ? _buildSearchField()
-              : Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).translate('todo_title'),
-                      style: TextStyle(
-                          color: themeProvider.isDarkThemeEnabled
-                              ? Colors.white
-                              : Colors.black),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Icon(
-                      Icons.online_prediction,
-                      color: connectivityProvider.isConnected
-                          ? Colors.green
-                          : Colors.grey,
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    user != null
-                        ? SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Image(
-                              image:
-                                  AssetImage('assets/images/google_logo.png'),
-                              height: 35.0,
-                            ),
-                          )
-                        : Container(),
-                  ],
+              : Text(
+                  AppLocalizations.of(context).translate('todo_title'),
+                  style: TextStyle(
+                      color: themeProvider.isDarkThemeEnabled
+                          ? Colors.white
+                          : Colors.black),
                 ),
           bottom: shoppingdProvider.geIsShoppingtEnabled
               ? PreferredSize(
@@ -302,33 +277,51 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     ),
                   ),
                 )
-              : _todos.isEmpty
-                  ? Expanded(
-                      child: Container(
-                        color: themeProvider.isDarkThemeEnabled
-                            ? Color.fromARGB(255, 39, 39, 39)
-                            : Colors.white, // Change background color here
-                        child: Center(
-                            child: Text(AppLocalizations.of(context)
-                                .translate('List is appears Empty'))),
-                      ),
-                    )
-                  // _refreshIndicatorKey
-                  : Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.only(
-                            bottom: kFloatingActionButtonMargin + 50),
-                        itemCount: _isSearching || isListviewFiltered
-                            ? _filteredTodos.length
-                            : _todos.length,
-                        itemBuilder: (context, index) {
-                          final todo = _isSearching || isListviewFiltered
-                              ? _filteredTodos[index]
-                              : _todos[index];
+              : Expanded(
+                  child: RefreshIndicator(
+                    key: _refreshIndicatorKey,
+                    onRefresh: _fetchTodos,
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(
+                          bottom: kFloatingActionButtonMargin + 50),
+                      itemCount: _isSearching || isListviewFiltered
+                          ? _filteredTodos.length
+                          : _todos.length,
+                      itemBuilder: (context, index) {
+                        final todo = _isSearching || isListviewFiltered
+                            ? _filteredTodos[index]
+                            : _todos[index];
 
-                          titleText = todo.title;
+                        titleText = todo.title;
 
-                          return Padding(
+                        return Dismissible(
+                          key: Key(todo.id.toString()),
+                          onDismissed: (direction) {
+                            // Remove the item from the data source.
+                            setState(() {
+                              _todos.removeAt(index);
+                              final dbHelper = DatabaseHelper();
+                              dbHelper.delete(todo.id ?? 0);
+                            });
+
+                            // Show a snackbar with the undo option.
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(AppLocalizations.of(context)
+                                    .translate(
+                                        shoppingdProvider.isSoppingEnabled
+                                            ? 'Shopping Item deleted'
+                                            : 'Todo deleted')),
+                              ),
+                            );
+                          },
+                          background: Container(
+                            color: Colors.red,
+                            child: Icon(Icons.delete, color: Colors.white),
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 16),
+                          ),
+                          child: Padding(
                             key: ValueKey(todo.id),
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
@@ -336,12 +329,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(left: 15),
                                   child: Container(
-                                    width: 10,
-                                    height: 10,
+                                    width: 14,
+                                    height: 14,
                                     decoration: BoxDecoration(
                                       color: todo.isDone
                                           ? Colors.green
-                                          : Colors.grey,
+                                          : getPriorityColor(todo.priority),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),
@@ -381,28 +374,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                                       color: Colors.grey)
                                                   : null),
                                         ),
-                                        !shoppingdProvider.geIsShoppingtEnabled
-                                            ? Container(
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  color: todo.isDone
-                                                      ? Colors.grey
-                                                      : getPriorityColor(
-                                                          todo.priority),
-                                                ),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 4),
-                                                child: Text(
-                                                  priorityToString(
-                                                      todo.priority),
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              )
-                                            : Container(),
                                       ],
                                     ),
                                     trailing: CustomCheckbox(
@@ -494,10 +465,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
+                  ),
+                ),
           if (!shoppingdProvider.geIsShoppingtEnabled && _todos.length >= 1)
             allChecked(_todos)
                 ? AnimatedContainer(

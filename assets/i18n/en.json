@@ -16,8 +16,12 @@
     "Clear Selected": "Clear Selected",
     "Add Todo": "Add Todo",
     "Edit Todo": "Edit Todo",
-    "Delete Todo?": "Delete Todo?",
+    "Delete Todo": "Delete Todo",
+    "Delete Shopping Item": "Delete Shopping Item",
     "Are you sure you want to delete this todo?": "Are you sure you want to delete this todo?",
+    "Are you sure you want to delete this shopping product?": "Are you sure you want to delete this shopping product?",
+    "Todo deleted": "Todo deleted",
+    "Shopping Item deleted": "Shopping Item deleted",
     "Cancel": "Cancel",
     "Delete": "Delete",
     "Stay on add todo screen when adding ?": "Stay on add todo screen when adding ?",
@@ -85,8 +89,10 @@
     "Enable Google Pay": "Enable Google Pay",
     "Enable Notifications": "Enable Notifications",
     "Sync Online": "Sync Online",
+    "Already Synced": "Already Synced",
     "Sign in with Google": "Sign in with Google",
-    "Signed in as:": "Signed in as:"
+    "Signed in as:": "Signed in as:",
+    "You need to be Connected to the Internet to use Google Account": "You need to be Connected to the Internet to use Google Account"
     
     
     

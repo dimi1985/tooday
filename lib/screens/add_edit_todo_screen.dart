@@ -209,7 +209,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             ),
                       IconButton(
                         onPressed: () {
-                          _showPopUpDeleteDialog(widget.todo);
+                          _showPopUpDeleteDialog(
+                              widget.todo, shoppingdProvider);
                         },
                         icon: Icon(IconlyLight.delete),
                       ),
@@ -321,7 +322,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           dueDate: widget.todo.dueDate,
                                           priority: widget.todo.priority,
                                           lastUpdated: now.toIso8601String(),
-                                          isSync: false,
+                                          isSync: widget.todo.isSync,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -338,8 +339,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Text(AppLocalizations.of(context)
-                                  .translate('Sync Online')),
+                              Text(AppLocalizations.of(context).translate(
+                                  _isSynced
+                                      ? 'Already Synced'
+                                      : 'Sync Online')),
                               const Spacer(),
                               CustomCheckbox(
                                 isChecked: _isSynced,
@@ -436,7 +439,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
-                                            isSync: false,
+                                            isSync: widget.todo.isSync,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -514,7 +517,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
-                                            isSync: false,
+                                            isSync: widget.todo.isSync,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -812,7 +815,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         priority:
             shoppingdProvider.geIsShoppingtEnabled ? 0 : _selectedPriority,
         lastUpdated: now.toIso8601String(),
-        isSync: false,
+        isSync: widget.todo.isSync,
       );
 
       final dbHelper = DatabaseHelper();
@@ -839,10 +842,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           dbHelper.insert(todo);
         }
       } else {
-        if (user != null) {
-          uploadToFireStore(widget.todo.id);
-        }
-
         dbHelper.update(todo);
       }
 
@@ -854,15 +853,21 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     }
   }
 
-  void _showPopUpDeleteDialog(Todo todo) {
+  void _showPopUpDeleteDialog(
+      Todo todo, ShoppingEnabledProvider shoppingdProvider) {
     // Show confirmation dialog before deleting
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context).translate('Delete Todo?')),
-          content: Text(AppLocalizations.of(context)
-              .translate('Are you sure you want to delete this todo?')),
+          title: Text(AppLocalizations.of(context).translate(
+              shoppingdProvider.isSoppingEnabled
+                  ? 'Delete Shopping Item'
+                  : 'Delete Todo')),
+          content: Text(AppLocalizations.of(context).translate(
+              shoppingdProvider.isSoppingEnabled
+                  ? 'Are you sure you want to delete this shopping product?'
+                  : 'Are you sure you want to delete this todo?')),
           actions: [
             TextButton(
               child: Text(AppLocalizations.of(context).translate('Cancel')),

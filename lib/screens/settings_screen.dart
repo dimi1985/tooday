@@ -7,6 +7,7 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
@@ -35,11 +36,19 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   Language? _selectedLanguage;
+  late List<Language> supportedLanguages;
 
-  final List<Language> supportedLanguages = [
-    Language('English', const Locale('en', 'US')),
-    Language('Greek', const Locale('el', 'GR')),
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    supportedLanguages = [
+      Language(AppLocalizations.of(context).translate('English'),
+          const Locale('en', 'US')),
+      Language(AppLocalizations.of(context).translate('Greek'),
+          const Locale('el', 'GR')),
+    ];
+  }
 
   void _onLanguageSelected(Language? language) async {
     if (language == null) return;
@@ -97,6 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
     final notificationsdProvider =
         Provider.of<NotificationsEnabledProvider>(context);
+    final connectivityProvider = Provider.of<ConnectivityStatus>(context);
 
     return WillPopScope(
       onWillPop: () {
@@ -866,7 +876,33 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                GoogleSignInButton(), // Add the Google Sign-In button here
+                connectivityProvider.isConnected
+                    ? GoogleSignInButton()
+                    : Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.online_prediction,
+                            size: 22.0,
+                            color: themeProvider.isDarkThemeEnabled
+                                ? Color.fromARGB(255, 202, 202, 202)
+                                : Colors.grey,
+                          ),
+                          title: Text(
+                            AppLocalizations.of(context).translate(
+                                'You need to be Connected to the Internet to use Google Account'),
+                            style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Color.fromARGB(255, 202, 202, 202)
+                                    : Colors.grey),
+                          ),
+                        ),
+                      ), // Add the Google Sign-In button here
                 const SizedBox(height: 16),
                 Card(
                   elevation: 4.0,

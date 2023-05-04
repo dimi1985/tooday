@@ -16,8 +16,12 @@
     "Clear Selected": "Εκκαθάριση Επιλεγμένων",
     "Add Todo": "Πρόσθεση Todo",
     "Edit Todo": "Επεξεργασία Todo",
-    "Delete Todo?": "Διαφραφή Todo?",
+    "Delete Todo": "Διαφραφή Todo",
+    "Delete Shopping Item": "Διαγραφή Προϊόν",
     "Are you sure you want to delete this todo?": "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν το Todo;",
+    "Are you sure you want to delete this shopping product?": "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το προϊόν αγορών;",
+    "Todo deleted": "Todo διαγράφτηκε",
+    "Shopping Item deleted": "Το αντικείμενο αγορών διαγράφηκε",
     "Cancel": "Ακύρωση",
     "Delete": "Διαγραφή",
     "Stay on add todo screen when adding ?": "Μείνετε στην οθόνη προσθήκης εργασιών κατά την προσθήκη ;",
@@ -85,8 +89,10 @@
     "Enable Google Pay": "Ενεργοποίηση Google Pay",
     "Enable Notifications": "Ενεργοποίηση Ειδοποιήσεων",
     "Sync Online": "Συγχρονισμός στο Διαδίκτυο",
+    "Already Synced": "Ήδη συγχρονισμένο",
     "Sign in with Google": "Συνδεθείτε με το Google",
-    "Signed in as:": "Συνδεθήκατε ως:"
+    "Signed in as:": "Συνδεθήκατε ως:",
+    "You need to be Connected to the Internet to use Google Account": "Πρέπει να είστε συνδεδεμένοι στο Διαδίκτυο για να χρησιμοποιήσετε τον Λογαριασμό Google"
 
   }
   
