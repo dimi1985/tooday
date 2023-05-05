@@ -154,4 +154,10 @@ class DatabaseHelper {
       whereArgs: [0],
     );
   }
+
+  Future<List<Todo>> getUncheckTodos() async {
+    final db = await database;
+    final result = await db.query(table, where: "isDone = ?", whereArgs: [0]);
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
 }

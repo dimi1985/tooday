@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 import 'package:provider/provider.dart';
@@ -17,17 +19,20 @@ import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:tooday/utils/user_signin_provider.dart';
 import 'package:tooday/widgets/google_button.dart';
 import '../widgets/custom_page_route.dart';
 
 class SettingsPage extends StatefulWidget {
   final int itemsChecked;
   final List<Todo> listTodos;
+  bool isUserSignIn;
 
-  const SettingsPage({
+  SettingsPage({
     super.key,
     required this.itemsChecked,
     required this.listTodos,
+    required this.isUserSignIn,
   });
 
   @override
@@ -121,6 +126,14 @@ class _SettingsPageState extends State<SettingsPage> {
           );
         }
 
+        Navigator.of(context).pushAndRemoveUntil(
+          CustomPageRoute(
+            child: TodoListScreen(),
+            forwardAnimation: false,
+            duration: Duration(milliseconds: 500),
+          ),
+          (route) => false, // Remove all previous routes
+        );
         return Future.value(true);
       },
       child: Scaffold(

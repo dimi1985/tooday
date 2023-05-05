@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/user_signin_provider.dart';
 
 import '../models/todo.dart';
 import '../utils/shopping_enabled_provider.dart';
@@ -36,6 +37,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
 
   @override
   Widget build(BuildContext context) {
+    final userSgnInProvider = Provider.of<UserSgnInProvider>(context);
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Card(
@@ -67,8 +69,11 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                       final UserCredential userCredential =
                           await _auth.signInWithCredential(credential);
 
+                      userSgnInProvider.isSignedIn = true;
+
                       // Store user's authentication state in shared preferences
-                      await _prefs.setBool('isSignedIn', true);
+                      _prefs.setBool(
+                          'isSignedIn', userSgnInProvider.isSignedIn);
 
                       //update usrID
                       await _prefs.setString('userId', _auth.currentUser!.uid);
@@ -85,95 +90,109 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                       });
                     }
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Image(
-                          image: AssetImage('assets/images/google_logo.png'),
-                          height: 35.0,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: _user == null
-                              ? Text(
-                                  AppLocalizations.of(context)
-                                      .translate('Sign in with Google'),
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.black54,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                )
-                              : _user != null
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Column(
-                                          children: [
-                                            Text(
-                                              AppLocalizations.of(context)
-                                                  .translate('Signed in as:'),
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                            Text(
-                                              _user!.displayName ?? '',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.black54,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            Text(
-                                              _user!.email ?? '',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black54,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ],
+                  child: _isSigningIn
+                      ? CircularProgressIndicator()
+                      : Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Image(
+                                image:
+                                    AssetImage('assets/images/google_logo.png'),
+                                height: 35.0,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: _user == null
+                                    ? Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Sign in with Google'),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                        IconButton(
-                                            onPressed: () async {
-                                              await _googleSignIn.signOut();
-                                              await _auth.signOut();
-                                              setState(() {
-                                                _user = null;
-                                                _prefs.remove('isSignedIn');
-                                              });
-                                            },
-                                            icon: Icon(
-                                              Icons.exit_to_app,
-                                              color: Colors.red,
-                                            ))
-                                      ],
-                                    )
-                                  : Text(
-                                      AppLocalizations.of(context)
-                                          .translate('Sign in with Google'),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                        )
-                      ],
-                    ),
-                  ),
+                                      )
+                                    : _user != null
+                                        ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Column(
+                                                children: [
+                                                  Text(
+                                                    AppLocalizations.of(context)
+                                                        .translate(
+                                                            'Signed in as:'),
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black54,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _user!.displayName ?? '',
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      color: Colors.black54,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _user!.email ?? '',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black54,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              IconButton(
+                                                  onPressed: () async {
+                                                    await _googleSignIn
+                                                        .signOut();
+                                                    await _auth.signOut();
+                                                    setState(() {
+                                                      _user = null;
+                                                      userSgnInProvider
+                                                          .isSignedIn = false;
+                                                      _prefs.setBool(
+                                                          'isSignedIn',
+                                                          userSgnInProvider
+                                                              .isSignedIn);
+                                                      _isSigningIn = false;
+                                                    });
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.exit_to_app,
+                                                    color: Colors.red,
+                                                  ))
+                                            ],
+                                          )
+                                        : Text(
+                                            AppLocalizations.of(context)
+                                                .translate(
+                                                    'Sign in with Google'),
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                              )
+                            ],
+                          ),
+                        ),
                 )
-              : MaterialButton(
-                  onPressed: syncFireStore,
+              : Container(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,8 +232,11 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                             await _auth.signOut();
                             setState(() {
                               _user = null;
-                              _prefs.remove('isSignedIn');
+                              userSgnInProvider.isSignedIn = false;
+                              _prefs.setBool(
+                                  'isSignedIn', userSgnInProvider.isSignedIn);
                             });
+                            _isSigningIn = false;
                           },
                           icon: Icon(
                             Icons.exit_to_app,
@@ -226,58 +248,5 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
         ),
       ),
     );
-  }
-
-  syncFireStore() async {
-    final dbHelper = DatabaseHelper();
-    // Download synced todos from Firestore
-    final syncedTodoDocs = await FirebaseFirestore.instance
-        .collection('todos')
-        .where('isSync', isEqualTo: true)
-        .where('userId', isEqualTo: _auth.currentUser!.uid)
-        .get();
-
-    final syncedTodoData =
-        syncedTodoDocs.docs.map((doc) => doc.data()).toList();
-
-// Save synced todos to local database
-    for (final data in syncedTodoData) {
-      final fireStoreTodo = Todo.fromMap(data);
-
-      bool shoppingItemExists = false;
-      dbHelper.checkIfShoppingItemExists(fireStoreTodo).then((value) {
-        setState(() {
-          shoppingItemExists = value;
-        });
-      });
-      bool todoItemListExists = false;
-      dbHelper.checkIfTodoItemExists(fireStoreTodo).then((value) {
-        setState(() {
-          todoItemListExists = value;
-        });
-      });
-      final shoppingdProvider =
-          Provider.of<ShoppingEnabledProvider>(context, listen: false);
-
-      final newtodo = Todo(
-        id: fireStoreTodo.id,
-        title: fireStoreTodo.title,
-        isDone: fireStoreTodo.isDone,
-        description: fireStoreTodo.description,
-        isShopping: shoppingdProvider.geIsShoppingtEnabled ? true : false,
-        quantity: fireStoreTodo.quantity,
-        productPrice: fireStoreTodo.productPrice,
-        totalProductPrice: fireStoreTodo.totalProductPrice,
-        entryDate: fireStoreTodo.entryDate,
-        dueDate: fireStoreTodo.dueDate,
-        priority: fireStoreTodo.priority,
-        lastUpdated: fireStoreTodo.lastUpdated,
-        isSync: true,
-      );
-
-      if (!shoppingItemExists || !todoItemListExists) {
-        await dbHelper.insert(newtodo);
-      }
-    }
   }
 }

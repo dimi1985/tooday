@@ -159,6 +159,15 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           await widget.fetchFunction();
           await widget.changePriceFunction(widget.listTodos);
         }
+
+        Navigator.of(context).pushAndRemoveUntil(
+          CustomPageRoute(
+            child: TodoListScreen(),
+            forwardAnimation: false,
+            duration: Duration(milliseconds: 500),
+          ),
+          (route) => false, // Remove all previous routes
+        );
         return true;
       },
       child: Scaffold(
@@ -842,6 +851,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           dbHelper.insert(todo);
         }
       } else {
+        uploadToFireStore(todo.id);
         dbHelper.update(todo);
       }
 
@@ -939,7 +949,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       case 2:
         return Colors.red;
       case 1:
-        return Colors.yellow;
+        return Color.fromARGB(255, 226, 128, 16);
       case 0:
         return Colors.green;
     }

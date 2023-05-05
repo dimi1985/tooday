@@ -1,4 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +13,7 @@ import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
+import 'package:tooday/utils/user_signin_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
@@ -51,6 +55,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
 
+  bool areFirestoreItemsDownloaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +64,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     _fetchTodos();
+
     getAndUpdateTotalPrice(_todos);
 
     _getBudgetValue();
@@ -100,6 +107,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
+    final userSgnInProvider =
+        Provider.of<UserSgnInProvider>(context, listen: false);
     return Scaffold(
       extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -120,12 +129,24 @@ class _TodoListScreenState extends State<TodoListScreen> {
           elevation: 0,
           title: _isSearching
               ? _buildSearchField()
-              : Text(
-                  AppLocalizations.of(context).translate('todo_title'),
-                  style: TextStyle(
-                      color: themeProvider.isDarkThemeEnabled
-                          ? Colors.white
-                          : Colors.black),
+              : Row(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context).translate('todo_title'),
+                      style: TextStyle(
+                          color: themeProvider.isDarkThemeEnabled
+                              ? Colors.white
+                              : Colors.black),
+                    ),
+                    IconButton(
+                      icon: userSgnInProvider.getIsUserSignin
+                          ? Icon(Icons.check_circle)
+                          : Icon(Icons.circle),
+                      onPressed: () {
+                        checkFireStore();
+                      },
+                    ),
+                  ],
                 ),
           bottom: shoppingdProvider.geIsShoppingtEnabled
               ? PreferredSize(
@@ -346,23 +367,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
-                                        if (todo.isSync)
-                                          Icon(
-                                            Icons.cloud_sync,
-                                            size: 16,
-                                            color: Color.fromARGB(
-                                                255, 58, 137, 183),
-                                          ),
-                                        if (todo.description.isNotEmpty)
-                                          Icon(
-                                            Icons.article_outlined,
-                                            size: 16,
-                                            color: Color.fromARGB(
-                                                255, 58, 137, 183),
-                                          ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
                                         Expanded(
                                           child: Text(titleText,
                                               maxLines: 2,
@@ -373,6 +377,27 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                                           .lineThrough,
                                                       color: Colors.grey)
                                                   : null),
+                                        ),
+                                        if (todo.isSync)
+                                          todo.isSync
+                                              ? Icon(Icons.check_circle)
+                                              : Icon(
+                                                  Icons.circle,
+                                                  color: todo.isSync
+                                                      ? Colors.green
+                                                      : Colors.blueGrey,
+                                                ),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
+                                        if (todo.description.isNotEmpty)
+                                          Icon(
+                                            Icons.article_outlined,
+                                            size: 20,
+                                            color: Colors.green,
+                                          ),
+                                        SizedBox(
+                                          width: 5,
                                         ),
                                       ],
                                     ),
@@ -747,12 +772,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   void _navigateToSettingsScreen(BuildContext context, List<Todo> todos) {
+    final userSgnInProvider =
+        Provider.of<UserSgnInProvider>(context, listen: false);
     Navigator.of(context)
         .push(
       CustomPageRoute(
         child: SettingsPage(
           itemsChecked: checkedTodosCounT,
           listTodos: todos,
+          isUserSignIn: userSgnInProvider.getIsUserSignin,
         ),
         forwardAnimation: true,
         duration: Duration(milliseconds: 700),
@@ -761,6 +789,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
         .then((value) {
       if (value == true) {
         _fetchTodos();
+        log('Todo List method Screen');
       }
     });
   }
@@ -957,7 +986,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
       case 2:
         return Colors.red;
       case 1:
-        return Colors.yellow;
+        return Color.fromARGB(255, 226, 128, 16);
       case 0:
         return Colors.green;
     }
@@ -979,6 +1008,61 @@ class _TodoListScreenState extends State<TodoListScreen> {
       // Google Pay is not installed, open Google Play store
       launchUrl(Uri.parse(
           'market://details?id=com.google.android.apps.walletnfcrel'));
+    }
+  }
+
+  void checkFireStore() async {
+    late List<DocumentChange<Map<String, dynamic>>> docs = [];
+    final syncedTodoDocs = await FirebaseFirestore.instance
+        .collection('todos')
+        .where('isSync', isEqualTo: true)
+        .where('userId', isEqualTo: _auth.currentUser!.uid)
+        .get();
+
+    final syncedTodoData =
+        syncedTodoDocs.docs.map((doc) => doc.data()).toList();
+
+// Save synced todos to local database
+    for (final data in syncedTodoData) {
+      final fireStoreTodo = Todo.fromFireStore(data);
+      log(fireStoreTodo.toMap().toString());
+
+      bool shoppingItemExists = false;
+      dbHelper.checkIfShoppingItemExists(fireStoreTodo).then((value) {
+        if (mounted) {
+          setState(() {
+            shoppingItemExists = value;
+          });
+        }
+      });
+      bool todoItemListExists = false;
+      dbHelper.checkIfTodoItemExists(fireStoreTodo).then((value) {
+        if (mounted) {
+          setState(() {
+            todoItemListExists = value;
+          });
+        }
+      });
+
+      final newtodo = Todo(
+        id: fireStoreTodo.id,
+        title: fireStoreTodo.title,
+        isDone: fireStoreTodo.isDone,
+        description: fireStoreTodo.description,
+        isShopping: fireStoreTodo.isShopping,
+        quantity: fireStoreTodo.quantity,
+        productPrice: fireStoreTodo.productPrice,
+        totalProductPrice: fireStoreTodo.totalProductPrice,
+        entryDate: fireStoreTodo.entryDate,
+        dueDate: fireStoreTodo.dueDate,
+        priority: fireStoreTodo.priority,
+        lastUpdated: fireStoreTodo.lastUpdated,
+        isSync: fireStoreTodo.isSync,
+      );
+
+      if (!shoppingItemExists || !todoItemListExists) {
+        await dbHelper.insert(newtodo);
+      }
     }
   }
 }

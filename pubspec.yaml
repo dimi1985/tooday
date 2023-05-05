@@ -48,7 +48,10 @@ dependencies:
   firebase_core: ^2.10.0
   cloud_firestore: ^4.5.3
   google_sign_in: ^6.1.0
-  uuid: ^3.0.7
+  workmanager: ^0.5.1
+  flutter_foreground_task: ^4.1.0
+  flutter_local_notifications: ^14.0.0+1
+  
 
 
 

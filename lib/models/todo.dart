@@ -64,4 +64,40 @@ class Todo {
       isSync: map['isSync'] == 1,
     );
   }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'title': title,
+      'isDone': isDone,
+      'description': description,
+      'isShopping': isShopping,
+      'quantity': quantity,
+      'productPrice': productPrice,
+      'totalProductPrice': totalProductPrice,
+      'entryDate': entryDate,
+      'dueDate': dueDate,
+      'priority': priority,
+      'lastUpdated': lastUpdated,
+      'isSync': isSync,
+    };
+  }
+
+  factory Todo.fromFireStore(Map<String, dynamic> map) {
+    return Todo(
+      id: map['id'],
+      title: map['title'],
+      isDone: map['isDone'],
+      description: map['description'],
+      isShopping: map['isShopping'],
+      quantity: map['quantity'],
+      productPrice: map['productPrice'],
+      totalProductPrice: map['totalProductPrice'],
+      entryDate: map['entryDate'],
+      dueDate: map['dueDate'],
+      priority: map['priority'],
+      lastUpdated: map['lastUpdated'],
+      isSync: map['isSync'],
+    );
+  }
 }
