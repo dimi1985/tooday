@@ -557,19 +557,17 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                         ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
                           SizedBox(
-                            height: 25,
+                            height: 32,
                           ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                AppLocalizations.of(context)
-                                        .translate('Total Price:') +
-                                    ' ${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  color: Colors.grey[600],
-                                ),
+                          Center(
+                            child: Text(
+                              AppLocalizations.of(context)
+                                      .translate('Total Price:') +
+                                  ' ${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 30,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ),

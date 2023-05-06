@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/theme_provider.dart';
 import 'package:tooday/utils/user_signin_provider.dart';
 
 import '../models/todo.dart';
@@ -38,6 +39,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
   @override
   Widget build(BuildContext context) {
     final userSgnInProvider = Provider.of<UserSignInProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Card(
@@ -111,7 +113,10 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                                             .translate('Sign in with Google'),
                                         style: TextStyle(
                                           fontSize: 20,
-                                          color: Colors.black54,
+                                          color:
+                                              themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black54,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       )
@@ -130,7 +135,10 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                                                             'Signed in as:'),
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      color: Colors.black54,
+                                                      color: themeProvider
+                                                              .isDarkThemeEnabled
+                                                          ? Colors.white
+                                                          : Colors.black54,
                                                       fontWeight:
                                                           FontWeight.w400,
                                                     ),
@@ -139,7 +147,10 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                                                     _user!.displayName ?? '',
                                                     style: TextStyle(
                                                       fontSize: 20,
-                                                      color: Colors.black54,
+                                                      color: themeProvider
+                                                              .isDarkThemeEnabled
+                                                          ? Colors.white
+                                                          : Colors.black54,
                                                       fontWeight:
                                                           FontWeight.w600,
                                                     ),
@@ -148,7 +159,10 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                                                     _user!.email ?? '',
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      color: Colors.black54,
+                                                      color: themeProvider
+                                                              .isDarkThemeEnabled
+                                                          ? Colors.white
+                                                          : Colors.black54,
                                                       fontWeight:
                                                           FontWeight.w400,
                                                     ),
@@ -183,7 +197,10 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                                                     'Sign in with Google'),
                                             style: TextStyle(
                                               fontSize: 20,
-                                              color: Colors.black54,
+                                              color: themeProvider
+                                                      .isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black54,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -192,57 +209,66 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
                           ),
                         ),
                 )
-              : Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)
-                                .translate('Signed in as:'),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w400,
+              : Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)
+                                  .translate('Signed in as:'),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black54,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                          Text(
-                            _user!.displayName ?? '',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w600,
+                            Text(
+                              _user!.displayName ?? '',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black54,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          Text(
-                            _user!.email ?? '',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w400,
+                            Text(
+                              _user!.email ?? '',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black54,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      IconButton(
-                          onPressed: () async {
-                            await _googleSignIn.signOut();
-                            await _auth.signOut();
-                            setState(() {
-                              _user = null;
-                              userSgnInProvider.isSignedIn = false;
-                              _prefs.setBool(
-                                  'isSignedIn', userSgnInProvider.isSignedIn);
-                            });
-                            _isSigningIn = false;
-                          },
-                          icon: Icon(
-                            Icons.exit_to_app,
-                            color: Colors.red,
-                          ))
-                    ],
+                          ],
+                        ),
+                        IconButton(
+                            onPressed: () async {
+                              await _googleSignIn.signOut();
+                              await _auth.signOut();
+                              setState(() {
+                                _user = null;
+                                userSgnInProvider.isSignedIn = false;
+                                _prefs.setBool(
+                                    'isSignedIn', userSgnInProvider.isSignedIn);
+                              });
+                              _isSigningIn = false;
+                            },
+                            icon: Icon(
+                              Icons.exit_to_app,
+                              color: Colors.red,
+                            ))
+                      ],
+                    ),
                   ),
                 ),
         ),

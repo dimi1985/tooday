@@ -54,12 +54,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-  bool fireStoreNewItemsNeedSync = false;
+  bool fireStoreNewItemsNeedSync = true;
 
   @override
   void initState() {
     super.initState();
-
+    log('Needs Sync: $fireStoreNewItemsNeedSync');
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     getSyncBool();
@@ -133,22 +133,43 @@ class _TodoListScreenState extends State<TodoListScreen> {
               ? _buildSearchField()
               : Row(
                   children: [
-                    Text(
-                      AppLocalizations.of(context).translate('todo_title'),
-                      style: TextStyle(
-                          color: themeProvider.isDarkThemeEnabled
-                              ? Colors.white
-                              : Colors.black),
+                    if (userSgnInProvider.getIsUserSignin)
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(user?.photoURL ?? ''),
+                      ),
+                    SizedBox(
+                      width: 10,
                     ),
+                    userSgnInProvider.getIsUserSignin
+                        ? Text(
+                            user?.displayName ?? '',
+                            style: TextStyle(
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black),
+                          )
+                        : Text(
+                            AppLocalizations.of(context)
+                                .translate('todo_title'),
+                            style: TextStyle(
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black),
+                          ),
                     IconButton(
                       icon: userSgnInProvider.getIsUserSignin
-                          ? Icon(fireStoreNewItemsNeedSync
-                              ? Icons.sync
-                              : Icons.check_circle)
+                          ? Icon(
+                              fireStoreNewItemsNeedSync
+                                  ? Icons.sync_rounded
+                                  : Icons.check_circle,
+                              color: fireStoreNewItemsNeedSync
+                                  ? Colors.orange
+                                  : Colors.green,
+                            )
                           : Icon(
                               !userSgnInProvider.getIsUserSignin ||
                                       !connectivityProvider.isConnected
-                                  ? Icons.offline_bolt
+                                  ? null
                                   : Icons.circle,
                               color: !userSgnInProvider.getIsUserSignin ||
                                       !connectivityProvider.isConnected
@@ -158,11 +179,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       onPressed: !userSgnInProvider.getIsUserSignin
                           ? null
                           : () {
-                              if (fireStoreNewItemsNeedSync) {
-                                checkFireStore();
-                              }
+                              checkFireStore();
                             },
-                    ),
+                    )
                   ],
                 ),
           bottom: shoppingdProvider.geIsShoppingtEnabled
@@ -404,14 +423,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                                   : null),
                                         ),
                                         if (todo.isSync)
-                                          todo.isSync
-                                              ? Icon(Icons.check_circle)
-                                              : Icon(
-                                                  Icons.circle,
-                                                  color: todo.isSync
-                                                      ? Colors.green
-                                                      : Colors.blueGrey,
-                                                ),
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: todo.isSync
+                                                ? Colors.green
+                                                : null,
+                                          ),
                                         SizedBox(
                                           width: 5,
                                         ),
@@ -1038,8 +1055,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void getSyncBool() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    fireStoreNewItemsNeedSync =
-        prefs.getBool('fireStoreNewItemsNeedSync') ?? false;
+    bool valueBool = prefs.getBool('fireStoreNewItemsNeedSync') ?? true;
+
+    setState(() {
+      fireStoreNewItemsNeedSync = valueBool;
+    });
   }
 
   void getFireStoreTodos() async {
@@ -1058,24 +1078,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
       prefs.setInt('firestoreCount', count);
       if (mounted) {
         setState(() {
-          fireStoreNewItemsNeedSync = true;
-        });
-      }
-
-      prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
-      log(savedFireStoreCount.toString());
-    } else {
-      if (mounted) {
-        setState(() {
           fireStoreNewItemsNeedSync = false;
         });
       }
 
       prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
-      return;
     }
-
-    log(syncedTodoCount.toString());
   }
 
   void checkFireStore() async {
@@ -1130,8 +1138,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
         await dbHelper.insert(newtodo);
         setState(() {
           fireStoreNewItemsNeedSync = false;
-          _fetchTodos();
         });
+        _fetchTodos();
         prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
       }
     }
