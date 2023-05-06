@@ -54,8 +54,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-
-  bool areFirestoreItemsDownloaded = false;
+  bool fireStoreNewItemsNeedSync = false;
 
   @override
   void initState() {
@@ -63,6 +62,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
+    getSyncBool();
+    getFireStoreTodos();
     _fetchTodos();
 
     getAndUpdateTotalPrice(_todos);
@@ -108,7 +109,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
     final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
     final userSgnInProvider =
-        Provider.of<UserSgnInProvider>(context, listen: false);
+        Provider.of<UserSignInProvider>(context, listen: false);
+
     return Scaffold(
       extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -140,11 +142,26 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     ),
                     IconButton(
                       icon: userSgnInProvider.getIsUserSignin
-                          ? Icon(Icons.check_circle)
-                          : Icon(Icons.circle),
-                      onPressed: () {
-                        checkFireStore();
-                      },
+                          ? Icon(fireStoreNewItemsNeedSync
+                              ? Icons.sync
+                              : Icons.check_circle)
+                          : Icon(
+                              !userSgnInProvider.getIsUserSignin ||
+                                      !connectivityProvider.isConnected
+                                  ? Icons.offline_bolt
+                                  : Icons.circle,
+                              color: !userSgnInProvider.getIsUserSignin ||
+                                      !connectivityProvider.isConnected
+                                  ? Colors.grey
+                                  : Colors.black,
+                            ),
+                      onPressed: !userSgnInProvider.getIsUserSignin
+                          ? null
+                          : () {
+                              if (fireStoreNewItemsNeedSync) {
+                                checkFireStore();
+                              }
+                            },
                     ),
                   ],
                 ),
@@ -317,12 +334,20 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
                         return Dismissible(
                           key: Key(todo.id.toString()),
-                          onDismissed: (direction) {
+                          onDismissed: (direction) async {
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
                             // Remove the item from the data source.
                             setState(() {
                               _todos.removeAt(index);
                               final dbHelper = DatabaseHelper();
                               dbHelper.delete(todo.id ?? 0);
+
+                              if (todo.isSync) {
+                                fireStoreNewItemsNeedSync = true;
+                                prefs.setBool('fireStoreNewItemsNeedSync',
+                                    fireStoreNewItemsNeedSync);
+                              }
                             });
 
                             // Show a snackbar with the undo option.
@@ -773,7 +798,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void _navigateToSettingsScreen(BuildContext context, List<Todo> todos) {
     final userSgnInProvider =
-        Provider.of<UserSgnInProvider>(context, listen: false);
+        Provider.of<UserSignInProvider>(context, listen: false);
     Navigator.of(context)
         .push(
       CustomPageRoute(
@@ -1011,8 +1036,50 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
   }
 
+  void getSyncBool() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    fireStoreNewItemsNeedSync =
+        prefs.getBool('fireStoreNewItemsNeedSync') ?? false;
+  }
+
+  void getFireStoreTodos() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final syncedTodos = await dbHelper.getSyncedTodos();
+    int savedFireStoreCount = prefs.getInt('firestoreCount') ?? 0;
+    final syncedTodoCount = syncedTodos.length;
+    if (savedFireStoreCount > syncedTodoCount) {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('todos')
+          .where('isSync', isEqualTo: true)
+          .where('userId', isEqualTo: _auth.currentUser!.uid)
+          .get();
+      final count = querySnapshot.docs.length;
+
+      prefs.setInt('firestoreCount', count);
+      if (mounted) {
+        setState(() {
+          fireStoreNewItemsNeedSync = true;
+        });
+      }
+
+      prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
+      log(savedFireStoreCount.toString());
+    } else {
+      if (mounted) {
+        setState(() {
+          fireStoreNewItemsNeedSync = false;
+        });
+      }
+
+      prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
+      return;
+    }
+
+    log(syncedTodoCount.toString());
+  }
+
   void checkFireStore() async {
-    late List<DocumentChange<Map<String, dynamic>>> docs = [];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final syncedTodoDocs = await FirebaseFirestore.instance
         .collection('todos')
         .where('isSync', isEqualTo: true)
@@ -1025,7 +1092,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
 // Save synced todos to local database
     for (final data in syncedTodoData) {
       final fireStoreTodo = Todo.fromFireStore(data);
-      log(fireStoreTodo.toMap().toString());
 
       bool shoppingItemExists = false;
       dbHelper.checkIfShoppingItemExists(fireStoreTodo).then((value) {
@@ -1062,6 +1128,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
       if (!shoppingItemExists || !todoItemListExists) {
         await dbHelper.insert(newtodo);
+        setState(() {
+          fireStoreNewItemsNeedSync = false;
+          _fetchTodos();
+        });
+        prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
       }
     }
   }

@@ -160,4 +160,13 @@ class DatabaseHelper {
     final result = await db.query(table, where: "isDone = ?", whereArgs: [0]);
     return result.map((map) => Todo.fromMap(map)).toList();
   }
+
+  Future<List<Todo>> getSyncedTodos() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+        await db.query('todos', where: 'isSync = ?', whereArgs: [1]);
+    return List.generate(maps.length, (i) {
+      return Todo.fromMap(maps[i]);
+    });
+  }
 }

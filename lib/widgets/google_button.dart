@@ -37,7 +37,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
 
   @override
   Widget build(BuildContext context) {
-    final userSgnInProvider = Provider.of<UserSgnInProvider>(context);
+    final userSgnInProvider = Provider.of<UserSignInProvider>(context);
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Card(

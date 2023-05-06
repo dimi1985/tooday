@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class UserSgnInProvider with ChangeNotifier {
+class UserSignInProvider with ChangeNotifier {
   bool isSignedIn = false;
 
-  UserSgnInProvider() {
+  UserSignInProvider() {
     _loadUserSignedInStatus();
     notifyListeners();
   }

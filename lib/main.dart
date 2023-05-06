@@ -12,6 +12,7 @@ import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
+import 'package:tooday/utils/firestore_items_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/local_nofication_service.dart';
 import 'package:tooday/utils/notifications_enable_provider.dart';
@@ -40,7 +41,8 @@ void main() async {
       ChangeNotifierProvider(create: (_) => NotificationsEnabledProvider()),
       ChangeNotifierProvider(create: (_) => ConnectivityStatus()),
       ChangeNotifierProvider(create: (_) => FirebaseUserProvider()),
-      ChangeNotifierProvider(create: (_) => UserSgnInProvider()),
+      ChangeNotifierProvider(create: (_) => UserSignInProvider()),
+      ChangeNotifierProvider(create: (_) => FireStoreItemsProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));
