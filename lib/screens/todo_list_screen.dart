@@ -1,7 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -144,9 +143,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         ? Text(
                             user?.displayName ?? '',
                             style: TextStyle(
-                                color: themeProvider.isDarkThemeEnabled
-                                    ? Colors.white
-                                    : Colors.black),
+                              color: themeProvider.isDarkThemeEnabled
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                            overflow: TextOverflow
+                                .ellipsis, // or TextOverflow.fade, TextOverflow.clip, etc.
+                            maxLines:
+                                1, // Set the desired maximum number of lines
                           )
                         : Text(
                             AppLocalizations.of(context)

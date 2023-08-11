@@ -1,16 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:tooday/utils/user_signin_provider.dart';
-
-import '../models/todo.dart';
-import '../utils/shopping_enabled_provider.dart';
 
 class GoogleSignInButton extends StatefulWidget {
   @override

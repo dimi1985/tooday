@@ -32,9 +32,8 @@ dependencies:
     sdk: flutter
   sqflite: ^2.0.0+3
   path_provider: ^2.0.5
-  flutter_localizations:
-    sdk: flutter
-  intl: ^0.17.0
+  flutter_localization: ^0.1.13
+  intl: ^0.18.0
   provider: ^6.0.5
   iconly: ^1.0.1
   shared_preferences: ^2.1.0
@@ -48,12 +47,6 @@ dependencies:
   firebase_core: ^2.10.0
   cloud_firestore: ^4.5.3
   google_sign_in: ^6.1.0
-  workmanager: ^0.5.1
-  flutter_foreground_task: ^4.1.0
-  flutter_local_notifications: ^14.0.0+1
-  permission_handler: ^10.2.0
-  flutter_native_timezone: ^2.0.0
-  awesome_notifications: ^0.7.4+1
   
   
 
