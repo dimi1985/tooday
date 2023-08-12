@@ -330,6 +330,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           priority: widget.todo.priority,
                                           lastUpdated: now.toIso8601String(),
                                           isSync: widget.todo.isSync,
+                                          userId: widget.todo.userId,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -346,10 +347,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Text(AppLocalizations.of(context).translate(
-                                  _isSynced
-                                      ? 'Already Synced'
-                                      : 'Sync Online')),
+                              Text(
+                                AppLocalizations.of(context).translate(
+                                  _isSynced ? 'Synced' : 'Sync Online',
+                                ),
+                              ),
                               const Spacer(),
                               CustomCheckbox(
                                 isChecked: _isSynced,
@@ -375,6 +377,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       priority: widget.todo.priority,
                                       lastUpdated: now.toIso8601String(),
                                       isSync: _isSynced,
+                                      userId: widget.todo.userId,
                                     );
 
                                     final dbHelper = DatabaseHelper();
@@ -447,6 +450,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
                                             isSync: widget.todo.isSync,
+                                            userId: widget.todo.userId,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -525,6 +529,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
                                             isSync: widget.todo.isSync,
+                                            userId: widget.todo.userId,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -792,7 +797,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       String action, ShoppingEnabledProvider shoppingdProvider) async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String valueUserId = prefs.getString('userId') ?? '';
       DateTime now = DateTime.now();
       DateFormat format = DateFormat("yyyy-MM-dd");
       DateTime selectedDate = format.parse(
@@ -821,6 +827,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             shoppingdProvider.geIsShoppingtEnabled ? 0 : _selectedPriority,
         lastUpdated: now.toIso8601String(),
         isSync: widget.todo.isSync,
+        userId: valueUserId,
       );
 
       final dbHelper = DatabaseHelper();
@@ -956,77 +963,64 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     String valueUserId = prefs.getString('userId') ?? '';
 
     final dbHelper = DatabaseHelper();
-    final todos = await dbHelper.getAllTodos();
-    DocumentReference docRef = firestore.collection('todos').doc();
-    DocumentSnapshot docSnapshot =
-        await firestore.collection('todos').doc(docRef.id.toString()).get();
-    if (user != null && todos.isNotEmpty) {
-      if (!_isSynced) {
-        final querySnapshot = await FirebaseFirestore.instance
-            .collection('todos')
-            .where('docRefId', isEqualTo: id)
-            .get();
+    final todo = await dbHelper.getTodoById(id);
 
-        if (querySnapshot.docs.isNotEmpty) {
-          final todoRef = querySnapshot.docs.first.reference;
-          await todoRef.delete();
+    if (todo != null) {
+      DocumentReference docRef =
+          firestore.collection('todos').doc(todo.id.toString());
+      DocumentSnapshot docSnapshot = await docRef.get();
 
-          print('Document deleted successfully');
-        }
+      if (!docSnapshot.exists) {
+        // Document doesn't exist, create a new one
+        await docRef.set({
+          'id': todo.id,
+          'docRefId': todo.id,
+          'title': todo.title,
+          'isDone': todo.isDone,
+          'description': todo.description,
+          'isShopping': todo.isShopping,
+          'quantity': todo.quantity,
+          'productPrice': todo.productPrice,
+          'totalProductPrice': todo.totalProductPrice,
+          'entryDate': todo.entryDate,
+          'dueDate': todo.dueDate,
+          'priority': todo.priority,
+          'lastUpdated': todo.lastUpdated,
+          'isSync': _isSynced,
+          'userId': valueUserId,
+        });
+        print('Document added successfully');
       } else {
-        for (Todo todo in todos) {
-          // Check if the document already exists
-
-          if (docSnapshot.exists) {
-            // Compare the lastUpdated timestamp with the one in the SQLite database
-            Map<String, dynamic> data =
-                docSnapshot.data() as Map<String, dynamic>;
-            if (data['lastUpdated'] == todo.lastUpdated) {
-              print('Document already exists and was not updated');
-              return;
-            }
-
-            // Update the document with the new data
-            await firestore.collection('todos').doc(todo.id.toString()).set({
-              'id': todo.id,
-              'docRefId': todo.id,
-              'title': todo.title,
-              'isDone': todo.isDone,
-              'description': todo.description,
-              'isShopping': todo.isShopping,
-              'quantity': todo.quantity,
-              'productPrice': todo.productPrice,
-              'totalProductPrice': todo.totalProductPrice,
-              'entryDate': todo.entryDate,
-              'dueDate': todo.dueDate,
-              'priority': todo.priority,
-              'lastUpdated': todo.lastUpdated,
-              'isSync': _isSynced,
-              'userId': valueUserId,
-            }, SetOptions(merge: true));
-            print('Document updated successfully');
-          } else {
-            // Create a new document with the ID from the SQLite database
-            await firestore.collection('todos').doc(todo.id.toString()).set({
-              'id': todo.id,
-              'docRefId': todo.id,
-              'title': todo.title,
-              'isDone': todo.isDone,
-              'description': todo.description,
-              'isShopping': todo.isShopping,
-              'quantity': todo.quantity,
-              'productPrice': todo.productPrice,
-              'totalProductPrice': todo.totalProductPrice,
-              'entryDate': todo.entryDate,
-              'dueDate': todo.dueDate,
-              'priority': todo.priority,
-              'lastUpdated': todo.lastUpdated,
-              'isSync': _isSynced,
-              'userId': valueUserId,
-            });
-            print('Document added successfully');
-          }
+        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+        if (data['userId'] == valueUserId &&
+            data['lastUpdated'] != todo.lastUpdated) {
+          // Update the existing document with new data
+          await docRef.set({
+            'id': todo.id,
+            'docRefId': todo.id,
+            'title': todo.title,
+            'isDone': todo.isDone,
+            'description': todo.description,
+            'isShopping': todo.isShopping,
+            'quantity': todo.quantity,
+            'productPrice': todo.productPrice,
+            'totalProductPrice': todo.totalProductPrice,
+            'entryDate': todo.entryDate,
+            'dueDate': todo.dueDate,
+            'priority': todo.priority,
+            'lastUpdated': todo.lastUpdated,
+            'isSync': _isSynced,
+            'userId': valueUserId,
+          }, SetOptions(merge: true));
+          print('Document updated successfully');
+        } else {
+          print('Document already exists and was not updated');
         }
+      }
+
+      if (!_isSynced) {
+        await docRef.delete();
+        print('Document deleted successfully');
       }
     }
   }

@@ -1,7 +1,11 @@
 // ignore_for_file: must_be_immutable
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:iconly/iconly.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/main.dart';
@@ -114,25 +118,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return WillPopScope(
       onWillPop: () {
-        if (isForDataManagement || budgetLimitEntered) {
-          Navigator.of(context).pushAndRemoveUntil(
-            CustomPageRoute(
-              child: TodoListScreen(),
-              forwardAnimation: false,
-              duration: Duration(milliseconds: 500),
-            ),
-            (route) => false, // Remove all previous routes
-          );
-        }
-
         Navigator.of(context).pushAndRemoveUntil(
           CustomPageRoute(
             child: TodoListScreen(),
             forwardAnimation: false,
             duration: Duration(milliseconds: 500),
           ),
-          (route) => false, // Remove all previous routes
+          (route) => false,
         );
+
         return Future.value(true);
       },
       child: Scaffold(
@@ -867,7 +861,17 @@ class _SettingsPageState extends State<SettingsPage> {
                             'Enable Notifications',
                           )),
                           IconButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              final services = FlutterBackgroundService();
+                              await Permission.notification.status
+                                  .then((status) {
+                                if (status.isDenied) {
+                                  Permission.notification.request();
+                                } else if (status.isGranted) {
+                                  // Notification permission has already been granted
+                                  // You can proceed with using notifications
+                                }
+                              });
                               setState(() {
                                 notificationsdProvider.isNotificationstEnabled =
                                     !notificationsdProvider
@@ -875,6 +879,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               });
                               saveNotificationAlalrm(notificationsdProvider
                                   .isNotificationstEnabled);
+                              if (notificationsdProvider
+                                      .geIsNotificationstEnabled &&
+                                  await services.isRunning()) {
+                                services.invoke('stopService');
+                              } else if (!notificationsdProvider
+                                      .geIsNotificationstEnabled &&
+                                  !await services.isRunning()) {
+                                services.startService();
+                              }
                             },
                             icon: Icon(
                               Icons.alarm,

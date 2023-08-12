@@ -12,6 +12,7 @@ class Todo {
   final int priority;
   String lastUpdated;
   bool isSync;
+  String userId;
 
   Todo({
     this.id,
@@ -27,6 +28,7 @@ class Todo {
     required this.priority,
     required this.lastUpdated,
     required this.isSync,
+    required this.userId,
   });
 
   Map<String, dynamic> toMap() {
@@ -44,6 +46,7 @@ class Todo {
       'priority': priority,
       'lastUpdated': lastUpdated,
       'isSync': isSync ? 1 : 0,
+      'userId': userId,
     };
   }
 
@@ -62,6 +65,7 @@ class Todo {
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
       isSync: map['isSync'] == 1,
+      userId: map['userId'],
     );
   }
 
@@ -80,6 +84,7 @@ class Todo {
       'priority': priority,
       'lastUpdated': lastUpdated,
       'isSync': isSync,
+      'userId': userId,
     };
   }
 
@@ -98,6 +103,7 @@ class Todo {
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
       isSync: map['isSync'],
+      userId: map['userId'],
     );
   }
 }

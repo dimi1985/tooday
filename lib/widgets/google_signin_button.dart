@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_init_to_null
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tooday/utils/firebase_auth.dart';
@@ -9,7 +11,7 @@ class GoogleSignInButton extends StatefulWidget {
 
 class _GoogleSignInButtonState extends State<GoogleSignInButton> {
   bool _isSigningIn = false;
-  User? user = null;
+  late User? user = null;
 
   @override
   Widget build(BuildContext context) {

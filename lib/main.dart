@@ -1,10 +1,16 @@
+import 'dart:developer';
+
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/back_services.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
@@ -20,10 +26,34 @@ import 'utils/shopping_enabled_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  await AwesomeNotifications().initialize(
+    'resource://drawable/app_icon', // Replace with your app icon resource
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic Notifications',
+        channelDescription: 'Notification channel for basic notifications',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+      ),
+    ],
+  );
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? languageCode = prefs.getString('languageCode');
   String? countryCode = prefs.getString('countryCode');
   Locale initialLocale = Locale(languageCode ?? 'el', countryCode ?? 'GR');
+
+  SystemChannels.lifecycle.setMessageHandler((msg) async {
+    if (msg == AppLifecycleState.paused.toString()) {
+      // App is closed or in the background
+
+      await initializeServices();
+      await Future.delayed(Duration(seconds: 5));
+    }
+    return null;
+  });
 
   runApp(MultiProvider(
     providers: [

@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'dart:async';
 import 'dart:developer';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -58,7 +59,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   @override
   void initState() {
     super.initState();
-    log('Needs Sync: $fireStoreNewItemsNeedSync');
+
     _searchQueryController.addListener(_onSearchChanged);
     _filteredTodos = _todos;
     getSyncBool();
@@ -91,7 +92,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
     if (mounted) {
       setState(() {
         _todos = todos;
-
+        _todos.removeWhere(
+            (todo) => todo.isSync && todo.userId != _auth.currentUser!.uid);
         getAllItemsSetup();
         isLoading = false;
       });
@@ -140,17 +142,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       width: 10,
                     ),
                     userSgnInProvider.getIsUserSignin
-                        ? Text(
-                            user?.displayName ?? '',
-                            style: TextStyle(
-                              color: themeProvider.isDarkThemeEnabled
-                                  ? Colors.white
-                                  : Colors.black,
+                        ? Flexible(
+                            child: Text(
+                              user?.displayName ?? '',
+                              style: TextStyle(
+                                color: themeProvider.isDarkThemeEnabled
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                              overflow: TextOverflow
+                                  .ellipsis, // or TextOverflow.fade, TextOverflow.clip, etc.
+                              maxLines:
+                                  1, // Set the desired maximum number of lines
                             ),
-                            overflow: TextOverflow
-                                .ellipsis, // or TextOverflow.fade, TextOverflow.clip, etc.
-                            maxLines:
-                                1, // Set the desired maximum number of lines
                           )
                         : Text(
                             AppLocalizations.of(context)
@@ -476,6 +480,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                             priority: todo.priority,
                                             lastUpdated: todo.lastUpdated,
                                             isSync: false,
+                                            userId: todo.userId,
                                           );
 
                                           dbHelper.update(newtodo);
@@ -773,6 +778,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
       priority: 0,
       lastUpdated: now.toIso8601String(),
       isSync: false,
+      userId: '',
     );
 
     Navigator.of(context)
@@ -820,8 +826,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   void _navigateToSettingsScreen(BuildContext context, List<Todo> todos) {
     final userSgnInProvider =
         Provider.of<UserSignInProvider>(context, listen: false);
-    Navigator.of(context)
-        .push(
+    Navigator.of(context).push(
       CustomPageRoute(
         child: SettingsPage(
           itemsChecked: checkedTodosCounT,
@@ -831,13 +836,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
         forwardAnimation: true,
         duration: Duration(milliseconds: 700),
       ),
-    )
-        .then((value) {
-      if (value == true) {
-        _fetchTodos();
-        log('Todo List method Screen');
-      }
-    });
+    );
   }
 
   int getCheckedTodosCount(List<Todo> todos) {
@@ -1087,6 +1086,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
       }
 
       prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
+      // Remove synced items that do not belong to the current user
     }
   }
 
@@ -1136,6 +1136,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
         priority: fireStoreTodo.priority,
         lastUpdated: fireStoreTodo.lastUpdated,
         isSync: fireStoreTodo.isSync,
+        userId: fireStoreTodo.userId,
       );
 
       if (!shoppingItemExists || !todoItemListExists) {

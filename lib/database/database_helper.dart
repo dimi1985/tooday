@@ -21,6 +21,7 @@ class DatabaseHelper {
   static const columnPriority = 'priority';
   static const columnLastUpdated = 'lastUpdated';
   static const columnIsSync = 'isSync';
+  static const columnUserId = 'userId';
 
   static Database? _database;
 
@@ -59,7 +60,8 @@ class DatabaseHelper {
         $columnDueDate TEXT NOT NULL,
         $columnPriority INTEGER NOT NULL,
         $columnLastUpdated TEXT NOT NULL,
-        $columnIsSync INTEGER NOT NULL
+        $columnIsSync INTEGER NOT NULL,
+        $columnUserId TEXT NOT NULL
       )
     ''');
   }
@@ -92,6 +94,21 @@ class DatabaseHelper {
     final result = await db.query(table);
 
     return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
+  Future<Todo?> getTodoById(int? id) async {
+    final db = await database;
+    List<Map<String, dynamic>> maps = await db.query(
+      'todos',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return Todo.fromMap(maps.first);
+    } else {
+      return null; // Return null if todo with the given ID is not found
+    }
   }
 
   Future<List<Todo>> getTodoItems() async {
