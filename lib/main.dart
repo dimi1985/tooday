@@ -3,20 +3,22 @@ import 'dart:developer';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/back_service_provider.dart';
 import 'package:tooday/utils/back_services.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
 import 'package:tooday/utils/firestore_items_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
-import 'package:tooday/utils/notifications_enable_provider.dart';
+import 'package:tooday/utils/notification_timing_provider.dart';
+import 'package:tooday/utils/repeat_notification_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -46,12 +48,27 @@ void main() async {
   Locale initialLocale = Locale(languageCode ?? 'el', countryCode ?? 'GR');
 
   SystemChannels.lifecycle.setMessageHandler((msg) async {
+    final services = FlutterBackgroundService();
+    bool isRunnig = await services.isRunning();
     if (msg == AppLifecycleState.paused.toString()) {
-      // App is closed or in the background
+      // App is going into the background
 
-      await initializeServices();
-      await Future.delayed(Duration(seconds: 5));
+      bool isServiceEnabled = prefs.getBool('isServiceEnabled') ?? false;
+
+      if (isServiceEnabled) {
+        await initializeAndStartBackgroundTask();
+        if (!isRunnig) {
+          services.startService();
+        }
+      }
+    } else if (msg == AppLifecycleState.resumed.toString()) {
+      // App is coming back from the background
+
+      if (isRunnig) {
+        services.invoke('stopService');
+      }
     }
+
     return null;
   });
 
@@ -62,11 +79,13 @@ void main() async {
       ChangeNotifierProvider(create: (_) => FilterItemsProvider()),
       ChangeNotifierProvider(create: (_) => ShoppingEnabledProvider()),
       ChangeNotifierProvider(create: (_) => GooglePayEnabledProvider()),
-      ChangeNotifierProvider(create: (_) => NotificationsEnabledProvider()),
+      ChangeNotifierProvider(create: (_) => BackgroundServiceProvider()),
       ChangeNotifierProvider(create: (_) => ConnectivityStatus()),
       ChangeNotifierProvider(create: (_) => FirebaseUserProvider()),
       ChangeNotifierProvider(create: (_) => UserSignInProvider()),
       ChangeNotifierProvider(create: (_) => FireStoreItemsProvider()),
+      ChangeNotifierProvider(create: (_) => NotificationTimingProvider()),
+      ChangeNotifierProvider(create: (_) => RepeatNotificationsProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));

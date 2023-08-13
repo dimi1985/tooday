@@ -47,7 +47,7 @@
     "Select to filter between Checked or Unckecked Items": "Επιλέξτε για φιλτράρισμα μεταξύ επιλεγμένων ή μη επιλεγμένων στοιχείων",
     "No Title": "Χωρίς τίτλο",
     "No Description": "Χωρίς περιγραφή",
-    "System": "Σύστημα",
+    "System": "'Εχε επιλεχτεί αυτόματα",
     "Show Checked Items": "Εμφάνιση ελεγμένων αντικειμένων",
     "Show UnChecked Items": "Εμφάνιση μη επιλεγμένων στοιχείων",
     "Enable Shopping List": "Ενεργοποίηση λίστας αγορών",
@@ -92,7 +92,24 @@
     "Synced": "Συγχρονίστηκε",
     "Sign in with Google": "Συνδεθείτε με το Google",
     "Signed in as:": "Συνδεθήκατε ως:",
-    "You need to be Connected to the Internet to use Google Account": "Πρέπει να είστε συνδεδεμένοι στο Διαδίκτυο για να χρησιμοποιήσετε τον Λογαριασμό Google"
+    "You need to be Connected to the Internet to use Google Account": "Πρέπει να είστε συνδεδεμένοι στο Διαδίκτυο για να χρησιμοποιήσετε τον Λογαριασμό Google",
+    "Unfinished Task": "Ημιτελής Εργασία",
+    "You have an unfinished task:": "Έχετε μια ημιτελή εργασία",
+    "Enable Background Service": "Ενεργοποιήστε την υπηρεσία παρασκηνίου",
+    "List Selection": "Επιλογή Λίστας",
+    "Shopping List Settings": "Ρυθμίσεις λίστας αγορών",
+    "Notification Interval": "Διάστημα Ειδοποιήσεων",
+    "Repeat Notifications": "Επανάληψη Ειδοποιήσεων",
+    "1 minute": "1 Λεπτό",
+    "5 minutes": "5 Λεπτά",
+    "15 minutes": "15 Λεπτά",
+    "30 minutes": "30 Λεπτά",
+    "1 Hour": "1 Ώρα",
+    "4 Hours": "4 Ώρες",
+    "8 Hours": "8 Ώρες",
+    "24 Hours": "24 Ώρες",
+    "UnBought Items": "Μη Αγορασμένα Είδη",
+    "You forgot to buy this item:": "Ξεχάσατε να αγοράσετε:"
 
   }
   

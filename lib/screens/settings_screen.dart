@@ -1,5 +1,4 @@
 // ignore_for_file: must_be_immutable
-
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -13,11 +12,13 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/about_screen.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/back_service_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
-import 'package:tooday/utils/notifications_enable_provider.dart';
+import 'package:tooday/utils/notification_timing_provider.dart';
+import 'package:tooday/utils/repeat_notification_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
@@ -104,6 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _budgetLimitController = TextEditingController();
   double budgetLimit = 0.0;
   bool budgetLimitEntered = false;
+  String notiService = '';
 
   @override
   Widget build(BuildContext context) {
@@ -112,9 +114,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final checkedProvider = Provider.of<FilterItemsProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     final googlePaydProvider = Provider.of<GooglePayEnabledProvider>(context);
-    final notificationsdProvider =
-        Provider.of<NotificationsEnabledProvider>(context);
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
+    final backgroundServiceProvider =
+        Provider.of<BackgroundServiceProvider>(context);
 
     return WillPopScope(
       onWillPop: () {
@@ -230,7 +232,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        elevation: 1,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Row(
@@ -263,6 +264,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                       hint: Text(
                                         AppLocalizations.of(context)
                                             .translate('System'),
+                                        overflow: TextOverflow.clip,
+                                        maxLines: 2,
                                         style: TextStyle(
                                           fontSize: 16,
                                           color:
@@ -318,7 +321,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  elevation: 1,
                   child: ListTile(
                     title: Row(
                       children: [
@@ -503,17 +505,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
                               height: 50,
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    side: BorderSide(color: Colors.red)),
-                                onPressed: () {
+                              child: GestureDetector(
+                                onTap: () {
                                   setState(() {
                                     isForDataManagement = true;
                                     isDataErased = false;
@@ -531,27 +530,40 @@ class _SettingsPageState extends State<SettingsPage> {
                                     });
                                   }
                                 },
-                                child: Text(
-                                  isDataErased
-                                      ? AppLocalizations.of(context)
-                                          .translate('Data Cleared')
-                                      : AppLocalizations.of(context)
-                                          .translate('Clear Data'),
-                                  style: TextStyle(
-                                      color: themeProvider.isDarkThemeEnabled
-                                          ? Colors.white
-                                          : Colors.black),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: isDataErased
+                                        ? Colors.greenAccent.withOpacity(0.1)
+                                        : const Color.fromARGB(255, 151, 57, 57)
+                                            .withOpacity(0.1),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      isDataErased
+                                          ? AppLocalizations.of(context)
+                                              .translate('Data Cleared')
+                                          : AppLocalizations.of(context)
+                                              .translate('Clear Data'),
+                                      style: TextStyle(
+                                          color:
+                                              themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                             SizedBox(
-                              width: MediaQuery.of(context).size.width / 2.5,
+                              height: 25,
+                            ),
+                            SizedBox(
                               height: 50,
-                              child: MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    side: BorderSide(color: Colors.red)),
-                                onPressed: () {
+                              child: GestureDetector(
+                                onTap: () {
                                   setState(() {
                                     isForDataManagement = true;
                                     isCheckedItemsErased = false;
@@ -565,20 +577,33 @@ class _SettingsPageState extends State<SettingsPage> {
                                     isCheckedItemsErased = true;
                                   });
                                 },
-                                child: Text(
-                                  isCheckedItemsErased
-                                      ? AppLocalizations.of(context)
-                                          .translate('Checked Items Cleared')
-                                      : isDataErased
-                                          ? ''
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: isCheckedItemsErased || isDataErased
+                                        ? Colors.greenAccent.withOpacity(0.1)
+                                        : const Color.fromARGB(255, 151, 57, 57)
+                                            .withOpacity(0.1),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      isCheckedItemsErased || isDataErased
+                                          ? AppLocalizations.of(context)
+                                              .translate(
+                                                  'Checked Items Cleared')
                                           : AppLocalizations.of(context)
                                                   .translate(
                                                       'Clear Checked Items') +
                                               '(${widget.itemsChecked})',
-                                  style: TextStyle(
-                                      color: themeProvider.isDarkThemeEnabled
-                                          ? Colors.white
-                                          : Colors.black),
+                                      style: TextStyle(
+                                          color:
+                                              themeProvider.isDarkThemeEnabled
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -588,6 +613,18 @@ class _SettingsPageState extends State<SettingsPage> {
                           height: 25,
                         )
                       ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      AppLocalizations.of(context).translate('List Selection'),
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -719,6 +756,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         const SizedBox(height: 16),
                         if (shoppingdProvider.geIsShoppingtEnabled)
+                          Align(
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              AppLocalizations.of(context)
+                                  .translate('Shopping List Settings'),
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        if (shoppingdProvider.geIsShoppingtEnabled)
                           Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
@@ -848,67 +896,147 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 const SizedBox(height: 16),
                 Card(
-                  elevation: 4.0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
-                  child: ListTile(
-                    title: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Text(AppLocalizations.of(context).translate(
-                            'Enable Notifications',
-                          )),
-                          IconButton(
-                            onPressed: () async {
-                              final services = FlutterBackgroundService();
-                              await Permission.notification.status
-                                  .then((status) {
-                                if (status.isDenied) {
-                                  Permission.notification.request();
-                                } else if (status.isGranted) {
-                                  // Notification permission has already been granted
-                                  // You can proceed with using notifications
-                                }
-                              });
-                              setState(() {
-                                notificationsdProvider.isNotificationstEnabled =
-                                    !notificationsdProvider
-                                        .isNotificationstEnabled;
-                              });
-                              saveNotificationAlalrm(notificationsdProvider
-                                  .isNotificationstEnabled);
-                              if (notificationsdProvider
-                                      .geIsNotificationstEnabled &&
-                                  await services.isRunning()) {
-                                services.invoke('stopService');
-                              } else if (!notificationsdProvider
-                                      .geIsNotificationstEnabled &&
-                                  !await services.isRunning()) {
-                                services.startService();
-                              }
-                            },
-                            icon: Icon(
-                              Icons.alarm,
-                              color: notificationsdProvider
-                                      .geIsNotificationstEnabled
-                                  ? Color.fromARGB(255, 16, 186, 192)
-                                  : themeProvider.isDarkThemeEnabled
-                                      ? Colors.white
-                                      : Colors.black,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  AppLocalizations.of(context)
+                                      .translate('Enable Background Service'),
+                                  maxLines: 2,
+                                ),
+                              ),
+                              Switch(
+                                value:
+                                    backgroundServiceProvider.isServiceEnabled,
+                                onChanged: (value) async {
+                                  final services = FlutterBackgroundService();
+                                  bool isRunning = await services.isRunning();
+                                  backgroundServiceProvider
+                                      .toggleService(value);
+
+                                  await Permission.notification.status
+                                      .then((status) {
+                                    if (status.isDenied) {
+                                      Permission.notification.request();
+                                    } else if (status.isGranted) {
+                                      // Notification permission has already been granted
+                                      // You can proceed with using notifications
+                                    }
+                                  });
+
+                                  if (!backgroundServiceProvider
+                                      .isServiceEnabled) {
+                                    if (isRunning) {
+                                      services.invoke('stopService');
+                                    } else {
+                                      services.startService();
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (backgroundServiceProvider.isServiceEnabled)
+                        ListTile(
+                          title: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)
+                                        .translate('Notification Interval'),
+                                    maxLines: 2,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Consumer<NotificationTimingProvider>(
+                                    builder: (context, provider, _) {
+                                      return DropdownButton<int>(
+                                        value: provider.notificationInterval,
+                                        onChanged: (value) {
+                                          provider.updateNotificationInterval(
+                                              value!);
+                                        },
+                                        items: [
+                                          DropdownMenuItem<int>(
+                                            value: 1,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('1 minute')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 5,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('5 minutes')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 15,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('15 minutes')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 30,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('30 minutes')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 60,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('1 Hour')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 240,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('4 Hours')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 480,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('8 Hours')),
+                                          ),
+                                          DropdownMenuItem<int>(
+                                            value: 1440,
+                                            child: Text(
+                                                AppLocalizations.of(context)
+                                                    .translate('24 Hours')),
+                                          ),
+                                          // Add more options as needed
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                    ],
                   ),
                 ),
+
                 const SizedBox(height: 16),
                 connectivityProvider.isConnected
                     ? GoogleSignInButton()
                     : Card(
-                        elevation: 4.0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -934,7 +1062,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       ), // Add the Google Sign-In button here
                 const SizedBox(height: 16),
                 Card(
-                  elevation: 4.0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),

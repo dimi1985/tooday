@@ -47,7 +47,7 @@
     "Select to filter between Checked or Unckecked Items": "Select to filter between Checked or Unckecked Items",
     "No Title": "No Title",
     "No Description": "No Description",
-    "System": "System", 
+    "System": "Has been chosen automaticly", 
     "Show Checked Items": "Show Checked Items",
     "Show UnChecked Items": "Show UnChecked Items",
     "Enable Shopping List": "Enable Shopping List",
@@ -92,7 +92,25 @@
     "Synced": "Synced",
     "Sign in with Google": "Sign in with Google",
     "Signed in as:": "Signed in as:",
-    "You need to be Connected to the Internet to use Google Account": "You need to be Connected to the Internet to use Google Account"
+    "You need to be Connected to the Internet to use Google Account": "You need to be Connected to the Internet to use Google Account",
+    "Unfinished Task": "Unfinished Task",
+    "You have an unfinished task:": "You have an unfinished task",
+    "Enable Background Service": "Enable Background Service",
+    "List Selection": "List Selection",
+    "Shopping List Settings": "Shopping List Settings",
+    "Notification Interval": "Notification Interval",
+    "Repeat Notifications": "Repeat Notifications",
+    "1 minute": "1 minute",
+    "5 minutes": "5 minutes",
+    "15 minutes": "15 minutes",
+    "30 minutes": "30 minutes",
+    "1 Hour": "1 Hour",
+    "4 Hours": "4 Hours",
+    "8 Hours": "8 Hours",
+    "24 Hours": "24 Hours",
+    "UnBought Items": "UnBought Items",
+    "You forgot to buy this item:": "You forgot to buy:"
+
     
     
     

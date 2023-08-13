@@ -178,6 +178,13 @@ class DatabaseHelper {
     return result.map((map) => Todo.fromMap(map)).toList();
   }
 
+  Future<List<Todo>> getUnBoughtShoppingItems() async {
+    final db = await database;
+    final result =
+        await db.query(table, where: "isShopping = ?", whereArgs: [0]);
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
   Future<List<Todo>> getSyncedTodos() async {
     final db = await database;
     final List<Map<String, dynamic>> maps =

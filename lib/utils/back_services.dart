@@ -1,28 +1,26 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:ui';
-
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tooday/models/todo.dart';
+import 'package:tooday/utils/app_localization.dart';
+import '../database/database_helper.dart';
 
-Future<void> initializeServices() async {
-  final services = FlutterBackgroundService();
-  await services.configure(
-      iosConfiguration: IosConfiguration(),
-      androidConfiguration: AndroidConfiguration(
-        onStart: onStart,
-        isForegroundMode: true,
-        autoStart: true,
-      ));
-}
+void initBackgroundTask(ServiceInstance service) async {
+  late Timer? backgroundTimer;
+  late bool isServiceEnabled;
+  late int notificationInterval;
 
-@pragma('vm:entry-point')
-onStart(ServiceInstance service) {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  isServiceEnabled = prefs.getBool('isServiceEnabled') ?? false;
+  notificationInterval = prefs.getInt('notificationInterval') ?? 15;
+
   DartPluginRegistrant.ensureInitialized();
+
   if (service is AndroidServiceInstance) {
-    service.on('setAsForeGround').listen((event) {
-      service.setAsForegroundService();
-    });
     service.on('setAsBackground').listen((event) {
       service.setAsBackgroundService();
     });
@@ -32,15 +30,61 @@ onStart(ServiceInstance service) {
     service.stopSelf();
   });
 
-  Timer.periodic(Duration(seconds: 10), (timer) async {
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 1,
-        channelKey: 'basic_channel',
-        title: 'Background Service',
-        body: 'App is closed, background service is running.',
-      ),
-    );
-    service.invoke('update');
-  });
+  // Create the second timer for periodic notifications
+  if (isServiceEnabled) {
+    backgroundTimer =
+        Timer.periodic(Duration(minutes: notificationInterval), (timer) async {
+      final locale = Locale('el');
+      AppLocalizations appLocalizations =
+          await AppLocalizations.delegate.load(locale);
+      final dbHelper = DatabaseHelper();
+      List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
+      List<Todo> unfinishedBoughtItems =
+          await dbHelper.getUnBoughtShoppingItems();
+
+      if (unfinishedTasks.isNotEmpty) {
+        for (var task in unfinishedTasks) {
+          AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: task.id ?? 0,
+              channelKey: 'basic_channel',
+              title: appLocalizations.translate('UnBought Items'),
+              body: appLocalizations.translate('You forgot to buy:') +
+                  ' ' +
+                  task.title,
+            ),
+          );
+        }
+      }
+
+      if (unfinishedBoughtItems.isNotEmpty) {
+        for (var item in unfinishedBoughtItems) {
+          AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: item.id ?? 0,
+              channelKey: 'basic_channel',
+              title: appLocalizations.translate('Unfinished Task'),
+              body: appLocalizations.translate('You have an unfinished task:') +
+                  ' ' +
+                  item.title,
+            ),
+          );
+        }
+      }
+    });
+  }
+}
+
+initializeAndStartBackgroundTask() async {
+  final services = FlutterBackgroundService();
+  await services.configure(
+    iosConfiguration: IosConfiguration(),
+    androidConfiguration: AndroidConfiguration(
+      onStart: initBackgroundTask,
+      isForegroundMode: false,
+      autoStart: false,
+    ),
+  );
+
+  services.startService();
 }
