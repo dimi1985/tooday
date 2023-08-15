@@ -100,14 +100,10 @@
     "Shopping List Settings": "Shopping List Settings",
     "Notification Interval": "Notification Interval",
     "Repeat Notifications": "Repeat Notifications",
-    "1 minute": "1 minute",
-    "5 minutes": "5 minutes",
-    "15 minutes": "15 minutes",
-    "30 minutes": "30 minutes",
-    "1 Hour": "1 Hour",
-    "4 Hours": "4 Hours",
-    "8 Hours": "8 Hours",
-    "24 Hours": "24 Hours",
+    "minute": "minute",
+    "minutes": "minutes",
+    "Hour": "Hour",
+    "Hours": "Hours Ώρες",
     "UnBought Items": "UnBought Items",
     "You forgot to buy this item:": "You forgot to buy:"
 

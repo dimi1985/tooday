@@ -33,7 +33,7 @@ dependencies:
   sqflite: ^2.0.0+3
   path_provider: ^2.0.5
   flutter_localization: ^0.1.13
-  intl: ^0.18.0
+  intl: ^0.18.1
   provider: ^6.0.5
   iconly: ^1.0.1
   shared_preferences: ^2.1.0
@@ -50,7 +50,8 @@ dependencies:
   flutter_background_service: ^5.0.0
   flutter_background_service_android: ^6.0.0
   permission_handler: ^10.4.3
-  awesome_notifications: 
+  awesome_notifications: ^0.7.4+1
+  lite_rolling_switch: ^1.0.1
   
   
 
@@ -64,6 +65,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  
+dependency_overrides:
+  intl: ^0.18.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

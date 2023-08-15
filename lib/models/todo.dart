@@ -106,4 +106,21 @@ class Todo {
       userId: map['userId'],
     );
   }
+
+  // Named constructor for creating a new Todo instance with a new ID
+  Todo.withNewId(Todo oldTodo, int newId)
+      : id = newId,
+        title = oldTodo.title,
+        isDone = oldTodo.isDone,
+        description = oldTodo.description,
+        isShopping = oldTodo.isShopping,
+        quantity = oldTodo.quantity,
+        productPrice = oldTodo.productPrice,
+        totalProductPrice = oldTodo.totalProductPrice,
+        entryDate = oldTodo.entryDate,
+        dueDate = oldTodo.dueDate,
+        priority = oldTodo.priority,
+        lastUpdated = oldTodo.lastUpdated,
+        isSync = oldTodo.isSync,
+        userId = oldTodo.userId;
 }

@@ -193,4 +193,20 @@ class DatabaseHelper {
       return Todo.fromMap(maps[i]);
     });
   }
+
+  Future<int> getLastInsertedId() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      table,
+      columns: ['id'],
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.first['id'] as int;
+    } else {
+      return 0;
+    }
+  }
 }

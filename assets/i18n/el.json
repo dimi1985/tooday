@@ -100,16 +100,12 @@
     "Shopping List Settings": "Ρυθμίσεις λίστας αγορών",
     "Notification Interval": "Διάστημα Ειδοποιήσεων",
     "Repeat Notifications": "Επανάληψη Ειδοποιήσεων",
-    "1 minute": "1 Λεπτό",
-    "5 minutes": "5 Λεπτά",
-    "15 minutes": "15 Λεπτά",
-    "30 minutes": "30 Λεπτά",
-    "1 Hour": "1 Ώρα",
-    "4 Hours": "4 Ώρες",
-    "8 Hours": "8 Ώρες",
-    "24 Hours": "24 Ώρες",
+    "minute": "Λεπτό",
+    "minutes": "Λεπτά",
+    "Hour": "Ώρα",
+    "Hours": "Ώρες",
     "UnBought Items": "Μη Αγορασμένα Είδη",
-    "You forgot to buy this item:": "Ξεχάσατε να αγοράσετε:"
+    "You forgot to buy:": "Ξεχάσατε να αγοράσετε:"
 
   }
   

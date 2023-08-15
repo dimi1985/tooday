@@ -17,6 +17,7 @@ import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
 import 'package:tooday/utils/firestore_items_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
+import 'package:tooday/utils/noti_controll.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';
 import 'package:tooday/utils/repeat_notification_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
@@ -30,17 +31,17 @@ void main() async {
   await Firebase.initializeApp();
 
   await AwesomeNotifications().initialize(
-    'resource://drawable/app_icon', // Replace with your app icon resource
-    [
-      NotificationChannel(
-        channelKey: 'basic_channel',
-        channelName: 'Basic Notifications',
-        channelDescription: 'Notification channel for basic notifications',
-        defaultColor: Color(0xFF9D50DD),
-        ledColor: Colors.white,
-      ),
-    ],
-  );
+      'resource://drawable/app_icon', // Replace with your app icon resource
+      [
+        NotificationChannel(
+          channelKey: 'basic_channel',
+          channelName: 'Basic Notifications',
+          channelDescription: 'Notification channel for basic notifications',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+        ),
+      ],
+      debug: true);
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? languageCode = prefs.getString('languageCode');
@@ -66,6 +67,8 @@ void main() async {
 
       if (isRunnig) {
         services.invoke('stopService');
+      } else {
+        services.startService();
       }
     }
 
@@ -115,6 +118,16 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Only after at least the action method is set, the notification events are delivered
+    // Only after at least the action method is set, the notification events are delivered
+    AwesomeNotifications().setListeners(
+        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+        onNotificationCreatedMethod:
+            NotificationController.onNotificationCreatedMethod,
+        onNotificationDisplayedMethod:
+            NotificationController.onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod:
+            NotificationController.onDismissActionReceivedMethod);
     _locale = widget.initialLocale;
     WidgetsBinding.instance.addObserver(this);
   }

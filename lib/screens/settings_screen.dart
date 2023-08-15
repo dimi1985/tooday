@@ -1,9 +1,9 @@
 // ignore_for_file: must_be_immutable
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:iconly/iconly.dart';
+import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tooday/database/database_helper.dart';
@@ -18,12 +18,10 @@ import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';
-import 'package:tooday/utils/repeat_notification_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:tooday/widgets/google_button.dart';
 import '../widgets/custom_page_route.dart';
 
@@ -44,8 +42,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  Language? _selectedLanguage;
   late List<Language> supportedLanguages;
+  int _selectedLanguageIndex = 1; // Default to Greek
 
   @override
   void didChangeDependencies() {
@@ -59,16 +57,6 @@ class _SettingsPageState extends State<SettingsPage> {
     ];
   }
 
-  void _onLanguageSelected(Language? language) async {
-    if (language == null) return;
-
-    setState(() {
-      _selectedLanguage = language;
-    });
-
-    TodoApp.setLocale(context, language.locale);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -78,11 +66,13 @@ class _SettingsPageState extends State<SettingsPage> {
       final countryCode = prefs.getString('countryCode');
       if (languageCode != null && countryCode != null) {
         final locale = Locale(languageCode, countryCode);
+        final selectedLanguage = supportedLanguages.firstWhere(
+          (language) => language.locale == locale,
+          orElse: () => supportedLanguages[0],
+        );
+
         setState(() {
-          _selectedLanguage = supportedLanguages.firstWhere(
-            (language) => language.locale == locale,
-            orElse: () => supportedLanguages[0],
-          );
+          _selectedLanguageIndex = supportedLanguages.indexOf(selectedLanguage);
         });
 
         TodoApp.setLocale(context, locale);
@@ -177,37 +167,84 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 16),
                 Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: ListTile(
-                    title: Row(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.dark_mode,
-                          color: themeProvider.isDarkThemeEnabled
-                              ? Color.fromARGB(255, 146, 198, 224)
-                              : Colors.blueGrey[800],
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          AppLocalizations.of(context).translate('Dark Theme'),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: themeProvider.isDarkThemeEnabled
-                                ? Color.fromARGB(255, 146, 198, 224)
-                                : Colors.blueGrey[800],
+                        SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount:
+                                2, // Two items for Light Theme and Dark Theme
+                            itemBuilder: (BuildContext context, int index) {
+                              bool isDarkTheme = index == 1;
+                              bool isSelected = isDarkTheme ==
+                                  themeProvider.isDarkThemeEnabled;
+
+                              return Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    themeProvider.isDarkThemeEnabled =
+                                        isDarkTheme;
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 16.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      color: isSelected
+                                          ? Colors.blue
+                                          : Colors.grey[200],
+                                    ),
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isDarkTheme
+                                                ? Icons.dark_mode
+                                                : Icons.light_mode,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.blueGrey[800],
+                                          ),
+                                          SizedBox(width: 10),
+                                          SizedBox(
+                                            width: 80,
+                                            child: Text(
+                                              isDarkTheme
+                                                  ? AppLocalizations.of(context)
+                                                      .translate('Dark Theme')
+                                                  : AppLocalizations.of(context)
+                                                      .translate('Light Theme'),
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.grey[800],
+                                              ),
+                                              maxLines: 3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
+                        SizedBox(height: 8),
                       ],
-                    ),
-                    trailing: Switch(
-                      value: themeProvider.isDarkThemeEnabled,
-                      onChanged: (value) {
-                        themeProvider.isDarkThemeEnabled = value;
-                      },
-                      activeColor: themeProvider.isDarkThemeEnabled
-                          ? Color.fromARGB(255, 146, 198, 224)
-                          : Colors.blueGrey[800],
                     ),
                   ),
                 ),
@@ -234,67 +271,67 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.language,
-                                size: 32,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                              SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context)
-                                          .translate('Language Selection'),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: themeProvider.isDarkThemeEnabled
-                                            ? Colors.white
-                                            : Colors.grey[800],
-                                      ),
-                                    ),
-                                    SizedBox(height: 8),
-                                    DropdownButton<Language>(
-                                      value: _selectedLanguage,
-                                      onChanged: _onLanguageSelected,
-                                      hint: Text(
-                                        AppLocalizations.of(context)
-                                            .translate('System'),
-                                        overflow: TextOverflow.clip,
-                                        maxLines: 2,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color:
-                                              themeProvider.isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.grey[500],
-                                        ),
-                                      ),
-                                      underline: SizedBox(),
-                                      items: supportedLanguages.map((language) {
-                                        return DropdownMenuItem<Language>(
-                                          value: language,
-                                          child: Text(
-                                            language.name,
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w500,
-                                              color: themeProvider
-                                                      .isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.grey[800],
+                              SizedBox(height: 8),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: supportedLanguages.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    final language = supportedLanguages[index];
+                                    final isSelected =
+                                        index == _selectedLanguageIndex;
+
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20.0),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedLanguageIndex = index;
+                                          });
+                                          TodoApp.setLocale(
+                                              context, language.locale);
+                                        },
+                                        child: SizedBox(
+                                          width: 110,
+                                          height: 110,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 8.0,
+                                                horizontal: 16.0),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              color: isSelected
+                                                  ? Colors.blue
+                                                  : Colors.grey[200],
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                language.name,
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : Colors.grey[800],
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ],
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
+                              SizedBox(height: 8),
                             ],
                           ),
                         ),
@@ -321,77 +358,70 @@ class _SettingsPageState extends State<SettingsPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: ListTile(
-                            title: Text(
-                              AppLocalizations.of(context).translate(
-                                'Stay on add todo screen when adding ?',
-                              ),
-                              maxLines: 3,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ListTile(
+                          title: Text(
+                            AppLocalizations.of(context).translate(
+                              'Stay on add todo screen when adding ?',
                             ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: stayProvider.isStayOnPAgeEnabled
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .secondary
-                                            : Colors.grey,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
+                            maxLines: 3,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: stayProvider.isStayOnPAgeEnabled
+                                      ? Theme.of(context).colorScheme.secondary
+                                      : Colors.grey,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                color: stayProvider.isStayOnPAgeEnabled
+                                    ? Theme.of(context).colorScheme.secondary
+                                    : null,
+                              ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    stayProvider.isStayOnEnabled =
+                                        !stayProvider.isStayOnEnabled;
+                                  });
+                                  saveStayValue(stayProvider.isStayOnEnabled);
+                                },
+                                child: Center(
+                                  child: Text(
+                                    stayProvider.isStayOnPAgeEnabled
+                                        ? AppLocalizations.of(context)
+                                            .translate('Enabled')
+                                        : AppLocalizations.of(context)
+                                            .translate('Disabled'),
+                                    maxLines: 2,
+                                    style: TextStyle(
                                       color: stayProvider.isStayOnPAgeEnabled
                                           ? Theme.of(context)
                                               .colorScheme
-                                              .secondary
-                                          : null,
-                                    ),
-                                    child: Text(
-                                      stayProvider.isStayOnPAgeEnabled
-                                          ? AppLocalizations.of(context)
-                                              .translate('Enabled')
-                                          : AppLocalizations.of(context)
-                                              .translate('Disabled'),
-                                      maxLines: 2,
-                                      style: TextStyle(
-                                        color: stayProvider.isStayOnPAgeEnabled
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .onSecondary
-                                            : Color.fromARGB(
-                                                255, 207, 207, 207),
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                              .onSecondary
+                                          : Color.fromARGB(255, 207, 207, 207),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Switch(
-                                    value: stayProvider.isStayOnPAgeEnabled,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        stayProvider.isStayOnEnabled = value;
-                                        saveStayValue(value);
-                                      });
-                                    },
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: 16),
+                    ],
                   ),
                 ),
 
@@ -492,16 +522,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ),
                             ),
-                            Switch(
-                              value: checkedProvider.isShowGetCheckedItems,
-                              onChanged: (value) {
-                                setState(() {
-                                  checkedProvider.showCheckedItems = value;
-                                });
-                                _saveCheckedItems(value);
-                              },
-                              activeColor: Colors.greenAccent,
-                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -588,20 +608,50 @@ class _SettingsPageState extends State<SettingsPage> {
                                             .withOpacity(0.1),
                                   ),
                                   child: Center(
-                                    child: Text(
-                                      isCheckedItemsErased || isDataErased
-                                          ? AppLocalizations.of(context)
-                                              .translate(
-                                                  'Checked Items Cleared')
-                                          : AppLocalizations.of(context)
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          isCheckedItemsErased || isDataErased
+                                              ? AppLocalizations.of(context)
                                                   .translate(
-                                                      'Clear Checked Items') +
-                                              '(${widget.itemsChecked})',
-                                      style: TextStyle(
-                                          color:
-                                              themeProvider.isDarkThemeEnabled
+                                                      'Checked Items Cleared')
+                                              : AppLocalizations.of(context)
+                                                  .translate(
+                                                      'Clear Checked Items'),
+                                          style: TextStyle(
+                                              color: themeProvider
+                                                      .isDarkThemeEnabled
                                                   ? Colors.white
                                                   : Colors.black),
+                                        ),
+                                        if (isCheckedItemsErased ||
+                                            isDataErased)
+                                          Expanded(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: themeProvider
+                                                        .isDarkThemeEnabled
+                                                    ? Colors.white
+                                                    : Color.fromARGB(
+                                                        211, 80, 80, 80),
+                                              ),
+                                              padding: EdgeInsets.all(
+                                                  9.0), // Adjust padding as needed
+                                              child: Center(
+                                                child: Text(
+                                                  '${widget.itemsChecked}',
+                                                  style: TextStyle(
+                                                    color: themeProvider
+                                                            .isDarkThemeEnabled
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -630,403 +680,414 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 16),
                 Card(
-                  child: ListTile(
-                    title: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ListTile(
-                                title: Text(
-                                  AppLocalizations.of(context).translate(
-                                    'Enable Shopping List',
-                                  ),
-                                  maxLines: 3,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.all(10.0),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            shoppingdProvider.isSoppingEnabled
-                                                ? Colors.greenAccent
-                                                : Colors.blueGrey,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)),
-                                        border: Border.all(
-                                          color:
-                                              shoppingdProvider.isSoppingEnabled
-                                                  ? Colors.greenAccent
-                                                  : Colors.grey,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        shoppingdProvider.isSoppingEnabled
-                                            ? AppLocalizations.of(context)
-                                                .translate(
-                                                    'Shopping is Enabled')
-                                            : AppLocalizations.of(context)
-                                                .translate(
-                                                    'Normal Todo List activated'),
-                                        maxLines: 2,
-                                        style: TextStyle(
-                                          color: shoppingdProvider
-                                                  .isSoppingEnabled
-                                              ? themeProvider.isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.white
-                                              : themeProvider.isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Switch(
-                              value: shoppingdProvider.geIsShoppingtEnabled,
-                              onChanged: (value) async {
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: 2,
+                          itemBuilder: (BuildContext context, int index) {
+                            String title = index == 0
+                                ? AppLocalizations.of(context)
+                                    .translate('Todo List')
+                                : AppLocalizations.of(context)
+                                    .translate('Shopping List');
+
+                            bool isSelected = index == 0
+                                ? !shoppingdProvider.isSoppingEnabled
+                                : shoppingdProvider.isSoppingEnabled;
+
+                            return GestureDetector(
+                              onTap: () {
                                 setState(() {
-                                  shoppingdProvider.isSoppingEnabled = value;
+                                  shoppingdProvider.isSoppingEnabled =
+                                      index == 1;
                                 });
-                                _saveShoppingValue(value);
-
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text(
-                                        AppLocalizations.of(context)
-                                            .translate('Restart App'),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      content: Text(
-                                        AppLocalizations.of(context).translate(
-                                          'You need to restart the app for changes to take effect.',
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            restartApp(context);
-                                          },
-                                          child: Text(
-                                            AppLocalizations.of(context)
-                                                .translate('OK'),
-                                            style: TextStyle(
-                                              color: themeProvider
-                                                      .isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-
-                                setState(() {});
+                                _saveShoppingValue(
+                                    shoppingdProvider.isSoppingEnabled);
                               },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (shoppingdProvider.geIsShoppingtEnabled)
-                          Align(
-                            alignment: Alignment.topLeft,
-                            child: Text(
-                              AppLocalizations.of(context)
-                                  .translate('Shopping List Settings'),
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        const SizedBox(height: 16),
-                        if (shoppingdProvider.geIsShoppingtEnabled)
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context).translate(
-                                    'Budget Limit',
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 2.0, vertical: 4.0),
+                                child: Container(
+                                  width: 160,
+                                  margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                  decoration: BoxDecoration(
+                                    color: index == 0
+                                        ? isSelected
+                                            ? Color.fromARGB(255, 111, 109, 124)
+                                            : Colors.blueGrey
+                                        : isSelected
+                                            ? Color.fromARGB(255, 111, 109, 124)
+                                            : Colors.greenAccent,
+                                    borderRadius: BorderRadius.circular(12.0),
                                   ),
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: themeProvider.isDarkThemeEnabled
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 8.0),
-                                Text(
-                                  AppLocalizations.of(context).translate(
-                                    'Hint: 0 equals to unlimited',
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14.0,
-                                  ),
-                                ),
-                                SizedBox(height: 16.0),
-                                TextField(
-                                  style: TextStyle(color: Colors.black),
-                                  controller: _budgetLimitController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    hintText: budgetLimit == 0.0
-                                        ? AppLocalizations.of(context)
-                                            .translate(
-                                            'Enter your budget limit',
-                                          )
-                                        : budgetLimit.toStringAsFixed(2),
-                                    hintStyle: TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16.0,
-                                      vertical: 16.0,
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey[100],
-                                  ),
-                                  onChanged: (value) {
-                                    double parsedValue =
-                                        _budgetLimitController.text.isEmpty
-                                            ? 0.0
-                                            : double.parse(value);
-
-                                    _saveBudgetValue(parsedValue);
-                                    setState(() {
-                                      budgetLimitEntered = true;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        if (shoppingdProvider.geIsShoppingtEnabled)
-                          ListTile(
-                            title: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: [
-                                  Container(
+                                  child: Center(
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Image.asset(
-                                          'assets/images/google_pay.png',
-                                          height: 30.0,
+                                        Icon(
+                                          Icons.list,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
                                         ),
-                                        SizedBox(width: 16.0),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
                                         Text(
-                                          AppLocalizations.of(context)
-                                              .translate('Enable Google Pay'),
+                                          title,
                                           style: TextStyle(
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.bold,
-                                              color: themeProvider
-                                                      .isDarkThemeEnabled
-                                                  ? Colors.white
-                                                  : Colors.black),
+                                            fontSize: isSelected ? 18 : 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Expanded(
-                                    child: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          googlePaydProvider
-                                                  .isGooglePaytEnabled =
-                                              !googlePaydProvider
-                                                  .isGooglePaytEnabled;
-                                        });
-                                        saveGooglePay(googlePaydProvider
-                                            .isGooglePaytEnabled);
-                                      },
-                                      icon: Icon(
-                                        Icons.payment_outlined,
-                                        color: googlePaydProvider
-                                                .geIsGooglePaytEnabled
-                                            ? Color.fromARGB(255, 16, 186, 192)
-                                            : themeProvider.isDarkThemeEnabled
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        title: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  AppLocalizations.of(context)
-                                      .translate('Enable Background Service'),
-                                  maxLines: 2,
                                 ),
                               ),
-                              Switch(
-                                value:
-                                    backgroundServiceProvider.isServiceEnabled,
-                                onChanged: (value) async {
-                                  final services = FlutterBackgroundService();
-                                  bool isRunning = await services.isRunning();
-                                  backgroundServiceProvider
-                                      .toggleService(value);
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            AppLocalizations.of(context)
+                                .translate('Shopping List Settings'),
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context).translate(
+                                  'Budget Limit',
+                                ),
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: themeProvider.isDarkThemeEnabled
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              SizedBox(height: 8.0),
+                              Text(
+                                AppLocalizations.of(context).translate(
+                                  'Hint: 0 equals to unlimited',
+                                ),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                              SizedBox(height: 16.0),
+                              TextField(
+                                style: TextStyle(color: Colors.black),
+                                controller: _budgetLimitController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: budgetLimit == 0.0
+                                      ? AppLocalizations.of(context)
+                                          .translate('Enter your budget limit')
+                                      : budgetLimit.toStringAsFixed(2),
+                                  hintStyle: TextStyle(
+                                    color: themeProvider.isDarkThemeEnabled
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 16.0,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                ),
+                                onChanged: (value) {
+                                  double parsedValue =
+                                      _budgetLimitController.text.isEmpty
+                                          ? 0.0
+                                          : double.parse(value);
 
-                                  await Permission.notification.status
-                                      .then((status) {
-                                    if (status.isDenied) {
-                                      Permission.notification.request();
-                                    } else if (status.isGranted) {
-                                      // Notification permission has already been granted
-                                      // You can proceed with using notifications
-                                    }
+                                  _saveBudgetValue(parsedValue);
+                                  setState(() {
+                                    budgetLimitEntered = true;
                                   });
-
-                                  if (!backgroundServiceProvider
-                                      .isServiceEnabled) {
-                                    if (isRunning) {
-                                      services.invoke('stopService');
-                                    } else {
-                                      services.startService();
-                                    }
-                                  }
                                 },
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      if (backgroundServiceProvider.isServiceEnabled)
+                      if (shoppingdProvider.geIsShoppingtEnabled)
                         ListTile(
                           title: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(8.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    AppLocalizations.of(context)
-                                        .translate('Notification Interval'),
-                                    maxLines: 2,
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/google_pay.png',
+                                        height: 30.0,
+                                      ),
+                                      SizedBox(width: 16.0),
+                                      Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Enable Google Pay'),
+                                        style: TextStyle(
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                themeProvider.isDarkThemeEnabled
+                                                    ? Colors.white
+                                                    : Colors.black),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Expanded(
-                                  child: Consumer<NotificationTimingProvider>(
-                                    builder: (context, provider, _) {
-                                      return DropdownButton<int>(
-                                        value: provider.notificationInterval,
-                                        onChanged: (value) {
-                                          provider.updateNotificationInterval(
-                                              value!);
-                                        },
-                                        items: [
-                                          DropdownMenuItem<int>(
-                                            value: 1,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('1 minute')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 5,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('5 minutes')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 15,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('15 minutes')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 30,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('30 minutes')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 60,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('1 Hour')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 240,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('4 Hours')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 480,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('8 Hours')),
-                                          ),
-                                          DropdownMenuItem<int>(
-                                            value: 1440,
-                                            child: Text(
-                                                AppLocalizations.of(context)
-                                                    .translate('24 Hours')),
-                                          ),
-                                          // Add more options as needed
-                                        ],
-                                      );
+                                  child: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        googlePaydProvider.isGooglePaytEnabled =
+                                            !googlePaydProvider
+                                                .isGooglePaytEnabled;
+                                      });
+                                      saveGooglePay(googlePaydProvider
+                                          .isGooglePaytEnabled);
                                     },
+                                    icon: Icon(
+                                      Icons.payment_outlined,
+                                      color: googlePaydProvider
+                                              .geIsGooglePaytEnabled
+                                          ? Color.fromARGB(255, 16, 186, 192)
+                                          : themeProvider.isDarkThemeEnabled
+                                              ? Colors.white
+                                              : Colors.black,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(10.0),
+                            topRight: Radius.circular(10.0),
+                          ),
+                          color: backgroundServiceProvider.isServiceEnabled
+                              ? const Color.fromARGB(255, 80, 174, 252)
+                              : Colors.blue,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                AppLocalizations.of(context)
+                                    .translate('Enable Background Service'),
+                                maxLines: 2,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Flexible(
+                              child: SizedBox(
+                                width: 130,
+                                child: LiteRollingSwitch(
+                                  //initial value
+                                  value: backgroundServiceProvider
+                                      .isServiceEnabled,
+                                  textOn: 'Enabled',
+                                  textOff: 'Disabled',
+                                  colorOn: Colors.green,
+                                  colorOff: Colors.red,
+                                  iconOn: Icons.done,
+                                  iconOff: Icons.remove_circle_outline,
+                                  textSize: 12.0,
+                                  onChanged: (value) async {
+                                    final services = FlutterBackgroundService();
+                                    bool isRunning = await services.isRunning();
+                                    backgroundServiceProvider
+                                        .toggleService(value);
+
+                                    await Permission.notification.status
+                                        .then((status) {
+                                      if (status.isDenied) {
+                                        Permission.notification.request();
+                                      } else if (status.isGranted) {
+                                        // Notification permission has already been granted
+                                        // You can proceed with using notifications
+                                      }
+                                    });
+
+                                    if (!backgroundServiceProvider
+                                        .isServiceEnabled) {
+                                      if (isRunning) {
+                                        services.invoke('stopService');
+                                      } else {
+                                        services.startService();
+                                      }
+                                    }
+                                  },
+                                  onDoubleTap: () {},
+                                  onSwipe: () {},
+                                  onTap: () {},
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (backgroundServiceProvider.isServiceEnabled)
+                        Container(
+                          padding: EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      AppLocalizations.of(context)
+                                          .translate('Notification Interval'),
+                                      maxLines: 2,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Consumer<NotificationTimingProvider>(
+                                      builder: (context, provider, _) {
+                                        return ListTile(
+                                            trailing: Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            border:
+                                                Border.all(color: Colors.grey),
+                                          ),
+                                          child: DropdownButtonHideUnderline(
+                                            child: DropdownButton<int>(
+                                              value:
+                                                  provider.notificationInterval,
+                                              onChanged: (value) {
+                                                provider
+                                                    .updateNotificationInterval(
+                                                        value!);
+                                              },
+                                              items: [
+                                                DropdownMenuItem<int>(
+                                                  value: 1,
+                                                  child: Text(
+                                                      '1 ${AppLocalizations.of(context).translate('minute')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 2,
+                                                  child: Text(
+                                                      '2 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 3,
+                                                  child: Text(
+                                                      '3 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 4,
+                                                  child: Text(
+                                                      '4 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 5,
+                                                  child: Text(
+                                                      '5 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 15,
+                                                  child: Text(
+                                                      '15 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 30,
+                                                  child: Text(
+                                                      '30 ${AppLocalizations.of(context).translate('minutes')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 60,
+                                                  child: Text(
+                                                      '1 ${AppLocalizations.of(context).translate('Hour')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 240,
+                                                  child: Text(
+                                                      '4 ${AppLocalizations.of(context).translate('Hours')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 480,
+                                                  child: Text(
+                                                      '8 ${AppLocalizations.of(context).translate('Hours')}'),
+                                                ),
+                                                DropdownMenuItem<int>(
+                                                  value: 1440,
+                                                  child: Text(
+                                                      '24 ${AppLocalizations.of(context).translate('Hours')}'),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ));
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -1112,10 +1173,6 @@ class _SettingsPageState extends State<SettingsPage> {
   void _saveShoppingValue(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isSoppingEnabled', value);
-  }
-
-  void restartApp(BuildContext ctx) {
-    Phoenix.rebirth(ctx);
   }
 
   bool returnTrue() {

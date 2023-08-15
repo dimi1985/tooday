@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -46,7 +47,7 @@ void initBackgroundTask(ServiceInstance service) async {
         for (var task in unfinishedTasks) {
           AwesomeNotifications().createNotification(
             content: NotificationContent(
-              id: task.id ?? 0,
+              id: generateUniqueId(),
               channelKey: 'basic_channel',
               title: appLocalizations.translate('UnBought Items'),
               body: appLocalizations.translate('You forgot to buy:') +
@@ -61,7 +62,7 @@ void initBackgroundTask(ServiceInstance service) async {
         for (var item in unfinishedBoughtItems) {
           AwesomeNotifications().createNotification(
             content: NotificationContent(
-              id: item.id ?? 0,
+              id: generateUniqueId(),
               channelKey: 'basic_channel',
               title: appLocalizations.translate('Unfinished Task'),
               body: appLocalizations.translate('You have an unfinished task:') +
@@ -73,6 +74,11 @@ void initBackgroundTask(ServiceInstance service) async {
       }
     });
   }
+}
+
+int generateUniqueId() {
+  final random = Random();
+  return random.nextInt(2147483647);
 }
 
 initializeAndStartBackgroundTask() async {

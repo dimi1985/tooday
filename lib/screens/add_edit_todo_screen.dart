@@ -11,6 +11,7 @@ import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
@@ -133,6 +134,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
+    final connectivityProvider = Provider.of<ConnectivityStatus>(context);
     return WillPopScope(
       onWillPop: () async {
         // Fetch updated todos here
@@ -780,7 +782,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                 ),
                 child: FloatingActionButton(
                   onPressed: () {
-                    _doTheMagic('', shoppingdProvider);
+                    _doTheMagic('', shoppingdProvider, connectivityProvider);
                   },
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
@@ -794,7 +796,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   }
 
   Future<void> _doTheMagic(
-      String action, ShoppingEnabledProvider shoppingdProvider) async {
+      String action,
+      ShoppingEnabledProvider shoppingdProvider,
+      ConnectivityStatus connectivityProvider) async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -851,7 +855,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           });
           return;
         } else {
-          dbHelper.insert(todo);
+          final int offlineId = DateTime.now().millisecondsSinceEpoch;
+
+          var todoWithOfflineId = Todo.withNewId(todo, offlineId);
+          dbHelper.insert(todoWithOfflineId);
         }
       } else {
         uploadToFireStore(todo.id);
@@ -961,11 +968,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   void uploadToFireStore(int? id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String valueUserId = prefs.getString('userId') ?? '';
-
     final dbHelper = DatabaseHelper();
+
     final todo = await dbHelper.getTodoById(id);
 
-    if (todo != null) {
+    if (todo != null && user != null) {
       DocumentReference docRef =
           firestore.collection('todos').doc(todo.id.toString());
       DocumentSnapshot docSnapshot = await docRef.get();

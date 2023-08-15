@@ -1,7 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'dart:async';
-import 'dart:developer';
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +53,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   bool fireStoreNewItemsNeedSync = true;
+  Color greyOutColor = Colors.grey.withOpacity(0.5);
 
   @override
   void initState() {
@@ -86,14 +85,34 @@ class _TodoListScreenState extends State<TodoListScreen> {
         isLoading = true;
       });
     }
+
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
+    if (user != null) {
+      final firestoreSyncedTodos = await FirebaseFirestore.instance
+          .collection('todos')
+          .where('isSync', isEqualTo: true)
+          .where('userId', isEqualTo: user?.uid)
+          .get();
+
+      final firestoreSyncedTodoIds =
+          firestoreSyncedTodos.docs.map((doc) => doc['id'] as int).toList();
+
+      final firestoreNeedsSync = firestoreSyncedTodoIds.any((firestoreTodoId) =>
+          !todos.any((localTodo) => localTodo.id == firestoreTodoId));
+
+      if (mounted) {
+        setState(() {
+          this.fireStoreNewItemsNeedSync = firestoreNeedsSync;
+        });
+      }
+    }
 
     if (mounted) {
       setState(() {
         _todos = todos;
         _todos.removeWhere(
-            (todo) => todo.isSync && todo.userId != _auth.currentUser!.uid);
+            (todo) => todo.isSync && todo.userId != _auth.currentUser?.uid);
         getAllItemsSetup();
         isLoading = false;
       });
@@ -135,9 +154,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
               : Row(
                   children: [
                     if (userSgnInProvider.getIsUserSignin)
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(user?.photoURL ?? ''),
-                      ),
+                      connectivityProvider.isConnected
+                          ? CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(user?.photoURL ?? ''),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: greyOutColor,
+                            ),
                     SizedBox(
                       width: 10,
                     ),
@@ -148,7 +172,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               style: TextStyle(
                                 color: themeProvider.isDarkThemeEnabled
                                     ? Colors.white
-                                    : Colors.black,
+                                    : connectivityProvider.isConnected
+                                        ? Colors.black
+                                        : Colors.grey,
                               ),
                               overflow: TextOverflow
                                   .ellipsis, // or TextOverflow.fade, TextOverflow.clip, etc.
@@ -171,8 +197,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   ? Icons.sync_rounded
                                   : Icons.check_circle,
                               color: fireStoreNewItemsNeedSync
-                                  ? Colors.orange
-                                  : Colors.green,
+                                  ? connectivityProvider.isConnected
+                                      ? Colors.orange
+                                      : Colors.grey
+                                  : connectivityProvider.isConnected
+                                      ? Colors.green
+                                      : Colors.grey,
                             )
                           : Icon(
                               !userSgnInProvider.getIsUserSignin ||
