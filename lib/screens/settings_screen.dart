@@ -1085,44 +1085,46 @@ class _SettingsPageState extends State<SettingsPage> {
                             ],
                           ),
                         ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)
-                                  .translate('Repeat Notifications'),
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            SizedBox(width: 20),
-                            IconButton(
-                              icon: Icon(
-                                repeatNotificationsProvider.repeatNotifications
-                                    ? Icons.check_circle
-                                    : Icons.cancel,
-                                color: repeatNotificationsProvider
-                                        .repeatNotifications
-                                    ? Colors.green
-                                    : Colors.red,
-                                size: 30,
+                      if (backgroundServiceProvider.isServiceEnabled)
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)
+                                    .translate('Repeat Notifications'),
+                                style: TextStyle(fontSize: 16),
                               ),
-                              onPressed: () {
-                                setState(() {
+                              SizedBox(width: 20),
+                              IconButton(
+                                icon: Icon(
                                   repeatNotificationsProvider
-                                          .isRepeatNotifications =
-                                      !repeatNotificationsProvider
-                                          .isRepeatNotifications;
-                                });
-                                repeatNotificationsProvider
-                                    .updateRepeatNotifications(
-                                        repeatNotificationsProvider
-                                            .isRepeatNotifications);
-                              },
-                            ),
-                          ],
+                                          .repeatNotifications
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: repeatNotificationsProvider
+                                          .repeatNotifications
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    repeatNotificationsProvider
+                                            .isRepeatNotifications =
+                                        !repeatNotificationsProvider
+                                            .isRepeatNotifications;
+                                  });
+                                  repeatNotificationsProvider
+                                      .updateRepeatNotifications(
+                                          repeatNotificationsProvider
+                                              .isRepeatNotifications);
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                       if (backgroundServiceProvider.isServiceEnabled)
                         Container(
                           margin: EdgeInsets.symmetric(
