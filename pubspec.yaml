@@ -52,6 +52,7 @@ dependencies:
   permission_handler: ^10.4.3
   awesome_notifications: ^0.7.4+1
   lite_rolling_switch: ^1.0.1
+  app_settings: ^5.0.0
   
   
 

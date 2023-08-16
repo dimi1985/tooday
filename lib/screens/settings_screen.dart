@@ -1,9 +1,9 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:iconly/iconly.dart';
-import 'package:lite_rolling_switch/lite_rolling_switch.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:tooday/database/database_helper.dart';
@@ -18,6 +18,7 @@ import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';
+import 'package:tooday/utils/repeat_notification_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
@@ -107,6 +108,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
     final backgroundServiceProvider =
         Provider.of<BackgroundServiceProvider>(context);
+    final repeatNotificationsProvider =
+        Provider.of<RepeatNotificationsProvider>(context);
 
     return WillPopScope(
       onWillPop: () {
@@ -718,11 +721,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                   decoration: BoxDecoration(
                                     color: index == 0
                                         ? isSelected
-                                            ? Color.fromARGB(255, 111, 109, 124)
-                                            : Colors.blueGrey
+                                            ? Color.fromARGB(255, 19, 82, 107)
+                                            : const Color.fromARGB(
+                                                255, 131, 131, 131)
                                         : isSelected
-                                            ? Color.fromARGB(255, 111, 109, 124)
-                                            : Colors.greenAccent,
+                                            ? Color.fromARGB(255, 19, 82, 107)
+                                            : const Color.fromARGB(
+                                                255, 131, 131, 131),
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   child: Center(
@@ -730,12 +735,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Icon(
-                                          Icons.list,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
                                         SizedBox(
                                           width: 5,
                                         ),
@@ -749,6 +748,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 : Colors.black,
                                           ),
                                         ),
+                                        if (isSelected)
+                                          Icon(
+                                            Icons.check,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
                                       ],
                                     ),
                                   ),
@@ -912,8 +918,8 @@ class _SettingsPageState extends State<SettingsPage> {
                             topRight: Radius.circular(10.0),
                           ),
                           color: backgroundServiceProvider.isServiceEnabled
-                              ? const Color.fromARGB(255, 80, 174, 252)
-                              : Colors.blue,
+                              ? Color.fromARGB(255, 114, 189, 250)
+                              : const Color.fromARGB(255, 2, 67, 121),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -933,17 +939,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             Flexible(
                               child: SizedBox(
                                 width: 130,
-                                child: LiteRollingSwitch(
-                                  //initial value
+                                child: Switch(
                                   value: backgroundServiceProvider
                                       .isServiceEnabled,
-                                  textOn: 'Enabled',
-                                  textOff: 'Disabled',
-                                  colorOn: Colors.green,
-                                  colorOff: Colors.red,
-                                  iconOn: Icons.done,
-                                  iconOff: Icons.remove_circle_outline,
-                                  textSize: 12.0,
                                   onChanged: (value) async {
                                     final services = FlutterBackgroundService();
                                     bool isRunning = await services.isRunning();
@@ -969,9 +967,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                       }
                                     }
                                   },
-                                  onDoubleTap: () {},
-                                  onSwipe: () {},
-                                  onTap: () {},
                                 ),
                               ),
                             ),
@@ -1090,6 +1085,95 @@ class _SettingsPageState extends State<SettingsPage> {
                             ],
                           ),
                         ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)
+                                  .translate('Repeat Notifications'),
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            SizedBox(width: 20),
+                            IconButton(
+                              icon: Icon(
+                                repeatNotificationsProvider.repeatNotifications
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+                                color: repeatNotificationsProvider
+                                        .repeatNotifications
+                                    ? Colors.green
+                                    : Colors.red,
+                                size: 30,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  repeatNotificationsProvider
+                                          .isRepeatNotifications =
+                                      !repeatNotificationsProvider
+                                          .isRepeatNotifications;
+                                });
+                                repeatNotificationsProvider
+                                    .updateRepeatNotifications(
+                                        repeatNotificationsProvider
+                                            .isRepeatNotifications);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (backgroundServiceProvider.isServiceEnabled)
+                        Container(
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          padding: EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(
+                                255, 69, 50, 238), // Blue-Grey color
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)
+                                    .translate('Background Services Alert'),
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 8.0),
+                              Text(
+                                AppLocalizations.of(context).translate(
+                                    'Please ensure that the app is allowed to run in the background without battery optimizations. This will ensure proper functioning of background services and notifications. Go to battery settings to make necessary adjustments.Keep In mind that for now backround services time start as soon as the app is a background state.'),
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 8.0),
+                              MaterialButton(
+                                onPressed: () {
+                                  // Open battery optimization settings
+                                  AppSettings.openAppSettings();
+                                },
+                                child: Text(
+                                  AppLocalizations.of(context).translate(
+                                      'Open Battery Optimization Settings'),
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(height: 16),
                     ],
                   ),
                 ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -11,13 +10,15 @@ import 'package:tooday/utils/app_localization.dart';
 import '../database/database_helper.dart';
 
 void initBackgroundTask(ServiceInstance service) async {
-  late Timer? backgroundTimer;
+  late Timer? periodicTimer;
   late bool isServiceEnabled;
   late int notificationInterval;
+  late bool repeatNotifications;
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   isServiceEnabled = prefs.getBool('isServiceEnabled') ?? false;
   notificationInterval = prefs.getInt('notificationInterval') ?? 15;
+  repeatNotifications = prefs.getBool('repeatNotifications') ?? false;
 
   DartPluginRegistrant.ensureInitialized();
 
@@ -33,7 +34,8 @@ void initBackgroundTask(ServiceInstance service) async {
 
   // Create the second timer for periodic notifications
   if (isServiceEnabled) {
-    backgroundTimer =
+    print('repeatNotifications: $repeatNotifications');
+    periodicTimer =
         Timer.periodic(Duration(minutes: notificationInterval), (timer) async {
       final locale = Locale('el');
       AppLocalizations appLocalizations =
@@ -48,6 +50,7 @@ void initBackgroundTask(ServiceInstance service) async {
           AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: generateUniqueId(),
+              wakeUpScreen: true,
               channelKey: 'basic_channel',
               title: appLocalizations.translate('UnBought Items'),
               body: appLocalizations.translate('You forgot to buy:') +
@@ -63,6 +66,7 @@ void initBackgroundTask(ServiceInstance service) async {
           AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: generateUniqueId(),
+              wakeUpScreen: true,
               channelKey: 'basic_channel',
               title: appLocalizations.translate('Unfinished Task'),
               body: appLocalizations.translate('You have an unfinished task:') +
@@ -71,6 +75,17 @@ void initBackgroundTask(ServiceInstance service) async {
             ),
           );
         }
+      }
+
+      if (!repeatNotifications) {
+        if (periodicTimer != null && periodicTimer.isActive) {
+          print('Cancelling periodicTimer');
+          periodicTimer.cancel();
+          print('periodicTimer is active: ${periodicTimer.isActive}');
+        }
+
+        print('Stopping background service');
+        service.invoke('stopService');
       }
     });
   }

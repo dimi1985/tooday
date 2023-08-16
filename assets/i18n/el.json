@@ -105,7 +105,10 @@
     "Hour": "Ώρα",
     "Hours": "Ώρες",
     "UnBought Items": "Μη Αγορασμένα Είδη",
-    "You forgot to buy:": "Ξεχάσατε να αγοράσετε:"
+    "You forgot to buy:": "Ξεχάσατε να αγοράσετε:",
+    "Background Services Alert": "Ειδοποίηση υπηρεσιών παρασκηνίου",
+    "Please ensure that the app is allowed to run in the background without battery optimizations. This will ensure proper functioning of background services and notifications. Go to battery settings to make necessary adjustments.Keep In mind that for now backround services time start as soon as the app is a background state.": "Βεβαιωθείτε ότι η εφαρμογή επιτρέπεται να εκτελείται στο παρασκήνιο χωρίς βελτιστοποιήσεις μπαταρίας. Αυτό θα διασφαλίσει τη σωστή λειτουργία των υπηρεσιών παρασκηνίου και των ειδοποιήσεων. Μεταβείτε στις ρυθμίσεις μπαταρίας για να κάνετε τις απαραίτητες προσαρμογές. Λάβετε υπόψη ότι προς το παρόν ο χρόνος των υπηρεσιών στο παρασκήνιο ξεκινά μόλις η εφαρμογή βρίσκεται σε κατάσταση παρασκηνίου.",
+    "Open Battery Optimization Settings": "Ανοίξτε τις Ρυθμίσεις βελτιστοποίησης μπαταρίας"
 
   }
   
