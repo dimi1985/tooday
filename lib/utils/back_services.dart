@@ -1,6 +1,8 @@
+@pragma('vm:entry-point')
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
@@ -9,6 +11,7 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/utils/app_localization.dart';
 import '../database/database_helper.dart';
 
+@pragma('vm:entry-point')
 void initBackgroundTask(ServiceInstance service) async {
   late Timer? periodicTimer;
   late bool isServiceEnabled;
@@ -51,6 +54,7 @@ void initBackgroundTask(ServiceInstance service) async {
             content: NotificationContent(
               id: generateUniqueId(),
               wakeUpScreen: true,
+              displayOnBackground: true,
               channelKey: 'basic_channel',
               title: appLocalizations.translate('UnBought Items'),
               body: appLocalizations.translate('You forgot to buy:') +
@@ -67,6 +71,7 @@ void initBackgroundTask(ServiceInstance service) async {
             content: NotificationContent(
               id: generateUniqueId(),
               wakeUpScreen: true,
+              displayOnBackground: true,
               channelKey: 'basic_channel',
               title: appLocalizations.translate('Unfinished Task'),
               body: appLocalizations.translate('You have an unfinished task:') +

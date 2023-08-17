@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'dart:async';
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -88,23 +89,28 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
     final dbHelper = DatabaseHelper();
     final todos = await dbHelper.getAllTodos();
-    if (user != null) {
-      final firestoreSyncedTodos = await FirebaseFirestore.instance
-          .collection('todos')
-          .where('isSync', isEqualTo: true)
-          .where('userId', isEqualTo: user?.uid)
-          .get();
 
-      final firestoreSyncedTodoIds =
-          firestoreSyncedTodos.docs.map((doc) => doc['id'] as int).toList();
+    // Check if Firestore fetching is needed based on the flag
+    if (fireStoreNewItemsNeedSync) {
+      if (user != null) {
+        final firestoreSyncedTodos = await FirebaseFirestore.instance
+            .collection('todos')
+            .where('isSync', isEqualTo: true)
+            .where('userId', isEqualTo: user?.uid)
+            .get();
 
-      final firestoreNeedsSync = firestoreSyncedTodoIds.any((firestoreTodoId) =>
-          !todos.any((localTodo) => localTodo.id == firestoreTodoId));
+        final firestoreSyncedTodoIds =
+            firestoreSyncedTodos.docs.map((doc) => doc['id'] as int).toList();
 
-      if (mounted) {
-        setState(() {
-          this.fireStoreNewItemsNeedSync = firestoreNeedsSync;
-        });
+        final firestoreNeedsSync = firestoreSyncedTodoIds.any(
+            (firestoreTodoId) =>
+                !todos.any((localTodo) => localTodo.id == firestoreTodoId));
+
+        if (mounted) {
+          setState(() {
+            this.fireStoreNewItemsNeedSync = firestoreNeedsSync;
+          });
+        }
       }
     }
 
