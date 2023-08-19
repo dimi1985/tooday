@@ -517,6 +517,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                             lastUpdated: todo.lastUpdated,
                                             isSync: false,
                                             userId: todo.userId,
+                                            selectedTimeHour:
+                                                todo.selectedTimeHour,
+                                            selectedTimeMinute:
+                                                todo.selectedTimeMinute,
                                           );
 
                                           dbHelper.update(newtodo);
@@ -815,6 +819,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
       lastUpdated: now.toIso8601String(),
       isSync: false,
       userId: '',
+      selectedTimeHour: 0,
+      selectedTimeMinute: 0,
     );
 
     Navigator.of(context)
@@ -1173,6 +1179,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
         lastUpdated: fireStoreTodo.lastUpdated,
         isSync: fireStoreTodo.isSync,
         userId: fireStoreTodo.userId,
+        selectedTimeHour: fireStoreTodo.selectedTimeHour,
+        selectedTimeMinute: fireStoreTodo.selectedTimeMinute,
       );
 
       if (!shoppingItemExists || !todoItemListExists) {

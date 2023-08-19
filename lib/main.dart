@@ -16,8 +16,6 @@ import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
 import 'package:tooday/utils/firestore_items_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
-import 'package:tooday/utils/hour_bool_selection_provider.dart';
-import 'package:tooday/utils/hour_selection_provider.dart';
 import 'package:tooday/utils/noti_controll.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';
 import 'package:tooday/utils/repeat_notification_provider.dart';
@@ -91,8 +89,6 @@ void main() async {
       ChangeNotifierProvider(create: (_) => FireStoreItemsProvider()),
       ChangeNotifierProvider(create: (_) => NotificationTimingProvider()),
       ChangeNotifierProvider(create: (_) => RepeatNotificationsProvider()),
-      ChangeNotifierProvider(create: (_) => HourBoolSelectionProvider()),
-      ChangeNotifierProvider(create: (_) => HourSelectionProvider()),
       ChangeNotifierProvider(create: (_) => TimePeriodicProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),

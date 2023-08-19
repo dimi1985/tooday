@@ -15,7 +15,6 @@ import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/back_service_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
-import 'package:tooday/utils/hour_bool_selection_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';

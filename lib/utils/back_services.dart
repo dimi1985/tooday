@@ -13,20 +13,14 @@ import '../database/database_helper.dart';
 
 @pragma('vm:entry-point')
 void initBackgroundTask(ServiceInstance service) async {
-  late Timer? periodicTimer = null;
-  late bool isServiceEnabled;
+  late Timer? periodicTimer;
   late int notificationInterval;
   late bool repeatNotifications;
-  late bool isHourSelected;
   late bool isTimePeriodicEnabled;
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  isServiceEnabled = prefs.getBool('isServiceEnabled') ?? false;
   notificationInterval = prefs.getInt('notificationInterval') ?? 15;
   repeatNotifications = prefs.getBool('repeatNotifications') ?? false;
-  isHourSelected = prefs.getBool('isHourSelected') ?? false;
-  int selectedHourHour = prefs.getInt('selectedHourHour') ?? 0;
-  int selectedHourMinute = prefs.getInt('selectedHourMinute') ?? 0;
   isTimePeriodicEnabled = prefs.getBool('isTimePeriodicEnabled') ?? false;
 
   DartPluginRegistrant.ensureInitialized();
@@ -41,212 +35,196 @@ void initBackgroundTask(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  if (!isHourSelected && isTimePeriodicEnabled) {
-    print('isHourSelected: $isHourSelected');
-    periodicTimer =
-        Timer.periodic(Duration(minutes: notificationInterval), (timer) async {
-      final locale = Locale('el');
-      AppLocalizations appLocalizations =
-          await AppLocalizations.delegate.load(locale);
-      final dbHelper = DatabaseHelper();
-      List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
-      List<Todo> unfinishedBoughtItems =
-          await dbHelper.getUnBoughtShoppingItems();
+  final dbHelper = DatabaseHelper();
+  List<Todo> todos = await dbHelper.getAllUncheckTodos();
 
-      if (unfinishedTasks.isNotEmpty) {
-        for (var task in unfinishedTasks) {
-          AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: generateUniqueId(),
-              wakeUpScreen: true,
-              displayOnBackground: true,
-              channelKey: 'basic_channel',
-              title: appLocalizations.translate('UnBought Items'),
-              body: appLocalizations.translate('You forgot to buy:') +
-                  ' ' +
-                  task.title,
-            ),
-          );
-        }
-      }
+  for (var todo in todos) {
+    if (!todo.isHourSelected && isTimePeriodicEnabled) {
+      periodicTimer = Timer.periodic(Duration(minutes: notificationInterval),
+          (timer) async {
+        final locale = Locale('el');
+        AppLocalizations appLocalizations =
+            await AppLocalizations.delegate.load(locale);
+        final dbHelper = DatabaseHelper();
+        List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
+        List<Todo> unfinishedBoughtItems =
+            await dbHelper.getUnBoughtShoppingItems();
 
-      if (unfinishedBoughtItems.isNotEmpty) {
-        for (var item in unfinishedBoughtItems) {
-          AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: generateUniqueId(),
-              wakeUpScreen: true,
-              displayOnBackground: true,
-              channelKey: 'basic_channel',
-              title: appLocalizations.translate('Unfinished Task'),
-              body: appLocalizations.translate('You have an unfinished task:') +
-                  ' ' +
-                  item.title,
-            ),
-          );
-        }
-      }
-
-      if (!repeatNotifications) {
-        if (periodicTimer != null && periodicTimer.isActive) {
-          print('Cancelling periodicTimer');
-          periodicTimer.cancel();
-          print('periodicTimer is active: ${periodicTimer.isActive}');
+        if (unfinishedTasks.isNotEmpty) {
+          for (var task in unfinishedTasks) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('UnBought Items'),
+                body: appLocalizations.translate('You forgot to buy:') +
+                    ' ' +
+                    task.title,
+              ),
+            );
+          }
         }
 
-        print('Stopping background service');
-        service.invoke('stopService');
-      }
-    });
-  } else if (isHourSelected && isTimePeriodicEnabled) {
-    print(
-        'isHourSelected && isTimePeriodicEnabled: $isHourSelected , $isTimePeriodicEnabled');
-    periodicTimer =
-        Timer.periodic(Duration(minutes: notificationInterval), (timer) async {
-      final locale = Locale('el');
-      AppLocalizations appLocalizations =
-          await AppLocalizations.delegate.load(locale);
-      final dbHelper = DatabaseHelper();
-      List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
-      List<Todo> unfinishedBoughtItems =
-          await dbHelper.getUnBoughtShoppingItems();
-
-      if (unfinishedTasks.isNotEmpty) {
-        for (var task in unfinishedTasks) {
-          AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: generateUniqueId(),
-              wakeUpScreen: true,
-              displayOnBackground: true,
-              channelKey: 'basic_channel',
-              title: appLocalizations.translate('UnBought Items'),
-              body: appLocalizations.translate('You forgot to buy:') +
-                  ' ' +
-                  task.title,
-            ),
-          );
-        }
-      }
-
-      if (unfinishedBoughtItems.isNotEmpty) {
-        for (var item in unfinishedBoughtItems) {
-          AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: generateUniqueId(),
-              wakeUpScreen: true,
-              displayOnBackground: true,
-              channelKey: 'basic_channel',
-              title: appLocalizations.translate('Unfinished Task'),
-              body: appLocalizations.translate('You have an unfinished task:') +
-                  ' ' +
-                  item.title,
-            ),
-          );
-        }
-      }
-
-      if (!repeatNotifications) {
-        if (periodicTimer != null && periodicTimer.isActive) {
-          print('Cancelling periodicTimer');
-          periodicTimer.cancel();
-          print('periodicTimer is active: ${periodicTimer.isActive}');
+        if (unfinishedBoughtItems.isNotEmpty) {
+          for (var item in unfinishedBoughtItems) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('Unfinished Task'),
+                body:
+                    appLocalizations.translate('You have an unfinished task:') +
+                        ' ' +
+                        item.title,
+              ),
+            );
+          }
         }
 
-        print('Stopping background service');
-        service.invoke('stopService');
-      }
-    });
+        if (!repeatNotifications) {
+          if (periodicTimer != null && periodicTimer.isActive) {
+            periodicTimer.cancel();
+          }
 
-    // Use other scheduling mechanism based on dueDate and selected hour
-    final dbHelper = DatabaseHelper();
-    List<Todo> todos = await dbHelper.getIsHourSelectedItems();
-
-    for (var todo in todos) {
-      DateTime dueDate =
-          DateTime.parse(todo.dueDate); // Parse the dueDate string to DateTime
-      TimeOfDay selectedHour =
-          TimeOfDay(hour: selectedHourHour, minute: selectedHourMinute);
-      print('dueDate: $dueDate');
-      print('selectedHour: ${todo.isHourSelected}');
-      // Calculate the time difference between dueDate and selected hour
-      // Calculate the time difference between dueDate and selected hour
-      DateTime scheduledTime = DateTime(
-        dueDate.year,
-        dueDate.month,
-        dueDate.day,
-        selectedHour.hour,
-        selectedHour.minute,
-      );
-
-      print('scheduledTime: $scheduledTime');
-
-      // Calculate the time difference between now and scheduledTime
-      Duration timeDifference = scheduledTime.difference(DateTime.now());
-
-      // Schedule the date-based notification using a timer
-      Timer(timeDifference, () async {
-        await AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: generateUniqueId(),
-            wakeUpScreen: true,
-            displayOnBackground: true,
-            channelKey: 'basic_channel',
-            title: 'Reminder',
-            body: 'You have a task to do: ${todo.title}',
-          ),
-        );
+          service.invoke('stopService');
+        }
       });
-    }
-  } else if (isHourSelected && !isTimePeriodicEnabled) {
-    print('isHourSelected: $isHourSelected');
-    // Use other scheduling mechanism based on dueDate and selected hour
-    final dbHelper = DatabaseHelper();
-    List<Todo> todos = await dbHelper.getIsHourSelectedItems();
+    } else if (todo.isHourSelected && isTimePeriodicEnabled) {
+      periodicTimer = Timer.periodic(Duration(minutes: notificationInterval),
+          (timer) async {
+        final locale = Locale('el');
+        AppLocalizations appLocalizations =
+            await AppLocalizations.delegate.load(locale);
+        final dbHelper = DatabaseHelper();
+        List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
+        List<Todo> unfinishedBoughtItems =
+            await dbHelper.getUnBoughtShoppingItems();
 
-    for (var todo in todos) {
-      if (!isTimePeriodicEnabled) {
-        if (periodicTimer != null && periodicTimer.isActive) {
-          print('Cancelling periodicTimer');
-          periodicTimer.cancel();
-          print('periodicTimer is active: ${periodicTimer.isActive}');
+        if (unfinishedTasks.isNotEmpty) {
+          for (var task in unfinishedTasks) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('UnBought Items'),
+                body: appLocalizations.translate('You forgot to buy:') +
+                    ' ' +
+                    task.title,
+              ),
+            );
+          }
         }
-      } else {
-        return;
-      }
-      DateTime dueDate =
-          DateTime.parse(todo.dueDate); // Parse the dueDate string to DateTime
-      TimeOfDay selectedHour =
-          TimeOfDay(hour: selectedHourHour, minute: selectedHourMinute);
-      print('dueDate: $dueDate');
-      print('selectedHour: ${todo.isHourSelected}');
-      // Calculate the time difference between dueDate and selected hour
-      // Calculate the time difference between dueDate and selected hour
-      DateTime scheduledTime = DateTime(
-        dueDate.year,
-        dueDate.month,
-        dueDate.day,
-        selectedHour.hour,
-        selectedHour.minute,
-      );
 
-      print('scheduledTime: $scheduledTime');
+        if (unfinishedBoughtItems.isNotEmpty) {
+          for (var item in unfinishedBoughtItems) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('Unfinished Task'),
+                body:
+                    appLocalizations.translate('You have an unfinished task:') +
+                        ' ' +
+                        item.title,
+              ),
+            );
+          }
+        }
 
-      // Calculate the time difference between now and scheduledTime
-      Duration timeDifference = scheduledTime.difference(DateTime.now());
+        if (!repeatNotifications) {
+          if (periodicTimer != null && periodicTimer.isActive) {
+            periodicTimer.cancel();
+          }
 
-      // Schedule the date-based notification using a timer
-      Timer(timeDifference, () async {
-        await AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: generateUniqueId(),
-            wakeUpScreen: true,
-            displayOnBackground: true,
-            channelKey: 'basic_channel',
-            title: 'Reminder',
-            body: 'You have a task to do: ${todo.title}',
-          ),
-        );
+          service.invoke('stopService');
+        }
       });
+
+      // Use other scheduling mechanism based on dueDate and selected hour
+      final dbHelper = DatabaseHelper();
+      List<Todo> todos = await dbHelper.getIsHourSelectedItems();
+
+      for (var todo in todos) {
+        DateTime dueDate = DateTime.parse(
+            todo.dueDate); // Parse the dueDate string to DateTime
+        TimeOfDay selectedHour = TimeOfDay(
+            hour: todo.selectedTimeHour, minute: todo.selectedTimeMinute);
+
+        // Calculate the time difference between dueDate and selected hour
+        // Calculate the time difference between dueDate and selected hour
+        DateTime scheduledTime = DateTime(
+          dueDate.year,
+          dueDate.month,
+          dueDate.day,
+          selectedHour.hour,
+          selectedHour.minute,
+        );
+
+        print('scheduledTime: $scheduledTime');
+
+        // Calculate the time difference between now and scheduledTime
+        Duration timeDifference = scheduledTime.difference(DateTime.now());
+
+        // Schedule the date-based notification using a timer
+        Timer(timeDifference, () async {
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: generateUniqueId(),
+              wakeUpScreen: true,
+              displayOnBackground: true,
+              channelKey: 'basic_channel',
+              title: 'Reminder',
+              body: 'You have a task to do: ${todo.title}',
+            ),
+          );
+        });
+      }
+    } else if (todo.isHourSelected && !isTimePeriodicEnabled) {
+      // Use other scheduling mechanism based on dueDate and selected hour
+      final dbHelper = DatabaseHelper();
+      List<Todo> todos = await dbHelper.getIsHourSelectedItems();
+
+      for (var todo in todos) {
+        DateTime dueDate = DateTime.parse(
+            todo.dueDate); // Parse the dueDate string to DateTime
+        TimeOfDay selectedHour = TimeOfDay(
+            hour: todo.selectedTimeHour, minute: todo.selectedTimeMinute);
+
+        // Calculate the time difference between dueDate and selected hour
+        // Calculate the time difference between dueDate and selected hour
+        DateTime scheduledTime = DateTime(
+          dueDate.year,
+          dueDate.month,
+          dueDate.day,
+          selectedHour.hour,
+          selectedHour.minute,
+        );
+
+        // Calculate the time difference between now and scheduledTime
+        Duration timeDifference = scheduledTime.difference(DateTime.now());
+
+        // Schedule the date-based notification using a timer
+        Timer(timeDifference, () async {
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: generateUniqueId(),
+              wakeUpScreen: true,
+              displayOnBackground: true,
+              channelKey: 'basic_channel',
+              title: 'Reminder',
+              body: 'You have a task to do: ${todo.title}',
+            ),
+          );
+        });
+      }
     }
   }
 }

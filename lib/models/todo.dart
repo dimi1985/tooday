@@ -9,6 +9,8 @@ class Todo {
   double totalProductPrice;
   bool isHourSelected;
   String dueDate;
+  int selectedTimeHour;
+  int selectedTimeMinute;
   final int priority;
   String lastUpdated;
   bool isSync;
@@ -24,6 +26,8 @@ class Todo {
     required this.productPrice,
     required this.totalProductPrice,
     required this.isHourSelected,
+    required this.selectedTimeHour,
+    required this.selectedTimeMinute,
     required this.dueDate,
     required this.priority,
     required this.lastUpdated,
@@ -42,6 +46,8 @@ class Todo {
       'productPrice': productPrice,
       'totalProductPrice': totalProductPrice,
       'isHourSelected': isHourSelected ? 1 : 0,
+      'selectedTimeHour': selectedTimeHour,
+      'selectedTimeMinute': selectedTimeMinute,
       'dueDate': dueDate,
       'priority': priority,
       'lastUpdated': lastUpdated,
@@ -61,6 +67,8 @@ class Todo {
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
       isHourSelected: map['isHourSelected'] == 1,
+      selectedTimeHour: map['selectedTimeHour'],
+      selectedTimeMinute: map['selectedTimeMinute'],
       dueDate: map['dueDate'],
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
@@ -80,6 +88,8 @@ class Todo {
       'productPrice': productPrice,
       'totalProductPrice': totalProductPrice,
       'isHourSelected': isHourSelected,
+      'selectedTimeHour': selectedTimeHour,
+      'selectedTimeMinute': selectedTimeMinute,
       'dueDate': dueDate,
       'priority': priority,
       'lastUpdated': lastUpdated,
@@ -99,6 +109,8 @@ class Todo {
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
       isHourSelected: map['isHourSelected'],
+      selectedTimeHour: map['selectedTimeHour'],
+      selectedTimeMinute: map['selectedTimeMinute'],
       dueDate: map['dueDate'],
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
@@ -118,6 +130,8 @@ class Todo {
         productPrice = oldTodo.productPrice,
         totalProductPrice = oldTodo.totalProductPrice,
         isHourSelected = oldTodo.isHourSelected,
+        selectedTimeHour = oldTodo.selectedTimeHour,
+        selectedTimeMinute = oldTodo.selectedTimeMinute,
         dueDate = oldTodo.dueDate,
         priority = oldTodo.priority,
         lastUpdated = oldTodo.lastUpdated,

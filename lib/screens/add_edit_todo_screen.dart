@@ -14,8 +14,6 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
-import 'package:tooday/utils/hour_bool_selection_provider.dart';
-import 'package:tooday/utils/hour_selection_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
@@ -141,9 +139,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
-    final hourSelectionProvider = Provider.of<HourSelectionProvider>(context);
-    final hourBoolSelectionProvider =
-        Provider.of<HourBoolSelectionProvider>(context);
+
     return WillPopScope(
       onWillPop: () async {
         // Fetch updated todos here
@@ -343,6 +339,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           lastUpdated: now.toIso8601String(),
                                           isSync: widget.todo.isSync,
                                           userId: widget.todo.userId,
+                                          selectedTimeHour: 0,
+                                          selectedTimeMinute: 0,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -391,6 +389,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       lastUpdated: now.toIso8601String(),
                                       isSync: _isSynced,
                                       userId: widget.todo.userId,
+                                      selectedTimeHour: 0,
+                                      selectedTimeMinute: 0,
                                     );
 
                                     final dbHelper = DatabaseHelper();
@@ -465,6 +465,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             lastUpdated: now.toIso8601String(),
                                             isSync: widget.todo.isSync,
                                             userId: widget.todo.userId,
+                                            selectedTimeHour: 0,
+                                            selectedTimeMinute: 0,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -545,6 +547,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             lastUpdated: now.toIso8601String(),
                                             isSync: widget.todo.isSync,
                                             userId: widget.todo.userId,
+                                            selectedTimeHour: 0,
+                                            selectedTimeMinute: 0,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -590,12 +594,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                 setState(() {
                                   _isHourSelected = !_isHourSelected;
                                 });
-                                hourBoolSelectionProvider
-                                    .updateHourSelection(_isHourSelected);
+
                                 if (_isHourSelected) {
                                   _showTimePicker(
                                     context,
-                                    hourSelectionProvider,
                                     _isHourSelected,
                                   );
                                 }
@@ -617,6 +619,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                   lastUpdated: now.toIso8601String(),
                                   isSync: widget.todo.isSync,
                                   userId: widget.todo.userId,
+                                  selectedTimeHour: 0,
+                                  selectedTimeMinute: 0,
                                 );
                                 widget.fetchFunction();
                                 dbHelper.update(newTodo);
@@ -922,6 +926,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         lastUpdated: now.toIso8601String(),
         isSync: widget.todo.isSync,
         userId: valueUserId,
+        selectedTimeHour: 0,
+        selectedTimeMinute: 0,
       );
 
       final dbHelper = DatabaseHelper();
@@ -1122,15 +1128,36 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     }
   }
 
-  Future _showTimePicker(BuildContext context,
-      HourSelectionProvider hourSelectionProvider, bool isHourSelected) async {
+  Future _showTimePicker(BuildContext context, bool isHourSelected) async {
     TimeOfDay? selectedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
 
     if (selectedTime != null) {
-      hourSelectionProvider.updateSelectedHour(selectedTime);
+      TimeOfDay(hour: selectedTime.hour, minute: selectedTime.minute);
+      DateTime now = DateTime.now();
+
+      final newTodo = Todo(
+        id: widget.todo.id,
+        title: widget.todo.title,
+        isDone: false,
+        description: widget.todo.description,
+        isShopping: widget.todo.isShopping,
+        quantity: widget.todo.quantity,
+        productPrice: widget.todo.productPrice,
+        totalProductPrice: widget.todo.totalProductPrice,
+        isHourSelected: _isHourSelected,
+        dueDate: widget.todo.dueDate,
+        priority: widget.todo.priority,
+        lastUpdated: now.toIso8601String(),
+        isSync: widget.todo.isSync,
+        userId: widget.todo.userId,
+        selectedTimeHour: selectedTime.hour,
+        selectedTimeMinute: selectedTime.minute,
+      );
+      widget.fetchFunction();
+      dbHelper.update(newTodo);
     }
   }
 }

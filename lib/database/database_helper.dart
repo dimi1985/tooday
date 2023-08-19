@@ -16,6 +16,8 @@ class DatabaseHelper {
   static const columnQuantity = 'quantity';
   static const columnProductPrice = 'productPrice';
   static const columnpTotalProductPrice = 'totalProductPrice';
+  static const columnhourSelected = 'selectedTimeHour';
+  static const columnminuteSelected = 'selectedTimeMinute';
   static const columnIsHourSelected = 'isHourSelected';
   static const columnDueDate = 'dueDate';
   static const columnPriority = 'priority';
@@ -57,6 +59,8 @@ class DatabaseHelper {
         $columnProductPrice REAL NOT NULL,
         $columnpTotalProductPrice REAL NOT NULL,
         $columnIsHourSelected INTEGER NOT NULL,
+        $columnhourSelected INTEGER NOT NULL,
+        $columnminuteSelected INTEGER NOT NULL,
         $columnDueDate TEXT NOT NULL,
         $columnPriority INTEGER NOT NULL,
         $columnLastUpdated TEXT NOT NULL,
@@ -217,5 +221,15 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return Todo.fromMap(maps[i]);
     });
+  }
+
+  Future<List<Todo>> getAllUncheckTodos() async {
+    final db = await database;
+    final result = await db.query(
+      table,
+      where: "isDone = ? AND isShopping = ?",
+      whereArgs: [0, 0],
+    );
+    return result.map((map) => Todo.fromMap(map)).toList();
   }
 }
