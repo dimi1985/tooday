@@ -119,8 +119,7 @@ class _TodoAppState extends State<TodoApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // Only after at least the action method is set, the notification events are delivered
-    // Only after at least the action method is set, the notification events are delivered
+
     AwesomeNotifications().setListeners(
         onActionReceivedMethod: NotificationController.onActionReceivedMethod,
         onNotificationCreatedMethod:

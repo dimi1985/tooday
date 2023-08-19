@@ -484,7 +484,17 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             : stringDate,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey[600],
+                                      color: themeProvider.isDarkThemeEnabled
+                                          ? widget.todo.dueDate
+                                                  .contains('2022-01-01')
+                                              ? Color.fromARGB(255, 182, 30, 30)
+                                              : const Color.fromARGB(
+                                                  255, 243, 243, 243)
+                                          : widget.todo.dueDate
+                                                  .contains('2022-01-01')
+                                              ? const Color.fromARGB(
+                                                  255, 182, 30, 30)
+                                              : Colors.grey[600],
                                     ),
                                   ),
                           ],
@@ -578,79 +588,85 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)
-                                  .translate('Notify that day'),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                setState(() {
-                                  _isHourSelected = !_isHourSelected;
-                                });
-
-                                if (_isHourSelected) {
-                                  _showTimePicker(
-                                    context,
-                                    _isHourSelected,
-                                  );
-                                }
-                                DateTime now = DateTime.now();
-
-                                final newTodo = Todo(
-                                  id: widget.todo.id,
-                                  title: widget.todo.title,
-                                  isDone: false,
-                                  description: widget.todo.description,
-                                  isShopping: widget.todo.isShopping,
-                                  quantity: widget.todo.quantity,
-                                  productPrice: widget.todo.productPrice,
-                                  totalProductPrice:
-                                      widget.todo.totalProductPrice,
-                                  isHourSelected: _isHourSelected,
-                                  dueDate: widget.todo.dueDate,
-                                  priority: widget.todo.priority,
-                                  lastUpdated: now.toIso8601String(),
-                                  isSync: widget.todo.isSync,
-                                  userId: widget.todo.userId,
-                                  selectedTimeHour: 0,
-                                  selectedTimeMinute: 0,
-                                );
-                                widget.fetchFunction();
-                                dbHelper.update(newTodo);
-                              },
-                              child: SizedBox(
-                                width: 65,
-                                height: 25,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: !_isHourSelected
-                                        ? Colors.grey
-                                        : Colors.green,
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  child: Text(
-                                    AppLocalizations.of(context).translate(
-                                        !_isHourSelected ? 'No' : 'Yes'),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                        if (!shoppingdProvider.geIsShoppingtEnabled &&
+                            !widget.todo.dueDate.contains('2022-01-01'))
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)
+                                    .translate('Notify'),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            )
-                          ],
-                        ),
+                              GestureDetector(
+                                onTap: () async {
+                                  setState(() {
+                                    _isHourSelected = !_isHourSelected;
+                                  });
+
+                                  if (_isHourSelected) {
+                                    _showTimePicker(
+                                      context,
+                                      _isHourSelected,
+                                    );
+                                  }
+                                  DateTime now = DateTime.now();
+
+                                  final newTodo = Todo(
+                                    id: widget.todo.id,
+                                    title: widget.todo.title,
+                                    isDone: false,
+                                    description: widget.todo.description,
+                                    isShopping: widget.todo.isShopping,
+                                    quantity: widget.todo.quantity,
+                                    productPrice: widget.todo.productPrice,
+                                    totalProductPrice:
+                                        widget.todo.totalProductPrice,
+                                    isHourSelected: _isHourSelected,
+                                    dueDate: widget.todo.dueDate,
+                                    priority: widget.todo.priority,
+                                    lastUpdated: now.toIso8601String(),
+                                    isSync: widget.todo.isSync,
+                                    userId: widget.todo.userId,
+                                    selectedTimeHour: 0,
+                                    selectedTimeMinute: 0,
+                                  );
+                                  widget.fetchFunction();
+                                  dbHelper.update(newTodo);
+                                },
+                                child: SizedBox(
+                                  width: 65,
+                                  height: 25,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: !_isHourSelected
+                                          ? Colors.grey
+                                          : Colors.green,
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    child: isTimePassed(widget.todo)
+                                        ? Text('Time Passed')
+                                        : Text(
+                                            AppLocalizations.of(context)
+                                                .translate(!_isHourSelected
+                                                    ? 'No'
+                                                    : 'Yes'),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
                           SizedBox(
                             height: 32,
@@ -1159,5 +1175,12 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       widget.fetchFunction();
       dbHelper.update(newTodo);
     }
+  }
+
+  bool isTimePassed(Todo todo) {
+    TimeOfDay selectedTime =
+        TimeOfDay(hour: todo.selectedTimeHour, minute: todo.selectedTimeMinute);
+    final now = TimeOfDay.now();
+    return selectedTime.hour > now.hour || selectedTime.minute > now.minute;
   }
 }

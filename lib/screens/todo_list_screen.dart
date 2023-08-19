@@ -117,8 +117,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
     if (mounted) {
       setState(() {
         _todos = todos;
-        _todos.removeWhere(
-            (todo) => todo.isSync && todo.userId != _auth.currentUser?.uid);
+        if (user?.uid == _auth.currentUser?.uid) {
+          _todos.removeWhere(
+              (todo) => todo.isSync && todo.userId != _auth.currentUser?.uid);
+        }
+
         getAllItemsSetup();
         isLoading = false;
       });
@@ -177,7 +180,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               user?.displayName ?? '',
                               style: TextStyle(
                                 color: themeProvider.isDarkThemeEnabled
-                                    ? Colors.white
+                                    ? connectivityProvider.isConnected
+                                        ? Colors.white
+                                        : Colors.grey
                                     : connectivityProvider.isConnected
                                         ? Colors.black
                                         : Colors.grey,
@@ -416,11 +421,27 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             // Show a snackbar with the undo option.
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(AppLocalizations.of(context)
-                                    .translate(
-                                        shoppingdProvider.isSoppingEnabled
-                                            ? 'Shopping Item deleted'
-                                            : 'Todo deleted')),
+                                content: Text(
+                                  AppLocalizations.of(context).translate(
+                                          shoppingdProvider.isSoppingEnabled
+                                              ? 'Shopping Item deleted'
+                                              : 'Todo deleted') +
+                                      ' ' +
+                                      todo.title,
+                                ),
+                                action: SnackBarAction(
+                                  label: AppLocalizations.of(context)
+                                      .translate('Undo'),
+                                  onPressed: () {
+                                    if (mounted) {
+                                      setState(() {
+                                        _todos.add(todo);
+                                      });
+                                      final dbHelper = DatabaseHelper();
+                                      dbHelper.insert(todo);
+                                    }
+                                  },
+                                ),
                               ),
                             );
                           },

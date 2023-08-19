@@ -363,6 +363,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SizedBox(height: 16),
                       Padding(
@@ -379,7 +381,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ),
                           subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 10),
+                            padding: const EdgeInsets.only(top: 16),
                             child: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
@@ -737,7 +739,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                           MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
-                                          width: 5,
+                                          width: 2,
                                         ),
                                         Text(
                                           title,
