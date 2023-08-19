@@ -7,7 +7,7 @@ class Todo {
   int quantity;
   double productPrice;
   double totalProductPrice;
-  String entryDate;
+  bool isHourSelected;
   String dueDate;
   final int priority;
   String lastUpdated;
@@ -23,7 +23,7 @@ class Todo {
     required this.quantity,
     required this.productPrice,
     required this.totalProductPrice,
-    required this.entryDate,
+    required this.isHourSelected,
     required this.dueDate,
     required this.priority,
     required this.lastUpdated,
@@ -41,7 +41,7 @@ class Todo {
       'quantity': quantity,
       'productPrice': productPrice,
       'totalProductPrice': totalProductPrice,
-      'entryDate': entryDate,
+      'isHourSelected': isHourSelected ? 1 : 0,
       'dueDate': dueDate,
       'priority': priority,
       'lastUpdated': lastUpdated,
@@ -60,7 +60,7 @@ class Todo {
       quantity: map['quantity'],
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
-      entryDate: map['entryDate'],
+      isHourSelected: map['isHourSelected'] == 1,
       dueDate: map['dueDate'],
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
@@ -79,7 +79,7 @@ class Todo {
       'quantity': quantity,
       'productPrice': productPrice,
       'totalProductPrice': totalProductPrice,
-      'entryDate': entryDate,
+      'isHourSelected': isHourSelected,
       'dueDate': dueDate,
       'priority': priority,
       'lastUpdated': lastUpdated,
@@ -98,7 +98,7 @@ class Todo {
       quantity: map['quantity'],
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
-      entryDate: map['entryDate'],
+      isHourSelected: map['isHourSelected'],
       dueDate: map['dueDate'],
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
@@ -117,7 +117,7 @@ class Todo {
         quantity = oldTodo.quantity,
         productPrice = oldTodo.productPrice,
         totalProductPrice = oldTodo.totalProductPrice,
-        entryDate = oldTodo.entryDate,
+        isHourSelected = oldTodo.isHourSelected,
         dueDate = oldTodo.dueDate,
         priority = oldTodo.priority,
         lastUpdated = oldTodo.lastUpdated,

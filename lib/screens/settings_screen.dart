@@ -15,6 +15,7 @@ import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/back_service_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
+import 'package:tooday/utils/hour_bool_selection_provider.dart';
 import 'package:tooday/utils/language.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/notification_timing_provider.dart';
@@ -23,6 +24,7 @@ import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/utils/stay_on_page_provider.dart';
 import 'package:tooday/utils/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tooday/utils/time_periodic_provider.dart';
 import 'package:tooday/widgets/google_button.dart';
 import '../widgets/custom_page_route.dart';
 
@@ -110,7 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Provider.of<BackgroundServiceProvider>(context);
     final repeatNotificationsProvider =
         Provider.of<RepeatNotificationsProvider>(context);
-
+    final periodicTimeIProvider = Provider.of<TimePeriodicProvider>(context);
     return WillPopScope(
       onWillPop: () {
         Navigator.of(context).pushAndRemoveUntil(
@@ -1016,27 +1018,39 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 provider
                                                     .updateNotificationInterval(
                                                         value!);
+
+                                                if (value == 0) {
+                                                  setState(() {
+                                                    periodicTimeIProvider
+                                                            .isTimePeriodicEnabled =
+                                                        false;
+                                                  });
+                                                  periodicTimeIProvider
+                                                      .updateTimePeriodic(
+                                                          periodicTimeIProvider
+                                                              .isTimePeriodicEnabled);
+                                                } else {
+                                                  setState(() {
+                                                    periodicTimeIProvider
+                                                            .isTimePeriodicEnabled =
+                                                        true;
+                                                  });
+                                                  periodicTimeIProvider
+                                                      .updateTimePeriodic(
+                                                          periodicTimeIProvider
+                                                              .isTimePeriodicEnabled);
+                                                }
                                               },
                                               items: [
+                                                DropdownMenuItem<int>(
+                                                  value: 0,
+                                                  child: Text(
+                                                      '0 ${AppLocalizations.of(context).translate('Disable')}'),
+                                                ),
                                                 DropdownMenuItem<int>(
                                                   value: 1,
                                                   child: Text(
                                                       '1 ${AppLocalizations.of(context).translate('minute')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 2,
-                                                  child: Text(
-                                                      '2 ${AppLocalizations.of(context).translate('minutes')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 3,
-                                                  child: Text(
-                                                      '3 ${AppLocalizations.of(context).translate('minutes')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 4,
-                                                  child: Text(
-                                                      '4 ${AppLocalizations.of(context).translate('minutes')}'),
                                                 ),
                                                 DropdownMenuItem<int>(
                                                   value: 5,
@@ -1057,21 +1071,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                                   value: 60,
                                                   child: Text(
                                                       '1 ${AppLocalizations.of(context).translate('Hour')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 240,
-                                                  child: Text(
-                                                      '4 ${AppLocalizations.of(context).translate('Hours')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 480,
-                                                  child: Text(
-                                                      '8 ${AppLocalizations.of(context).translate('Hours')}'),
-                                                ),
-                                                DropdownMenuItem<int>(
-                                                  value: 1440,
-                                                  child: Text(
-                                                      '24 ${AppLocalizations.of(context).translate('Hours')}'),
                                                 ),
                                               ],
                                             ),

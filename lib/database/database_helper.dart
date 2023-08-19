@@ -16,7 +16,7 @@ class DatabaseHelper {
   static const columnQuantity = 'quantity';
   static const columnProductPrice = 'productPrice';
   static const columnpTotalProductPrice = 'totalProductPrice';
-  static const columnEntryDate = 'entryDate';
+  static const columnIsHourSelected = 'isHourSelected';
   static const columnDueDate = 'dueDate';
   static const columnPriority = 'priority';
   static const columnLastUpdated = 'lastUpdated';
@@ -56,7 +56,7 @@ class DatabaseHelper {
         $columnQuantity INTEGER NOT NULL,
         $columnProductPrice REAL NOT NULL,
         $columnpTotalProductPrice REAL NOT NULL,
-        $columnEntryDate TEXT NOT NULL,
+        $columnIsHourSelected INTEGER NOT NULL,
         $columnDueDate TEXT NOT NULL,
         $columnPriority INTEGER NOT NULL,
         $columnLastUpdated TEXT NOT NULL,
@@ -208,5 +208,14 @@ class DatabaseHelper {
     } else {
       return 0;
     }
+  }
+
+  Future<List<Todo>> getIsHourSelectedItems() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+        await db.query('todos', where: 'isHourSelected = ?', whereArgs: [1]);
+    return List.generate(maps.length, (i) {
+      return Todo.fromMap(maps[i]);
+    });
   }
 }

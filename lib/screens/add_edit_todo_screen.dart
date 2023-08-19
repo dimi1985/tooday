@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, must_be_immutable
 
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,8 @@ import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
+import 'package:tooday/utils/hour_bool_selection_provider.dart';
+import 'package:tooday/utils/hour_selection_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
@@ -43,6 +47,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   bool isStayOnScreen = false;
   late bool _isDone;
   late bool _isSynced;
+  late bool _isHourSelected;
   late bool shoppingExists = false;
   late bool todoItemExists = false;
   final _focusNodeTitle = FocusNode();
@@ -79,6 +84,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     descriptionController.text = widget.todo.description;
     _isDone = widget.todo.isDone;
     _isSynced = widget.todo.isSync;
+    _isHourSelected = widget.todo.isHourSelected;
     parsedDate = DateTime.parse(widget.todo.dueDate);
     getStayOnScreen();
   }
@@ -135,6 +141,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final shoppingdProvider = Provider.of<ShoppingEnabledProvider>(context);
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
+    final hourSelectionProvider = Provider.of<HourSelectionProvider>(context);
+    final hourBoolSelectionProvider =
+        Provider.of<HourBoolSelectionProvider>(context);
     return WillPopScope(
       onWillPop: () async {
         // Fetch updated todos here
@@ -327,7 +336,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                               widget.todo.productPrice,
                                           totalProductPrice:
                                               widget.todo.totalProductPrice,
-                                          entryDate: widget.todo.entryDate,
+                                          isHourSelected:
+                                              widget.todo.isHourSelected,
                                           dueDate: widget.todo.dueDate,
                                           priority: widget.todo.priority,
                                           lastUpdated: now.toIso8601String(),
@@ -374,7 +384,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       productPrice: widget.todo.productPrice,
                                       totalProductPrice:
                                           widget.todo.totalProductPrice,
-                                      entryDate: widget.todo.entryDate,
+                                      isHourSelected:
+                                          widget.todo.isHourSelected,
                                       dueDate: widget.todo.dueDate,
                                       priority: widget.todo.priority,
                                       lastUpdated: now.toIso8601String(),
@@ -447,7 +458,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             productPrice: productPrice,
                                             totalProductPrice:
                                                 totalProductPrice,
-                                            entryDate: widget.todo.entryDate,
+                                            isHourSelected:
+                                                widget.todo.isHourSelected,
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
@@ -526,7 +538,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             productPrice: productPrice,
                                             totalProductPrice:
                                                 totalProductPrice,
-                                            entryDate: widget.todo.entryDate,
+                                            isHourSelected:
+                                                widget.todo.isHourSelected,
                                             dueDate: widget.todo.dueDate,
                                             priority: widget.todo.priority,
                                             lastUpdated: now.toIso8601String(),
@@ -558,6 +571,80 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       ),
                                     ),
                                   ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)
+                                  .translate('Notify that day'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                setState(() {
+                                  _isHourSelected = !_isHourSelected;
+                                });
+                                hourBoolSelectionProvider
+                                    .updateHourSelection(_isHourSelected);
+                                if (_isHourSelected) {
+                                  _showTimePicker(
+                                    context,
+                                    hourSelectionProvider,
+                                    _isHourSelected,
+                                  );
+                                }
+                                DateTime now = DateTime.now();
+
+                                final newTodo = Todo(
+                                  id: widget.todo.id,
+                                  title: widget.todo.title,
+                                  isDone: false,
+                                  description: widget.todo.description,
+                                  isShopping: widget.todo.isShopping,
+                                  quantity: widget.todo.quantity,
+                                  productPrice: widget.todo.productPrice,
+                                  totalProductPrice:
+                                      widget.todo.totalProductPrice,
+                                  isHourSelected: _isHourSelected,
+                                  dueDate: widget.todo.dueDate,
+                                  priority: widget.todo.priority,
+                                  lastUpdated: now.toIso8601String(),
+                                  isSync: widget.todo.isSync,
+                                  userId: widget.todo.userId,
+                                );
+                                widget.fetchFunction();
+                                dbHelper.update(newTodo);
+                              },
+                              child: SizedBox(
+                                width: 65,
+                                height: 25,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: !_isHourSelected
+                                        ? Colors.grey
+                                        : Colors.green,
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  child: Text(
+                                    AppLocalizations.of(context).translate(
+                                        !_isHourSelected ? 'No' : 'Yes'),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            )
                           ],
                         ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
@@ -720,6 +807,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       DateFormat('yyyy-MM-dd')
                                           .format(selectedDate);
                                 });
+
+                                log(dueDateController.text);
                               } else {
                                 // add this else block
                                 setState(() {
@@ -796,9 +885,10 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   }
 
   Future<void> _doTheMagic(
-      String action,
-      ShoppingEnabledProvider shoppingdProvider,
-      ConnectivityStatus connectivityProvider) async {
+    String action,
+    ShoppingEnabledProvider shoppingdProvider,
+    ConnectivityStatus connectivityProvider,
+  ) async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -811,6 +901,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
               ? '2022-01-01'
               : dueDateController.text.trim());
 
+      log(selectedDate.toString());
+
       final todo = Todo(
         id: widget.todo.id,
         title: titleController.text.trim(),
@@ -820,9 +912,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         quantity: shoppingdProvider.geIsShoppingtEnabled ? 1 : 0,
         productPrice: widget.todo.productPrice,
         totalProductPrice: widget.todo.totalProductPrice,
-        entryDate: shoppingdProvider.geIsShoppingtEnabled
-            ? '2022-01-01'
-            : now.toIso8601String(),
+        isHourSelected: widget.todo.isHourSelected,
         dueDate: shoppingdProvider.geIsShoppingtEnabled ||
                 dueDateController.text.isEmpty
             ? '2022-01-01'
@@ -989,7 +1079,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           'quantity': todo.quantity,
           'productPrice': todo.productPrice,
           'totalProductPrice': todo.totalProductPrice,
-          'entryDate': todo.entryDate,
+          'isHourSelected': todo.isHourSelected,
           'dueDate': todo.dueDate,
           'priority': todo.priority,
           'lastUpdated': todo.lastUpdated,
@@ -1012,7 +1102,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             'quantity': todo.quantity,
             'productPrice': todo.productPrice,
             'totalProductPrice': todo.totalProductPrice,
-            'entryDate': todo.entryDate,
+            'isHourSelected': todo.isHourSelected,
             'dueDate': todo.dueDate,
             'priority': todo.priority,
             'lastUpdated': todo.lastUpdated,
@@ -1029,6 +1119,18 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         await docRef.delete();
         print('Document deleted successfully');
       }
+    }
+  }
+
+  Future _showTimePicker(BuildContext context,
+      HourSelectionProvider hourSelectionProvider, bool isHourSelected) async {
+    TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      hourSelectionProvider.updateSelectedHour(selectedTime);
     }
   }
 }
