@@ -37,6 +37,9 @@ void initBackgroundTask(ServiceInstance service) async {
 
   final dbHelper = DatabaseHelper();
   List<Todo> todos = await dbHelper.getAllUncheckTodos();
+  final locale = Locale('el');
+  AppLocalizations appLocalizations =
+      await AppLocalizations.delegate.load(locale);
 
   for (var todo in todos) {
     if (!todo.isHourSelected && isTimePeriodicEnabled) {
@@ -46,29 +49,12 @@ void initBackgroundTask(ServiceInstance service) async {
         AppLocalizations appLocalizations =
             await AppLocalizations.delegate.load(locale);
         final dbHelper = DatabaseHelper();
+
+        // Separate notifications for unfinished tasks
         List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
-        List<Todo> unfinishedBoughtItems =
-            await dbHelper.getUnBoughtShoppingItems();
-
         if (unfinishedTasks.isNotEmpty) {
+          print('unfinishedTasks : ${unfinishedTasks.length.toString()}');
           for (var task in unfinishedTasks) {
-            AwesomeNotifications().createNotification(
-              content: NotificationContent(
-                id: generateUniqueId(),
-                wakeUpScreen: true,
-                displayOnBackground: true,
-                channelKey: 'basic_channel',
-                title: appLocalizations.translate('UnBought Items'),
-                body: appLocalizations.translate('You forgot to buy:') +
-                    ' ' +
-                    task.title,
-              ),
-            );
-          }
-        }
-
-        if (unfinishedBoughtItems.isNotEmpty) {
-          for (var item in unfinishedBoughtItems) {
             AwesomeNotifications().createNotification(
               content: NotificationContent(
                 id: generateUniqueId(),
@@ -79,7 +65,29 @@ void initBackgroundTask(ServiceInstance service) async {
                 body:
                     appLocalizations.translate('You have an unfinished task:') +
                         ' ' +
-                        item.title,
+                        task.title,
+              ),
+            );
+          }
+        }
+
+        // Separate notifications for unfinished bought items
+        List<Todo> unfinishedBoughtItems =
+            await dbHelper.getUnBoughtShoppingItems();
+        if (unfinishedBoughtItems.isNotEmpty) {
+          print(
+              'unfinishedBoughtItems : ${unfinishedBoughtItems.length.toString()}');
+          for (var item in unfinishedBoughtItems) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('UnBought Items'),
+                body: appLocalizations.translate('You forgot to buy:') +
+                    ' ' +
+                    item.title,
               ),
             );
           }
@@ -96,33 +104,14 @@ void initBackgroundTask(ServiceInstance service) async {
     } else if (todo.isHourSelected && isTimePeriodicEnabled) {
       periodicTimer = Timer.periodic(Duration(minutes: notificationInterval),
           (timer) async {
-        final locale = Locale('el');
-        AppLocalizations appLocalizations =
-            await AppLocalizations.delegate.load(locale);
         final dbHelper = DatabaseHelper();
         List<Todo> unfinishedTasks = await dbHelper.getUncheckTodos();
         List<Todo> unfinishedBoughtItems =
             await dbHelper.getUnBoughtShoppingItems();
 
         if (unfinishedTasks.isNotEmpty) {
+          print('unfinishedTasks : ${unfinishedTasks.length.toString()}');
           for (var task in unfinishedTasks) {
-            AwesomeNotifications().createNotification(
-              content: NotificationContent(
-                id: generateUniqueId(),
-                wakeUpScreen: true,
-                displayOnBackground: true,
-                channelKey: 'basic_channel',
-                title: appLocalizations.translate('UnBought Items'),
-                body: appLocalizations.translate('You forgot to buy:') +
-                    ' ' +
-                    task.title,
-              ),
-            );
-          }
-        }
-
-        if (unfinishedBoughtItems.isNotEmpty) {
-          for (var item in unfinishedBoughtItems) {
             AwesomeNotifications().createNotification(
               content: NotificationContent(
                 id: generateUniqueId(),
@@ -133,7 +122,26 @@ void initBackgroundTask(ServiceInstance service) async {
                 body:
                     appLocalizations.translate('You have an unfinished task:') +
                         ' ' +
-                        item.title,
+                        task.title,
+              ),
+            );
+          }
+        }
+
+        if (unfinishedBoughtItems.isNotEmpty) {
+          print(
+              'unfinishedBoughtItems : ${unfinishedBoughtItems.length.toString()}');
+          for (var item in unfinishedBoughtItems) {
+            AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: generateUniqueId(),
+                wakeUpScreen: true,
+                displayOnBackground: true,
+                channelKey: 'basic_channel',
+                title: appLocalizations.translate('UnBought Items'),
+                body: appLocalizations.translate('You forgot to buy:') +
+                    ' ' +
+                    item.title,
               ),
             );
           }
@@ -181,8 +189,10 @@ void initBackgroundTask(ServiceInstance service) async {
               wakeUpScreen: true,
               displayOnBackground: true,
               channelKey: 'basic_channel',
-              title: 'Reminder',
-              body: 'You have a task to do: ${todo.title}',
+              title: appLocalizations.translate('Unfinished Task'),
+              body: appLocalizations.translate('You have an unfinished task:') +
+                  ' ' +
+                  todo.title,
             ),
           );
         });
@@ -219,8 +229,10 @@ void initBackgroundTask(ServiceInstance service) async {
               wakeUpScreen: true,
               displayOnBackground: true,
               channelKey: 'basic_channel',
-              title: 'Reminder',
-              body: 'You have a task to do: ${todo.title}',
+              title: appLocalizations.translate('Unfinished Task'),
+              body: appLocalizations.translate('You have an unfinished task:') +
+                  ' ' +
+                  todo.title,
             ),
           );
         });

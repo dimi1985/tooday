@@ -15,6 +15,8 @@ class Todo {
   String lastUpdated;
   bool isSync;
   String userId;
+  bool isForTodo;
+  bool isForShopping;
 
   Todo({
     this.id,
@@ -33,6 +35,8 @@ class Todo {
     required this.lastUpdated,
     required this.isSync,
     required this.userId,
+    required this.isForTodo,
+    required this.isForShopping,
   });
 
   Map<String, dynamic> toMap() {
@@ -53,6 +57,8 @@ class Todo {
       'lastUpdated': lastUpdated,
       'isSync': isSync ? 1 : 0,
       'userId': userId,
+      'isForTodo': isForTodo ? 1 : 0,
+      'isForShopping': isForShopping ? 1 : 0,
     };
   }
 
@@ -74,6 +80,8 @@ class Todo {
       lastUpdated: map['lastUpdated'],
       isSync: map['isSync'] == 1,
       userId: map['userId'],
+      isForTodo: map['isForTodo'] == 1,
+      isForShopping: map['isForShopping'] == 1,
     );
   }
 
@@ -95,6 +103,8 @@ class Todo {
       'lastUpdated': lastUpdated,
       'isSync': isSync,
       'userId': userId,
+      'isForTodo': isForTodo,
+      'isForShopping': isForShopping,
     };
   }
 
@@ -116,6 +126,8 @@ class Todo {
       lastUpdated: map['lastUpdated'],
       isSync: map['isSync'],
       userId: map['userId'],
+      isForTodo: map['isForTodo'],
+      isForShopping: map['isForShopping'],
     );
   }
 
@@ -136,5 +148,7 @@ class Todo {
         priority = oldTodo.priority,
         lastUpdated = oldTodo.lastUpdated,
         isSync = oldTodo.isSync,
-        userId = oldTodo.userId;
+        userId = oldTodo.userId,
+        isForTodo = oldTodo.isForTodo,
+        isForShopping = oldTodo.isForShopping;
 }

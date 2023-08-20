@@ -24,6 +24,8 @@ class DatabaseHelper {
   static const columnLastUpdated = 'lastUpdated';
   static const columnIsSync = 'isSync';
   static const columnUserId = 'userId';
+  static const columnIsForTodo = 'isForTodo';
+  static const columnIsForShopping = 'isForShopping';
 
   static Database? _database;
 
@@ -65,7 +67,9 @@ class DatabaseHelper {
         $columnPriority INTEGER NOT NULL,
         $columnLastUpdated TEXT NOT NULL,
         $columnIsSync INTEGER NOT NULL,
-        $columnUserId TEXT NOT NULL
+        $columnUserId TEXT NOT NULL,
+        $columnIsForTodo INTEGER NOT NULL,
+        $columnIsForShopping INTEGER NOT NULL
       )
     ''');
   }
@@ -115,20 +119,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Todo>> getTodoItems() async {
-    final db = await database;
-    final result =
-        await db.query(table, where: "isShopping = ?", whereArgs: [1]);
-    return result.map((map) => Todo.fromMap(map)).toList();
-  }
-
-  Future<List<Todo>> getShoppingItems() async {
-    final db = await database;
-    final result =
-        await db.query(table, where: "isShopping = ?", whereArgs: [0]);
-    return result.map((map) => Todo.fromMap(map)).toList();
-  }
-
   Future<int> update(Todo todo) async {
     final db = await database;
     return await db.update(
@@ -176,19 +166,6 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Todo>> getUncheckTodos() async {
-    final db = await database;
-    final result = await db.query(table, where: "isDone = ?", whereArgs: [0]);
-    return result.map((map) => Todo.fromMap(map)).toList();
-  }
-
-  Future<List<Todo>> getUnBoughtShoppingItems() async {
-    final db = await database;
-    final result =
-        await db.query(table, where: "isShopping = ?", whereArgs: [0]);
-    return result.map((map) => Todo.fromMap(map)).toList();
-  }
-
   Future<List<Todo>> getSyncedTodos() async {
     final db = await database;
     final List<Map<String, dynamic>> maps =
@@ -229,6 +206,26 @@ class DatabaseHelper {
       table,
       where: "isDone = ? AND isShopping = ?",
       whereArgs: [0, 0],
+    );
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
+  Future<List<Todo>> getUncheckTodos() async {
+    final db = await database;
+    final result = await db.query(
+      table,
+      where: "isDone = ? AND isForTodo = ?",
+      whereArgs: [0, 1],
+    );
+    return result.map((map) => Todo.fromMap(map)).toList();
+  }
+
+  Future<List<Todo>> getUnBoughtShoppingItems() async {
+    final db = await database;
+    final result = await db.query(
+      table,
+      where: "isDone = ? AND isForShopping = ?",
+      whereArgs: [0, 1],
     );
     return result.map((map) => Todo.fromMap(map)).toList();
   }

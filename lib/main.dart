@@ -37,8 +37,8 @@ void main() async {
           channelKey: 'basic_channel',
           channelName: 'Basic Notifications',
           channelDescription: 'Notification channel for basic notifications',
-          defaultColor: Color(0xFF9D50DD),
-          ledColor: Colors.white,
+          defaultColor: Color.fromARGB(255, 61, 58, 63),
+          ledColor: Color.fromARGB(255, 35, 36, 41),
         ),
       ],
       debug: true);

@@ -542,6 +542,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                                 todo.selectedTimeHour,
                                             selectedTimeMinute:
                                                 todo.selectedTimeMinute,
+                                            isForTodo: todo.isForTodo,
+                                            isForShopping: todo.isForShopping,
                                           );
 
                                           dbHelper.update(newtodo);
@@ -842,6 +844,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
       userId: '',
       selectedTimeHour: 0,
       selectedTimeMinute: 0,
+      isForTodo: false,
+      isForShopping: false,
     );
 
     Navigator.of(context)
@@ -1202,6 +1206,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
         userId: fireStoreTodo.userId,
         selectedTimeHour: fireStoreTodo.selectedTimeHour,
         selectedTimeMinute: fireStoreTodo.selectedTimeMinute,
+        isForTodo: fireStoreTodo.isForTodo,
+        isForShopping: fireStoreTodo.isForShopping,
       );
 
       if (!shoppingItemExists || !todoItemListExists) {

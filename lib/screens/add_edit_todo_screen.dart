@@ -341,6 +341,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                           userId: widget.todo.userId,
                                           selectedTimeHour: 0,
                                           selectedTimeMinute: 0,
+                                          isForTodo: widget.todo.isForTodo,
+                                          isForShopping:
+                                              widget.todo.isForShopping,
                                         );
 
                                         final dbHelper = DatabaseHelper();
@@ -391,6 +394,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       userId: widget.todo.userId,
                                       selectedTimeHour: 0,
                                       selectedTimeMinute: 0,
+                                      isForTodo: widget.todo.isForTodo,
+                                      isForShopping: widget.todo.isForShopping,
                                     );
 
                                     final dbHelper = DatabaseHelper();
@@ -467,6 +472,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             userId: widget.todo.userId,
                                             selectedTimeHour: 0,
                                             selectedTimeMinute: 0,
+                                            isForTodo: widget.todo.isForTodo,
+                                            isForShopping:
+                                                widget.todo.isForShopping,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -559,6 +567,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                             userId: widget.todo.userId,
                                             selectedTimeHour: 0,
                                             selectedTimeMinute: 0,
+                                            isForTodo: widget.todo.isForTodo,
+                                            isForShopping:
+                                                widget.todo.isForShopping,
                                           );
 
                                           dbHelper.update(newTodo);
@@ -633,6 +644,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                     userId: widget.todo.userId,
                                     selectedTimeHour: 0,
                                     selectedTimeMinute: 0,
+                                    isForTodo: widget.todo.isForTodo,
+                                    isForShopping: widget.todo.isForShopping,
                                   );
                                   widget.fetchFunction();
                                   dbHelper.update(newTodo);
@@ -944,6 +957,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         userId: valueUserId,
         selectedTimeHour: 0,
         selectedTimeMinute: 0,
+        isForTodo: shoppingdProvider.geIsShoppingtEnabled ? false : true,
+        isForShopping: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       );
 
       final dbHelper = DatabaseHelper();
@@ -1171,6 +1186,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
         userId: widget.todo.userId,
         selectedTimeHour: selectedTime.hour,
         selectedTimeMinute: selectedTime.minute,
+        isForTodo: widget.todo.isForTodo,
+        isForShopping: widget.todo.isForShopping,
       );
       widget.fetchFunction();
       dbHelper.update(newTodo);
