@@ -112,22 +112,22 @@ class Todo {
     return Todo(
       id: map['id'],
       title: map['title'],
-      isDone: map['isDone'],
+      isDone: map['isDone'] ?? false,
       description: map['description'],
-      isShopping: map['isShopping'],
+      isShopping: map['isShopping'] ?? false,
       quantity: map['quantity'],
       productPrice: map['productPrice'],
       totalProductPrice: map['totalProductPrice'],
-      isHourSelected: map['isHourSelected'],
+      isHourSelected: map['isHourSelected'] ?? false,
       selectedTimeHour: map['selectedTimeHour'] ?? 0,
       selectedTimeMinute: map['selectedTimeMinute'] ?? 0,
       dueDate: map['dueDate'],
       priority: map['priority'],
       lastUpdated: map['lastUpdated'],
-      isSync: map['isSync'],
+      isSync: map['isSync'] ?? false,
       userId: map['userId'],
-      isForTodo: map['isForTodo'],
-      isForShopping: map['isForShopping'],
+      isForTodo: map['isForTodo'] ?? false,
+      isForShopping: map['isForShopping'] ?? false, //
     );
   }
 

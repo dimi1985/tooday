@@ -117,7 +117,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     if (mounted) {
       setState(() {
         _todos = todos;
-        if (user?.uid == _auth.currentUser?.uid) {
+        if (user?.uid != _auth.currentUser?.uid) {
           _todos.removeWhere(
               (todo) => todo.isSync && todo.userId != _auth.currentUser?.uid);
         }
@@ -302,14 +302,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   _todos.isEmpty
                                       ? Icons.shopping_cart
                                       : Icons.shopping_cart_checkout,
-                                  color: Colors.white,
+                                  color: Colors.blue,
                                 ),
                                 SizedBox(width: 8.0),
                                 Text(
                                   AppLocalizations.of(context)
                                       .translate('Total Price:'),
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.blue,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18.0,
                                   ),
@@ -335,7 +335,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   child: Text(
                                     '${totalPrice.toStringAsFixed(2)}€',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: budgetLimit < totalPrice
+                                          ? Colors.red
+                                          : Colors.blue,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18.0,
                                     ),
@@ -349,22 +351,43 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             ? Container()
                             : Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Text(
-                                    AppLocalizations.of(context).translate(
-                                            totalPrice > budgetLimit
-                                                ? 'You are above by:'
-                                                : 'Remaining:') +
-                                        ' ${(totalPrice > budgetLimit ? totalPrice - budgetLimit : budgetLimit - totalPrice).toStringAsFixed(2)}€',
-                                    style: TextStyle(
-                                      fontSize: 20.0,
-                                      fontWeight: FontWeight.bold,
-                                      color: budgetLimit > totalPrice
-                                          ? Colors.blue
-                                          : Colors.red,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context).translate(
+                                              totalPrice > budgetLimit
+                                                  ? 'You are above by:'
+                                                  : 'Remaining:') +
+                                          ' ${(totalPrice > budgetLimit ? totalPrice - budgetLimit : budgetLimit - totalPrice).toStringAsFixed(2)}€',
+                                      style: TextStyle(
+                                        fontSize: 20.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: budgetLimit > totalPrice
+                                            ? const Color.fromARGB(
+                                                255, 118, 139, 157)
+                                            : Colors.red,
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(height: 10.0), // Add some spacing
+                                    Container(
+                                      height: 12.0,
+                                      child: LinearProgressIndicator(
+                                        value: (totalPrice / budgetLimit).clamp(
+                                            0.0,
+                                            1.0), // Ensure the value is between 0 and 1
+                                        backgroundColor: Colors
+                                            .grey, // Background color of the progress bar
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          budgetLimit > totalPrice
+                                              ? const Color.fromARGB(
+                                                  255, 33, 243, 226)
+                                              : Colors.red,
+                                        ), // Color of the progress bar
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                       ],
@@ -464,7 +487,10 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     decoration: BoxDecoration(
                                       color: todo.isDone
                                           ? Colors.green
-                                          : getPriorityColor(todo.priority),
+                                          : shoppingdProvider.isSoppingEnabled
+                                              ? const Color.fromARGB(
+                                                  255, 46, 60, 67)
+                                              : getPriorityColor(todo.priority),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),

@@ -1046,7 +1046,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 DropdownMenuItem<int>(
                                                   value: 0,
                                                   child: Text(
-                                                      '0 ${AppLocalizations.of(context).translate('Disable')}'),
+                                                      '${AppLocalizations.of(context).translate('No')}'),
                                                 ),
                                                 DropdownMenuItem<int>(
                                                   value: 1,

@@ -1122,6 +1122,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           'lastUpdated': todo.lastUpdated,
           'isSync': _isSynced,
           'userId': valueUserId,
+          'isForTodo': todo.isForTodo,
+          'isForShopping': todo.isForShopping,
         });
         print('Document added successfully');
       } else {
@@ -1145,6 +1147,8 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             'lastUpdated': todo.lastUpdated,
             'isSync': _isSynced,
             'userId': valueUserId,
+            'isForTodo': todo.isForTodo,
+            'isForShopping': todo.isForShopping,
           }, SetOptions(merge: true));
           print('Document updated successfully');
         } else {
@@ -1198,6 +1202,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     TimeOfDay selectedTime =
         TimeOfDay(hour: todo.selectedTimeHour, minute: todo.selectedTimeMinute);
     final now = TimeOfDay.now();
-    return selectedTime.hour > now.hour || selectedTime.minute > now.minute;
+    final hasHouPassed =
+        selectedTime.hour < now.hour || selectedTime.minute < now.minute;
+    log('hasHouPassed  $hasHouPassed');
+    return selectedTime.hour < now.hour || selectedTime.minute < now.minute;
   }
 }

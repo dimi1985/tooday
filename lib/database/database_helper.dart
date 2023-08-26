@@ -214,8 +214,8 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.query(
       table,
-      where: "isDone = ? AND isForTodo = ?",
-      whereArgs: [0, 1],
+      where: "isForTodo = ? AND isForShopping = ? AND isDone = ?",
+      whereArgs: [1, 0, 0],
     );
     return result.map((map) => Todo.fromMap(map)).toList();
   }
@@ -224,8 +224,8 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.query(
       table,
-      where: "isDone = ? AND isForShopping = ?",
-      whereArgs: [0, 1],
+      where: "isForTodo = ? AND isForShopping = ? AND isDone = ?",
+      whereArgs: [0, 1, 0],
     );
     return result.map((map) => Todo.fromMap(map)).toList();
   }
