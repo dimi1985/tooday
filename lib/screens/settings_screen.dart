@@ -1,5 +1,4 @@
 // ignore_for_file: must_be_immutable
-
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -10,6 +9,7 @@ import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/main.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/about_screen.dart';
+import 'package:tooday/screens/shopping_history_page.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/back_service_provider.dart';
@@ -820,7 +820,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                       : budgetLimit.toStringAsFixed(2),
                                   hintStyle: TextStyle(
                                     color: themeProvider.isDarkThemeEnabled
-                                        ? Colors.white
+                                        ? Color.fromARGB(255, 119, 118, 118)
                                         : Colors.black,
                                   ),
                                   contentPadding: EdgeInsets.symmetric(
@@ -841,6 +841,38 @@ class _SettingsPageState extends State<SettingsPage> {
                                     budgetLimitEntered = true;
                                   });
                                 },
+                              ),
+                              SizedBox(height: 20.0),
+                              Text(
+                                AppLocalizations.of(context).translate(
+                                  'Shopping History',
+                                ),
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: themeProvider.isDarkThemeEnabled
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: MaterialButton(
+                                    color: Colors.blueGrey,
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .push(CustomPageRoute(
+                                        child: ShoppingHistoryPage(),
+                                        forwardAnimation: true,
+                                        duration: Duration(milliseconds: 700),
+                                      ));
+                                    },
+                                    child: Text(AppLocalizations.of(context)
+                                        .translate('View History')),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

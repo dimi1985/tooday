@@ -66,6 +66,7 @@
     "Already Exists": "Υπάρχει ήδη",
     "Price": "Τιμή",
     "Quantity": "Ποσότητα",
+    "Product Price": "Τιμή προϊόντος",
     "Data Settings": "Ρυθμίσεις δεδομένων",
     "Budget Limit": "Όριο προϋπολογισμού",
     "Enter your budget limit": "Όριο προϋπολογισμού",
@@ -112,7 +113,12 @@
     "Notify": "Ειδοποίηση",
     "Todo List": "Λίστα εργασιών",
     "No": "Οχι",
-    "Yes": "Ναί"
+    "Yes": "Ναί",
+    "Shopping History": "Ιστορία αγορών",
+    "There is no Purchase History Yet": "Δεν υπάρχει ακόμα ιστορικό αγορών",
+    "View History": "Προβολή Ιστορικού",
+    "Confirm Deletion": "Επιβεβαίωση Διαγραφής",
+    "Are you sure you want to delete shopping date:": "Είστε βέβαιοι ότι θέλετε να διαγράψετε την ημερομηνία αγορών"
 
   }
   

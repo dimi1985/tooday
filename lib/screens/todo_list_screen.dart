@@ -575,6 +575,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                           dbHelper.update(newtodo);
                                           checkedTodosCounT =
                                               getCheckedTodosCount(_todos);
+                                          if (allChecked(_todos)) {
+                                            // Create a list of todo IDs to upload
+                                            List<int?> todoIdsToUpload = _todos
+                                                .map((todo) => todo.id)
+                                                .toList();
+                                            uploadListToFirestoreForHistory(
+                                                todoIdsToUpload);
+                                          }
                                         });
                                       },
                                     ),
@@ -1243,6 +1251,44 @@ class _TodoListScreenState extends State<TodoListScreen> {
         });
         _fetchTodos();
         prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
+      }
+    }
+  }
+
+  void uploadListToFirestoreForHistory(List<int?> todoIds) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String valueUserId = prefs.getString('userId') ?? '';
+    final dbHelper = DatabaseHelper();
+
+    for (int? id in todoIds) {
+      final todo = await dbHelper.getTodoById(id);
+
+      if (todo != null) {
+        DocumentReference docRef =
+            firestore.collection('todo_history').doc(todo.id.toString());
+
+        // Document doesn't exist, create a new one
+        await docRef.set({
+          'id': todo.id,
+          'docRefId': todo.id,
+          'title': todo.title,
+          'isDone': todo.isDone,
+          'description': todo.description,
+          'isShopping': todo.isShopping,
+          'quantity': todo.quantity,
+          'productPrice': todo.productPrice,
+          'totalProductPrice': todo.totalProductPrice,
+          'isHourSelected': todo.isHourSelected,
+          'dueDate': todo.dueDate,
+          'priority': todo.priority,
+          'lastUpdated': todo.lastUpdated,
+          'isSync': todo.isSync,
+          'userId': valueUserId,
+          'isForTodo': todo.isForTodo,
+          'isForShopping': todo.isForShopping,
+          'date': DateTime.now(),
+          'totalPrice': totalPrice,
+        });
       }
     }
   }

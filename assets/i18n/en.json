@@ -66,6 +66,7 @@
     "Already Exists": "Already Exists",
     "Price": "Price",
     "Quantity": "Quantity",
+    "Product Price": "Product Price",
     "Data Settings": "Data Settings",
     "Budget Limit": "Budget Limit",
     "Enter your budget limit": "Enter your budget limit",
@@ -112,7 +113,12 @@
     "Notify": "Notify",
     "Todo List": "Todo List",
     "No": "No",
-    "Yes": "Yes"
+    "Yes": "Yes",
+    "Shopping History": "Shopping History",
+    "There is no Purchase History Yet": "There is no Purchase History Yet",
+    "View History": "View History",
+    "Confirm Deletion": "Confirm Deletion",
+    "Are you sure you want to delete shopping date:": "Are you sure you want to delete shopping date"
 
     
 
