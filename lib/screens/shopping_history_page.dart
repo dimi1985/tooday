@@ -2,8 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/theme_provider.dart';
 
 class ShoppingHistoryPage extends StatefulWidget {
+  final ThemeProvider themeProvider;
+  ShoppingHistoryPage(this.themeProvider);
+
   @override
   _ShoppingHistoryPageState createState() => _ShoppingHistoryPageState();
 }
@@ -48,7 +52,7 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                   'Are you sure you want to delete shopping date:',
                 )),
                 Text(
-                    '${DateFormat('yyyy-MM-dd HH:mm:ss').format(item['date'].toDate())} ?'),
+                    '${DateFormat('dd-MM HH:mm:ss').format(item['date'].toDate())} ?'),
               ],
             ),
           ),
@@ -97,9 +101,21 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
         appBar: AppBar(
           elevation: 0,
           backgroundColor: Colors.transparent,
-          title: Text(AppLocalizations.of(context).translate(
-            'Shopping History',
-          )),
+          iconTheme: IconThemeData(
+            color: widget.themeProvider.isDarkThemeEnabled
+                ? Colors.white
+                : Colors.black,
+          ),
+          title: Text(
+            AppLocalizations.of(context).translate(
+              'Shopping History',
+            ),
+            style: TextStyle(
+              color: widget.themeProvider.isDarkThemeEnabled
+                  ? Colors.white
+                  : Colors.black,
+            ),
+          ),
         ),
         body: groupedData.isEmpty
             ? Center(

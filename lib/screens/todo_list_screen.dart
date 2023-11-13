@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/models/todo.dart';
 import 'package:tooday/screens/add_edit_todo_screen.dart';
+import 'package:tooday/screens/checkout_page.dart';
 import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
@@ -47,6 +48,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   String textError = '';
   double budgetLimit = 0.0;
   double progress = 0.0;
+  int smallBags = 0;
+  int bigBags = 0;
   late Color color;
   late FirebaseAuth _auth = FirebaseAuth.instance;
   late User? user = _auth.currentUser;
@@ -314,6 +317,55 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     fontSize: 18.0,
                                   ),
                                 ),
+                                if (smallBags > 0)
+                                  Column(
+                                    children: [
+                                      Text(
+                                        '$smallBags',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                          onPressed: () {
+                                            if (mounted) {
+                                              setState(() {
+                                                smallBags -= 1;
+                                                totalPrice -= 0.09;
+                                              });
+                                            }
+                                          },
+                                          icon: Icon(Icons.shopping_basket))
+                                    ],
+                                  ),
+                                if (bigBags > 0)
+                                  Column(
+                                    children: [
+                                      Text(
+                                        '$bigBags',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.0,
+                                        ),
+                                      ),
+                                      IconButton(
+                                          onPressed: () {
+                                            if (mounted) {
+                                              setState(() {
+                                                bigBags -= 1;
+                                                totalPrice -= 0.18;
+                                              });
+                                            }
+                                          },
+                                          icon: Icon(
+                                            Icons.shopping_basket,
+                                            size: 32,
+                                          ))
+                                    ],
+                                  )
                               ],
                             ),
                             TweenAnimationBuilder<double>(
@@ -579,17 +631,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                             dbHelper.update(newtodo);
                                             checkedTodosCounT =
                                                 getCheckedTodosCount(_todos);
-                                            if (allChecked(_todos) &&
-                                                shoppingdProvider
-                                                    .geIsShoppingtEnabled) {
-                                              // Create a list of todo IDs to upload
-                                              List<int?> todoIdsToUpload =
-                                                  _todos
-                                                      .map((todo) => todo.id)
-                                                      .toList();
-                                              uploadListToFirestoreForHistory(
-                                                  todoIdsToUpload);
-                                            }
                                           });
                                         }
                                       },
@@ -753,7 +794,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
               height: shoppingdProvider.geIsShoppingtEnabled &&
                       _todos.length >= 1 &&
                       allChecked(_todos)
-                  ? 150.0
+                  ? 310.0
                   : 0.0,
               duration: Duration(seconds: 5),
               child: Card(
@@ -768,27 +809,17 @@ class _TodoListScreenState extends State<TodoListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)
-                                .translate('Google Pay'),
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Icon(
-                            Icons.payment,
-                            color: Color.fromARGB(255, 42, 7, 82),
-                          ),
-                        ],
-                      ),
                       SizedBox(height: 16.0),
                       MaterialButton(
                         onPressed: () {
-                          launchGooglePay();
+                          if (allChecked(_todos) &&
+                              shoppingdProvider.geIsShoppingtEnabled) {
+                            // Create a list of todo IDs to upload
+                            List<int?> todoIdsToUpload =
+                                _todos.map((todo) => todo.id).toList();
+                            uploadListToFirestoreForHistory(todoIdsToUpload);
+                          }
+                          _navigateToCheckoutPage(shoppingdProvider);
                         },
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
@@ -799,14 +830,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              'assets/images/google_pay.png',
-                              height: 30.0,
+                            Icon(
+                              Icons.shopping_cart_checkout_rounded,
+                              color: Colors.black,
+                              size: 30,
                             ),
                             SizedBox(width: 16.0),
                             Text(
                               AppLocalizations.of(context)
-                                  .translate('Open Google Pay'),
+                                  .translate('Complete Transaction'),
                               style: TextStyle(
                                 fontSize: 16.0,
                                 fontWeight: FontWeight.bold,
@@ -815,6 +847,112 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             ),
                           ],
                         ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: 400,
+                          child: Container(
+                            padding: EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 78, 76, 175),
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Text(
+                              textAlign: TextAlign.center,
+                              AppLocalizations.of(context)
+                                  .translate('Bought any Supermarket Bags ?'),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 100,
+                            width: 100,
+                            child: MaterialButton(
+                              color: smallBags > 0
+                                  ? Colors.green
+                                  : const Color.fromARGB(255, 175, 76, 101),
+                              onPressed: () {
+                                if (mounted) {
+                                  setState(() {
+                                    totalPrice += 0.09;
+                                    smallBags += 1;
+                                  });
+                                }
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    10.0), // Adjust the radius as needed
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    textAlign: TextAlign.center,
+                                    AppLocalizations.of(context)
+                                        .translate('Small supermarket bag'),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(textAlign: TextAlign.center, '9 ΛΕΠΤΑ')
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 100,
+                            width: 100,
+                            child: MaterialButton(
+                              color: bigBags > 0
+                                  ? Colors.green
+                                  : const Color.fromARGB(255, 175, 76, 101),
+                              onPressed: () {
+                                if (mounted) {
+                                  setState(() {
+                                    totalPrice += 0.18;
+                                    bigBags += 1;
+                                  });
+                                }
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    10.0), // Adjust the radius as needed
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    textAlign: TextAlign.center,
+                                    AppLocalizations.of(context)
+                                        .translate('Big supermarket bag'),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(textAlign: TextAlign.center, '18 ΛΕΠΤΑ')
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
                       )
                     ],
                   ),
@@ -844,7 +982,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           shoppingdProvider.geIsShoppingtEnabled &&
                           _todos.length >= 1 &&
                           googlePaydProvider.geIsGooglePaytEnabled
-                      ? 150
+                      ? 320
                       : 0),
           child: FloatingActionButton(
             highlightElevation: 3.0,
@@ -1169,25 +1307,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
   }
 
-  launchGooglePay() async {
-    bool result = await LaunchApp.isAppInstalled(
-      androidPackageName: "com.google.android.apps.walletnfcrel",
-      iosUrlScheme: "googlepay://",
-    );
-
-    if (result) {
-      // Google Pay is installed, launch the app
-      LaunchApp.openApp(
-        androidPackageName: "com.google.android.apps.walletnfcrel",
-        iosUrlScheme: "googlepay://",
-      );
-    } else {
-      // Google Pay is not installed, open Google Play store
-      launchUrl(Uri.parse(
-          'market://details?id=com.google.android.apps.walletnfcrel'));
-    }
-  }
-
   void getSyncBool() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool valueBool = prefs.getBool('fireStoreNewItemsNeedSync') ?? true;
@@ -1326,5 +1445,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
         });
       }
     }
+  }
+
+  void _navigateToCheckoutPage(ShoppingEnabledProvider shoppingdProvider) {
+    Navigator.of(context).pushAndRemoveUntil(
+      CustomPageRoute(
+        child: CheckoutPage(
+            itemsChecked: allChecked(_todos),
+            totalPrice: totalPrice,
+            shoppingdProvider: shoppingdProvider),
+        forwardAnimation: false,
+        duration: Duration(milliseconds: 500),
+      ),
+      (route) => false,
+    );
   }
 }

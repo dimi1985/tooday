@@ -119,7 +119,12 @@
     "View History": "Προβολή Ιστορικού",
     "Confirm Deletion": "Επιβεβαίωση Διαγραφής",
     "Are you sure you want to delete shopping date:": "Είστε βέβαιοι ότι θέλετε να διαγράψετε την ημερομηνία αγορών",
-    "Data Cleared": "Τα δεδομένα εκκαθαρίστηκαν"
+    "Data Cleared": "Τα δεδομένα εκκαθαρίστηκαν",
+    "Complete Transaction": "Ολοκληρώστε την συναλλαγή",
+    "Bought any Supermarket Bags ?": "Αγοράσατε τσάντες σούπερ μάρκετ;",
+    "Small supermarket bag": "Μικρή τσάντα σούπερ μάρκετ",
+    "Big supermarket bag": "Μεγάλη τσάντα σούπερ μάρκετ",
+    "Go back to Shopping List": "Επιστρέψτε στη Λίστα αγορών"
 
   }
   

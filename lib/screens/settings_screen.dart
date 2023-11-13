@@ -864,7 +864,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                     onPressed: () {
                                       Navigator.of(context)
                                           .push(CustomPageRoute(
-                                        child: ShoppingHistoryPage(),
+                                        child:
+                                            ShoppingHistoryPage(themeProvider),
                                         forwardAnimation: true,
                                         duration: Duration(milliseconds: 700),
                                       ));
