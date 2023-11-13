@@ -132,7 +132,7 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                                     Container(
                                       width: 75, // Adjust the width as needed
                                       child: Text(
-                                        ': ${DateFormat('yyyy-MM').format(items.first['date'].toDate())}',
+                                        ': ${DateFormat('MM-yyyy').format(items.first['date'].toDate())}',
                                         style: TextStyle(
                                             overflow: TextOverflow.ellipsis),
                                       ),

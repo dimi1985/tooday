@@ -1,7 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api, must_be_immutable
-
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +15,7 @@ import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_check_box.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
-
+import 'package:tooday/widgets/quantity_input.dart';
 import '../utils/theme_provider.dart';
 
 class AddEditTodoScreen extends StatefulWidget {
@@ -45,7 +43,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   bool isStayOnScreen = false;
   late bool _isDone;
   late bool _isSynced;
-  late bool _isHourSelected;
   late bool shoppingExists = false;
   late bool todoItemExists = false;
   final _focusNodeTitle = FocusNode();
@@ -82,7 +79,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     descriptionController.text = widget.todo.description;
     _isDone = widget.todo.isDone;
     _isSynced = widget.todo.isSync;
-    _isHourSelected = widget.todo.isHourSelected;
     parsedDate = DateTime.parse(widget.todo.dueDate);
     getStayOnScreen();
   }
@@ -124,8 +120,9 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
     _focusNodeDescription.dispose();
   }
 
-  double calculateTotalProductPrice() {
-    return modalQuantity * productPrice;
+  double calculateTotalProductPrice(
+      int newModalQuantity, double newProductPrice) {
+    return newModalQuantity * newProductPrice;
   }
 
   String formatDate(DateTime dateTime) {
@@ -173,6 +170,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           ),
           (route) => false, // Remove all previous routes
         );
+
         return true;
       },
       child: Scaffold(
@@ -215,9 +213,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           ? Container()
                           : IconButton(
                               onPressed: () {
-                                setState(() {
-                                  widget.isForEdit = true;
-                                });
+                                if (mounted) {
+                                  setState(() {
+                                    widget.isForEdit = true;
+                                  });
+                                }
                               },
                               icon: Icon(IconlyLight.swap),
                             ),
@@ -264,9 +264,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             ),
                             IconButton(
                               onPressed: () {
-                                setState(() {
-                                  widget.isForEdit = false;
-                                });
+                                if (mounted) {
+                                  setState(() {
+                                    widget.isForEdit = false;
+                                  });
+                                }
                               },
                               icon: Icon(
                                 Icons.edit,
@@ -315,42 +317,45 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                   CustomCheckbox(
                                     isChecked: _isDone,
                                     onChanged: (value) {
-                                      setState(() {
-                                        _isDone = value!;
-                                        DateTime now = DateTime.now();
-                                        final todo = Todo(
-                                          id: widget.todo.id,
-                                          title: widget.todo.title,
-                                          isDone: _isDone,
-                                          description: widget.todo.description,
-                                          isShopping: shoppingdProvider
-                                                  .geIsShoppingtEnabled
-                                              ? true
-                                              : false,
-                                          quantity: widget.todo.quantity,
-                                          productPrice:
-                                              widget.todo.productPrice,
-                                          totalProductPrice:
-                                              widget.todo.totalProductPrice,
-                                          isHourSelected:
-                                              widget.todo.isHourSelected,
-                                          dueDate: widget.todo.dueDate,
-                                          priority: widget.todo.priority,
-                                          lastUpdated: now.toIso8601String(),
-                                          isSync: widget.todo.isSync,
-                                          userId: widget.todo.userId,
-                                          selectedTimeHour: 0,
-                                          selectedTimeMinute: 0,
-                                          isForTodo: widget.todo.isForTodo,
-                                          isForShopping:
-                                              widget.todo.isForShopping,
-                                        );
+                                      if (mounted) {
+                                        setState(() {
+                                          _isDone = value!;
+                                          DateTime now = DateTime.now();
+                                          final todo = Todo(
+                                            id: widget.todo.id,
+                                            title: widget.todo.title,
+                                            isDone: _isDone,
+                                            description:
+                                                widget.todo.description,
+                                            isShopping: shoppingdProvider
+                                                    .geIsShoppingtEnabled
+                                                ? true
+                                                : false,
+                                            quantity: widget.todo.quantity,
+                                            productPrice:
+                                                widget.todo.productPrice,
+                                            totalProductPrice:
+                                                widget.todo.totalProductPrice,
+                                            isHourSelected:
+                                                widget.todo.isHourSelected,
+                                            dueDate: widget.todo.dueDate,
+                                            priority: widget.todo.priority,
+                                            lastUpdated: now.toIso8601String(),
+                                            isSync: widget.todo.isSync,
+                                            userId: widget.todo.userId,
+                                            selectedTimeHour: 0,
+                                            selectedTimeMinute: 0,
+                                            isForTodo: widget.todo.isForTodo,
+                                            isForShopping:
+                                                widget.todo.isForShopping,
+                                          );
 
-                                        final dbHelper = DatabaseHelper();
-                                        dbHelper.update(todo);
+                                          final dbHelper = DatabaseHelper();
+                                          dbHelper.update(todo);
 
-                                        widget.fetchFunction();
-                                      });
+                                          widget.fetchFunction();
+                                        });
+                                      }
                                     },
                                   ),
                                 ],
@@ -369,43 +374,46 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                               CustomCheckbox(
                                 isChecked: _isSynced,
                                 onChanged: (value) {
-                                  setState(() {
-                                    _isSynced = value!;
-                                    DateTime now = DateTime.now();
-                                    final todo = Todo(
-                                      id: widget.todo.id,
-                                      title: widget.todo.title,
-                                      isDone: _isDone,
-                                      description: widget.todo.description,
-                                      isShopping:
-                                          shoppingdProvider.geIsShoppingtEnabled
-                                              ? true
-                                              : false,
-                                      quantity: widget.todo.quantity,
-                                      productPrice: widget.todo.productPrice,
-                                      totalProductPrice:
-                                          widget.todo.totalProductPrice,
-                                      isHourSelected:
-                                          widget.todo.isHourSelected,
-                                      dueDate: widget.todo.dueDate,
-                                      priority: widget.todo.priority,
-                                      lastUpdated: now.toIso8601String(),
-                                      isSync: _isSynced,
-                                      userId: widget.todo.userId,
-                                      selectedTimeHour: 0,
-                                      selectedTimeMinute: 0,
-                                      isForTodo: widget.todo.isForTodo,
-                                      isForShopping: widget.todo.isForShopping,
-                                    );
+                                  if (mounted) {
+                                    setState(() {
+                                      _isSynced = value!;
+                                      DateTime now = DateTime.now();
+                                      final todo = Todo(
+                                        id: widget.todo.id,
+                                        title: widget.todo.title,
+                                        isDone: _isDone,
+                                        description: widget.todo.description,
+                                        isShopping: shoppingdProvider
+                                                .geIsShoppingtEnabled
+                                            ? true
+                                            : false,
+                                        quantity: widget.todo.quantity,
+                                        productPrice: widget.todo.productPrice,
+                                        totalProductPrice:
+                                            widget.todo.totalProductPrice,
+                                        isHourSelected:
+                                            widget.todo.isHourSelected,
+                                        dueDate: widget.todo.dueDate,
+                                        priority: widget.todo.priority,
+                                        lastUpdated: now.toIso8601String(),
+                                        isSync: _isSynced,
+                                        userId: widget.todo.userId,
+                                        selectedTimeHour: 0,
+                                        selectedTimeMinute: 0,
+                                        isForTodo: widget.todo.isForTodo,
+                                        isForShopping:
+                                            widget.todo.isForShopping,
+                                      );
 
-                                    final dbHelper = DatabaseHelper();
-                                    dbHelper.update(todo);
+                                      final dbHelper = DatabaseHelper();
+                                      dbHelper.update(todo);
 
-                                    widget.fetchFunction();
-                                    if (user != null) {
-                                      uploadToFireStore(widget.todo.id);
-                                    }
-                                  });
+                                      widget.fetchFunction();
+                                      if (user != null) {
+                                        uploadToFireStore(widget.todo.id);
+                                      }
+                                    });
+                                  }
                                 },
                               ),
                             ],
@@ -420,68 +428,17 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              shoppingdProvider.geIsShoppingtEnabled
-                                  ? AppLocalizations.of(context)
-                                      .translate('Quantity')
-                                  : tranlatedDateTtitle,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
                             shoppingdProvider.geIsShoppingtEnabled
-                                ? SizedBox(
-                                    height: 50,
-                                    width: 70,
-                                    child: TextFormField(
-                                      controller: quantityController,
-                                      textInputAction: TextInputAction.done,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText:
-                                            widget.todo.quantity.toString(),
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      onChanged: (value) {
-                                        DateTime now = DateTime.now();
-                                        setState(() {
-                                          modalQuantity = int.tryParse(value) ??
-                                              widget.todo.quantity;
-                                          productPrice =
-                                              widget.todo.productPrice;
-                                          totalProductPrice =
-                                              calculateTotalProductPrice();
-                                          final newTodo = Todo(
-                                            id: widget.todo.id,
-                                            title: widget.todo.title,
-                                            isDone: true,
-                                            description:
-                                                widget.todo.description,
-                                            isShopping: widget.todo.isShopping,
-                                            quantity: modalQuantity,
-                                            productPrice: productPrice,
-                                            totalProductPrice:
-                                                totalProductPrice,
-                                            isHourSelected:
-                                                widget.todo.isHourSelected,
-                                            dueDate: widget.todo.dueDate,
-                                            priority: widget.todo.priority,
-                                            lastUpdated: now.toIso8601String(),
-                                            isSync: widget.todo.isSync,
-                                            userId: widget.todo.userId,
-                                            selectedTimeHour: 0,
-                                            selectedTimeMinute: 0,
-                                            isForTodo: widget.todo.isForTodo,
-                                            isForShopping:
-                                                widget.todo.isForShopping,
-                                          );
-
-                                          dbHelper.update(newTodo);
-                                        });
-                                      },
+                                ? Container()
+                                : Text(
+                                    tranlatedDateTtitle,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  )
+                                  ),
+                            shoppingdProvider.geIsShoppingtEnabled
+                                ? Container()
                                 : Text(
                                     widget.todo.dueDate.contains('2022-01-01')
                                         ? AppLocalizations.of(context)
@@ -522,6 +479,48 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            if (shoppingdProvider.geIsShoppingtEnabled)
+                              QuantityInput(
+                                initialQuantity: widget.todo.quantity,
+                                onQuantityChanged: (newQuantity) {
+                                  DateTime now = DateTime.now();
+                                  if (mounted) {
+                                    setState(() {
+                                      modalQuantity = newQuantity;
+                                      productPrice = widget.todo.productPrice;
+                                      totalProductPrice =
+                                          calculateTotalProductPrice(
+                                              modalQuantity, productPrice);
+                                      log(totalProductPrice.toStringAsFixed(2));
+
+                                      final newTodo = Todo(
+                                        id: widget.todo.id,
+                                        title: widget.todo.title,
+                                        isDone: true,
+                                        description: widget.todo.description,
+                                        isShopping: widget.todo.isShopping,
+                                        quantity: modalQuantity,
+                                        productPrice: productPrice,
+                                        totalProductPrice: totalProductPrice,
+                                        isHourSelected:
+                                            widget.todo.isHourSelected,
+                                        dueDate: widget.todo.dueDate,
+                                        priority: widget.todo.priority,
+                                        lastUpdated: now.toIso8601String(),
+                                        isSync: widget.todo.isSync,
+                                        userId: widget.todo.userId,
+                                        selectedTimeHour: 0,
+                                        selectedTimeMinute: 0,
+                                        isForTodo: widget.todo.isForTodo,
+                                        isForShopping:
+                                            widget.todo.isForShopping,
+                                      );
+
+                                      dbHelper.update(newTodo);
+                                    });
+                                  }
+                                },
+                              ),
                             shoppingdProvider.geIsShoppingtEnabled
                                 ? SizedBox(
                                     height: 50,
@@ -538,43 +537,49 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                         border: OutlineInputBorder(),
                                       ),
                                       onChanged: (value) {
-                                        setState(() {
-                                          productPrice = double.tryParse(
-                                                  value.replaceAll(',', '.')) ??
-                                              widget.todo.productPrice;
-                                          totalProductPrice =
-                                              calculateTotalProductPrice();
+                                        if (mounted) {
+                                          setState(() {
+                                            productPrice = double.tryParse(value
+                                                    .replaceAll(',', '.')) ??
+                                                widget.todo.productPrice;
+                                            totalProductPrice =
+                                                calculateTotalProductPrice(
+                                                    modalQuantity,
+                                                    productPrice);
 
-                                          DateTime now = DateTime.now();
+                                            DateTime now = DateTime.now();
 
-                                          final newTodo = Todo(
-                                            id: widget.todo.id,
-                                            title: widget.todo.title,
-                                            isDone: true,
-                                            description:
-                                                widget.todo.description,
-                                            isShopping: widget.todo.isShopping,
-                                            quantity: modalQuantity,
-                                            productPrice: productPrice,
-                                            totalProductPrice:
-                                                totalProductPrice,
-                                            isHourSelected:
-                                                widget.todo.isHourSelected,
-                                            dueDate: widget.todo.dueDate,
-                                            priority: widget.todo.priority,
-                                            lastUpdated: now.toIso8601String(),
-                                            isSync: widget.todo.isSync,
-                                            userId: widget.todo.userId,
-                                            selectedTimeHour: 0,
-                                            selectedTimeMinute: 0,
-                                            isForTodo: widget.todo.isForTodo,
-                                            isForShopping:
-                                                widget.todo.isForShopping,
-                                          );
+                                            final newTodo = Todo(
+                                              id: widget.todo.id,
+                                              title: widget.todo.title,
+                                              isDone: true,
+                                              description:
+                                                  widget.todo.description,
+                                              isShopping:
+                                                  widget.todo.isShopping,
+                                              quantity: modalQuantity,
+                                              productPrice: productPrice,
+                                              totalProductPrice:
+                                                  totalProductPrice,
+                                              isHourSelected:
+                                                  widget.todo.isHourSelected,
+                                              dueDate: widget.todo.dueDate,
+                                              priority: widget.todo.priority,
+                                              lastUpdated:
+                                                  now.toIso8601String(),
+                                              isSync: widget.todo.isSync,
+                                              userId: widget.todo.userId,
+                                              selectedTimeHour: 0,
+                                              selectedTimeMinute: 0,
+                                              isForTodo: widget.todo.isForTodo,
+                                              isForShopping:
+                                                  widget.todo.isForShopping,
+                                            );
 
-                                          dbHelper.update(newTodo);
-                                          widget.fetchFunction();
-                                        });
+                                            dbHelper.update(newTodo);
+                                            widget.fetchFunction();
+                                          });
+                                        }
                                       },
                                     ),
                                   )
@@ -605,14 +610,18 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                           ),
                         if (shoppingdProvider.geIsShoppingtEnabled)
                           Center(
-                            child: Text(
-                              AppLocalizations.of(context)
-                                      .translate('Total Price:') +
-                                  ' ${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 30,
-                                color: Colors.grey[600],
-                              ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)
+                                          .translate('Total Price:') +
+                                      ' ${totalProductPrice == 0 ? widget.todo.totalProductPrice.toStringAsFixed(2) : totalProductPrice.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         if (!shoppingdProvider.geIsShoppingtEnabled)
@@ -635,7 +644,7 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                     height: 25,
                                   ),
                                   Align(
-                                    alignment: Alignment.topLeft,
+                                    alignment: Alignment.center,
                                     child: Text(
                                       widget.todo.description.isEmpty
                                           ? AppLocalizations.of(context)
@@ -688,10 +697,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                       ? 'Please enter a product'
                                       : 'Please enter a title');
                             } else {
-                              if (shoppingExists) {
+                              if (shoppingExists && mounted) {
                                 setState(() {
                                   titleController.text = '';
                                 });
+
                                 return AppLocalizations.of(context).translate(
                                     shoppingdProvider.geIsShoppingtEnabled
                                         ? 'Exist'
@@ -753,19 +763,19 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                                 firstDate: DateTime.now(),
                                 lastDate: DateTime(DateTime.now().year + 10),
                               );
-                              if (selectedDate != null) {
+                              if (selectedDate != null && mounted) {
                                 setState(() {
                                   dueDateController.text =
                                       DateFormat('yyyy-MM-dd')
                                           .format(selectedDate);
                                 });
-
-                                log(dueDateController.text);
                               } else {
                                 // add this else block
-                                setState(() {
-                                  dueDateController.text = '';
-                                });
+                                if (mounted) {
+                                  setState(() {
+                                    dueDateController.text = '';
+                                  });
+                                }
                               }
                             },
                           ),
@@ -790,9 +800,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
                             ),
                             items: priorityItem,
                             onChanged: (value) {
-                              setState(() {
-                                _selectedPriority = value!;
-                              });
+                              if (mounted) {
+                                setState(() {
+                                  _selectedPriority = value!;
+                                });
+                              }
                             },
                             onSaved: (value) {
                               _selectedPriority = value!;
@@ -853,8 +865,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
               ? '2022-01-01'
               : dueDateController.text.trim());
 
-      log(selectedDate.toString());
-
       final todo = Todo(
         id: widget.todo.id,
         title: titleController.text.trim(),
@@ -889,16 +899,19 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
       todoItemExists = await todoItemListExists;
       if (widget.todo.id == null) {
         if (shoppingExists || todoItemExists) {
-          setState(() {
-            if (titleController.text.isNotEmpty && _focusNodeTitle.hasFocus) {
-              _showExitsSnackBar(context);
-              titleController.text = '';
-            } else if (descriptionController.text.isNotEmpty &&
-                _focusNodeDescription.hasFocus) {
-              descriptionController.text = '';
-              _showExitsSnackBar(context);
-            }
-          });
+          if (mounted) {
+            setState(() {
+              if (titleController.text.isNotEmpty && _focusNodeTitle.hasFocus) {
+                _showExitsSnackBar(context);
+                titleController.text = '';
+              } else if (descriptionController.text.isNotEmpty &&
+                  _focusNodeDescription.hasFocus) {
+                descriptionController.text = '';
+                _showExitsSnackBar(context);
+              }
+            });
+          }
+
           return;
         } else {
           final int offlineId = DateTime.now().millisecondsSinceEpoch;
@@ -973,10 +986,11 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
   void getStayOnScreen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool stayOnAddTodoScreen = prefs.getBool('stayOnAddTodoScreen') ?? false;
-
-    setState(() {
-      isStayOnScreen = stayOnAddTodoScreen;
-    });
+    if (mounted) {
+      setState(() {
+        isStayOnScreen = stayOnAddTodoScreen;
+      });
+    }
   }
 
   void _showExitsSnackBar(BuildContext context) {
@@ -1044,7 +1058,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
           'isForTodo': todo.isForTodo,
           'isForShopping': todo.isForShopping,
         });
-        print('Document added successfully');
       } else {
         Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
         if (data['userId'] == valueUserId &&
@@ -1069,7 +1082,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
             'isForTodo': todo.isForTodo,
             'isForShopping': todo.isForShopping,
           }, SetOptions(merge: true));
-          print('Document updated successfully');
         } else {
           print('Document already exists and was not updated');
         }
@@ -1077,7 +1089,6 @@ class _AddEditTodoScreenState extends State<AddEditTodoScreen> {
 
       if (!_isSynced) {
         await docRef.delete();
-        print('Document deleted successfully');
       }
     }
   }

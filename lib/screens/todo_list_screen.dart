@@ -429,17 +429,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
                             SharedPreferences prefs =
                                 await SharedPreferences.getInstance();
                             // Remove the item from the data source.
-                            setState(() {
-                              _todos.removeAt(index);
-                              final dbHelper = DatabaseHelper();
-                              dbHelper.delete(todo.id ?? 0);
+                            if (mounted) {
+                              setState(() {
+                                _todos.removeAt(index);
+                                final dbHelper = DatabaseHelper();
+                                dbHelper.delete(todo.id ?? 0);
 
-                              if (todo.isSync) {
-                                fireStoreNewItemsNeedSync = true;
-                                prefs.setBool('fireStoreNewItemsNeedSync',
-                                    fireStoreNewItemsNeedSync);
-                              }
-                            });
+                                if (todo.isSync) {
+                                  fireStoreNewItemsNeedSync = true;
+                                  prefs.setBool('fireStoreNewItemsNeedSync',
+                                      fireStoreNewItemsNeedSync);
+                                }
+                              });
+                            }
 
                             // Show a snackbar with the undo option.
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -537,53 +539,59 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     trailing: CustomCheckbox(
                                       isChecked: todo.isDone,
                                       onChanged: (value) {
-                                        setState(() {
-                                          if (value == true) {
-                                            totalPrice +=
-                                                todo.totalProductPrice;
-                                          } else {
-                                            totalPrice -=
-                                                todo.totalProductPrice;
-                                          }
+                                        if (mounted) {
+                                          setState(() {
+                                            if (value == true) {
+                                              totalPrice +=
+                                                  todo.totalProductPrice;
+                                            } else {
+                                              totalPrice -=
+                                                  todo.totalProductPrice;
+                                            }
 
-                                          todo.isDone = value!;
+                                            todo.isDone = value!;
 
-                                          final newtodo = Todo(
-                                            id: todo.id,
-                                            title: todo.title,
-                                            isDone: value,
-                                            description: todo.description,
-                                            isShopping: todo.isShopping,
-                                            quantity: todo.quantity,
-                                            productPrice: todo.productPrice,
-                                            totalProductPrice:
-                                                todo.totalProductPrice,
-                                            isHourSelected: todo.isHourSelected,
-                                            dueDate: todo.dueDate,
-                                            priority: todo.priority,
-                                            lastUpdated: todo.lastUpdated,
-                                            isSync: false,
-                                            userId: todo.userId,
-                                            selectedTimeHour:
-                                                todo.selectedTimeHour,
-                                            selectedTimeMinute:
-                                                todo.selectedTimeMinute,
-                                            isForTodo: todo.isForTodo,
-                                            isForShopping: todo.isForShopping,
-                                          );
+                                            final newtodo = Todo(
+                                              id: todo.id,
+                                              title: todo.title,
+                                              isDone: value,
+                                              description: todo.description,
+                                              isShopping: todo.isShopping,
+                                              quantity: todo.quantity,
+                                              productPrice: todo.productPrice,
+                                              totalProductPrice:
+                                                  todo.totalProductPrice,
+                                              isHourSelected:
+                                                  todo.isHourSelected,
+                                              dueDate: todo.dueDate,
+                                              priority: todo.priority,
+                                              lastUpdated: todo.lastUpdated,
+                                              isSync: false,
+                                              userId: todo.userId,
+                                              selectedTimeHour:
+                                                  todo.selectedTimeHour,
+                                              selectedTimeMinute:
+                                                  todo.selectedTimeMinute,
+                                              isForTodo: todo.isForTodo,
+                                              isForShopping: todo.isForShopping,
+                                            );
 
-                                          dbHelper.update(newtodo);
-                                          checkedTodosCounT =
-                                              getCheckedTodosCount(_todos);
-                                          if (allChecked(_todos)) {
-                                            // Create a list of todo IDs to upload
-                                            List<int?> todoIdsToUpload = _todos
-                                                .map((todo) => todo.id)
-                                                .toList();
-                                            uploadListToFirestoreForHistory(
-                                                todoIdsToUpload);
-                                          }
-                                        });
+                                            dbHelper.update(newtodo);
+                                            checkedTodosCounT =
+                                                getCheckedTodosCount(_todos);
+                                            if (allChecked(_todos) &&
+                                                shoppingdProvider
+                                                    .geIsShoppingtEnabled) {
+                                              // Create a list of todo IDs to upload
+                                              List<int?> todoIdsToUpload =
+                                                  _todos
+                                                      .map((todo) => todo.id)
+                                                      .toList();
+                                              uploadListToFirestoreForHistory(
+                                                  todoIdsToUpload);
+                                            }
+                                          });
+                                        }
                                       },
                                     ),
                                     onTap: () {
@@ -958,11 +966,13 @@ class _TodoListScreenState extends State<TodoListScreen> {
         IconButton(
           icon: Icon(Icons.clear),
           onPressed: () {
-            setState(() {
-              _searchQueryController.clear();
-              searchQuery = "";
-              _isSearching = false;
-            });
+            if (mounted) {
+              setState(() {
+                _searchQueryController.clear();
+                searchQuery = "";
+                _isSearching = false;
+              });
+            }
           },
         )
       ];
@@ -984,25 +994,27 @@ class _TodoListScreenState extends State<TodoListScreen> {
           onPressed: _todos.length == 1 || allItemsNotChecked || allItemsChecked
               ? null
               : () {
-                  setState(() {
-                    isListviewFiltered = !isListviewFiltered;
+                  if (mounted) {
                     setState(() {
-                      if (filterProvider.showCheckedItems) {
-                        _filteredTodos =
-                            _todos.where((todo) => !todo.isDone).toList();
-                      } else {
-                        _filteredTodos =
-                            _todos.where((todo) => todo.isDone).toList();
-                      }
-                      if (!filterProvider.showCheckedItems) {
-                        _filteredTodos =
-                            _todos.where((todo) => !todo.isDone).toList();
-                      } else {
-                        _filteredTodos =
-                            _todos.where((todo) => todo.isDone).toList();
-                      }
+                      isListviewFiltered = !isListviewFiltered;
+                      setState(() {
+                        if (filterProvider.showCheckedItems) {
+                          _filteredTodos =
+                              _todos.where((todo) => !todo.isDone).toList();
+                        } else {
+                          _filteredTodos =
+                              _todos.where((todo) => todo.isDone).toList();
+                        }
+                        if (!filterProvider.showCheckedItems) {
+                          _filteredTodos =
+                              _todos.where((todo) => !todo.isDone).toList();
+                        } else {
+                          _filteredTodos =
+                              _todos.where((todo) => todo.isDone).toList();
+                        }
+                      });
                     });
-                  });
+                  }
                 },
         ),
         IconButton(
@@ -1010,9 +1022,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
           onPressed: _todos.isEmpty || _todos.length < 4
               ? null
               : () {
-                  setState(() {
-                    _isSearching = true;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  }
                 },
         ),
         IconButton(
@@ -1035,21 +1049,25 @@ class _TodoListScreenState extends State<TodoListScreen> {
       ),
       style: TextStyle(color: Colors.black, fontSize: 16.0),
       onChanged: (query) {
-        setState(() {
-          _onSearchChanged();
-        });
+        if (mounted) {
+          setState(() {
+            _onSearchChanged();
+          });
+        }
       },
     );
   }
 
   void _onSearchChanged() {
     final searchQuery = _searchQueryController.text;
-    setState(() {
-      _filteredTodos = _todos
-          .where((todo) =>
-              todo.title.toLowerCase().contains(searchQuery.toLowerCase()))
-          .toList();
-    });
+    if (mounted) {
+      setState(() {
+        _filteredTodos = _todos
+            .where((todo) =>
+                todo.title.toLowerCase().contains(searchQuery.toLowerCase()))
+            .toList();
+      });
+    }
   }
 
   void getAllItemsSetup() {
@@ -1057,15 +1075,19 @@ class _TodoListScreenState extends State<TodoListScreen> {
         Provider.of<ShoppingEnabledProvider>(context, listen: false);
 
     if (shoppingdProvider.geIsShoppingtEnabled) {
-      setState(() {
-        _todos.removeWhere((element) => !element.isShopping);
-        checkedTodosCounT = getCheckedShoppingCount(_todos);
-      });
+      if (mounted) {
+        setState(() {
+          _todos.removeWhere((element) => !element.isShopping);
+          checkedTodosCounT = getCheckedShoppingCount(_todos);
+        });
+      }
     } else {
-      setState(() {
-        _todos.removeWhere((element) => element.isShopping);
-        checkedTodosCounT = getCheckedTodosCount(_todos);
-      });
+      if (mounted) {
+        setState(() {
+          _todos.removeWhere((element) => element.isShopping);
+          checkedTodosCounT = getCheckedTodosCount(_todos);
+        });
+      }
     }
   }
 
@@ -1089,29 +1111,38 @@ class _TodoListScreenState extends State<TodoListScreen> {
   getAndUpdateTotalPrice(List<Todo> todos) async {
     for (Todo todo in _todos) {
       if (todo.isDone) {
-        setState(() {
-          totalPrice = 0.0;
-          double sum = _todos.fold(0.0,
-              (acc, todo) => todo.isDone ? acc + todo.totalProductPrice : acc);
+        if (mounted) {
+          setState(() {
+            totalPrice = 0.0;
+            double sum = _todos.fold(
+                0.0,
+                (acc, todo) =>
+                    todo.isDone ? acc + todo.totalProductPrice : acc);
 
-          totalPrice = sum;
-        });
+            totalPrice = sum;
+          });
+        }
       } else if (allChecked(_todos)) {
-        setState(() {
-          totalPrice = 0.0;
-        });
+        if (mounted) {}
+        if (mounted) {
+          setState(() {
+            totalPrice = 0.0;
+          });
+        }
       }
     }
   }
 
   void _getBudgetValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      budgetLimit = prefs.getDouble(
-            'budgetValue',
-          ) ??
-          0;
-    });
+    if (mounted) {
+      setState(() {
+        budgetLimit = prefs.getDouble(
+              'budgetValue',
+            ) ??
+            0;
+      });
+    }
   }
 
   String priorityToString(int priority) {
@@ -1160,10 +1191,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
   void getSyncBool() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool valueBool = prefs.getBool('fireStoreNewItemsNeedSync') ?? true;
-
-    setState(() {
-      fireStoreNewItemsNeedSync = valueBool;
-    });
+    if (mounted) {
+      setState(() {
+        fireStoreNewItemsNeedSync = valueBool;
+      });
+    }
   }
 
   void getFireStoreTodos() async {
@@ -1246,9 +1278,12 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
       if (!shoppingItemExists || !todoItemListExists) {
         await dbHelper.insert(newtodo);
-        setState(() {
-          fireStoreNewItemsNeedSync = false;
-        });
+        if (mounted) {
+          setState(() {
+            fireStoreNewItemsNeedSync = false;
+          });
+        }
+
         _fetchTodos();
         prefs.setBool('fireStoreNewItemsNeedSync', fireStoreNewItemsNeedSync);
       }
