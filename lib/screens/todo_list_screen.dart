@@ -10,6 +10,7 @@ import 'package:tooday/screens/add_edit_todo_screen.dart';
 import 'package:tooday/screens/checkout_page.dart';
 import 'package:tooday/screens/settings_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/bags_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
@@ -142,7 +143,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     final connectivityProvider = Provider.of<ConnectivityStatus>(context);
     final userSgnInProvider =
         Provider.of<UserSignInProvider>(context, listen: false);
-
+    final bagsProvider = Provider.of<BagsProvider>(context);
     return Scaffold(
       extendBody: shoppingdProvider.geIsShoppingtEnabled ? true : false,
       backgroundColor: themeProvider.isDarkThemeEnabled
@@ -305,67 +306,22 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   _todos.isEmpty
                                       ? Icons.shopping_cart
                                       : Icons.shopping_cart_checkout,
-                                  color: Colors.blue,
+                                  color: themeProvider.isDarkThemeEnabled
+                                      ? Colors.white
+                                      : Colors.black,
                                 ),
                                 SizedBox(width: 8.0),
                                 Text(
                                   AppLocalizations.of(context)
                                       .translate('Total Price:'),
                                   style: TextStyle(
-                                    color: Colors.blue,
+                                    color: themeProvider.isDarkThemeEnabled
+                                        ? Colors.white
+                                        : Colors.black,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18.0,
                                   ),
                                 ),
-                                if (smallBags > 0)
-                                  Column(
-                                    children: [
-                                      Text(
-                                        '$smallBags',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.0,
-                                        ),
-                                      ),
-                                      IconButton(
-                                          onPressed: () {
-                                            if (mounted) {
-                                              setState(() {
-                                                smallBags -= 1;
-                                                totalPrice -= 0.09;
-                                              });
-                                            }
-                                          },
-                                          icon: Icon(Icons.shopping_basket))
-                                    ],
-                                  ),
-                                if (bigBags > 0)
-                                  Column(
-                                    children: [
-                                      Text(
-                                        '$bigBags',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.0,
-                                        ),
-                                      ),
-                                      IconButton(
-                                          onPressed: () {
-                                            if (mounted) {
-                                              setState(() {
-                                                bigBags -= 1;
-                                                totalPrice -= 0.18;
-                                              });
-                                            }
-                                          },
-                                          icon: Icon(
-                                            Icons.shopping_basket,
-                                            size: 32,
-                                          ))
-                                    ],
-                                  )
                               ],
                             ),
                             TweenAnimationBuilder<double>(
@@ -389,7 +345,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                     style: TextStyle(
                                       color: budgetLimit < totalPrice
                                           ? Colors.red
-                                          : Colors.blue,
+                                          : themeProvider.isDarkThemeEnabled
+                                              ? Colors.white
+                                              : Colors.black,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18.0,
                                     ),
@@ -442,6 +400,61 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                   ],
                                 ),
                               ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (smallBags > 0)
+                              Column(
+                                children: [
+                                  Text(
+                                    '$smallBags',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        if (mounted) {
+                                          setState(() {
+                                            smallBags -= 1;
+                                            totalPrice -= 0.09;
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.shopping_basket))
+                                ],
+                              ),
+                            if (bigBags > 0)
+                              Column(
+                                children: [
+                                  Text(
+                                    '$bigBags',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        if (mounted) {
+                                          setState(() {
+                                            bigBags -= 1;
+                                            totalPrice -= 0.18;
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(
+                                        Icons.shopping_basket,
+                                        size: 32,
+                                      ))
+                                ],
+                              )
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -788,13 +801,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
           Visibility(
             visible: shoppingdProvider.geIsShoppingtEnabled &&
                 _todos.length >= 1 &&
-                allChecked(_todos) &&
-                googlePaydProvider.geIsGooglePaytEnabled,
+                allChecked(_todos),
             child: AnimatedContainer(
               height: shoppingdProvider.geIsShoppingtEnabled &&
                       _todos.length >= 1 &&
                       allChecked(_todos)
-                  ? 310.0
+                  ? bagsProvider.isBagsProviderEnabled
+                      ? 310.0
+                      : 150
                   : 0.0,
               duration: Duration(seconds: 5),
               child: Card(
@@ -819,7 +833,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                 _todos.map((todo) => todo.id).toList();
                             uploadListToFirestoreForHistory(todoIdsToUpload);
                           }
-                          _navigateToCheckoutPage(shoppingdProvider);
+                          _navigateToCheckoutPage(
+                              shoppingdProvider, googlePaydProvider);
                         },
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
@@ -851,109 +866,116 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       SizedBox(
                         height: 10,
                       ),
-                      Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: 400,
-                          child: Container(
-                            padding: EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 78, 76, 175),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Text(
-                              textAlign: TextAlign.center,
-                              AppLocalizations.of(context)
-                                  .translate('Bought any Supermarket Bags ?'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18.0,
+                      if (bagsProvider.isBagsProviderEnabled)
+                        Align(
+                          alignment: Alignment.center,
+                          child: SizedBox(
+                            width: 400,
+                            child: Container(
+                              padding: EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 78, 76, 175),
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              child: Text(
+                                textAlign: TextAlign.center,
+                                AppLocalizations.of(context)
+                                    .translate('Bought any Supermarket Bags ?'),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18.0,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: MaterialButton(
-                              color: smallBags > 0
-                                  ? Colors.green
-                                  : const Color.fromARGB(255, 175, 76, 101),
-                              onPressed: () {
-                                if (mounted) {
-                                  setState(() {
-                                    totalPrice += 0.09;
-                                    smallBags += 1;
-                                  });
-                                }
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    10.0), // Adjust the radius as needed
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    textAlign: TextAlign.center,
-                                    AppLocalizations.of(context)
-                                        .translate('Small supermarket bag'),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Text(textAlign: TextAlign.center, '9 ΛΕΠΤΑ')
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: MaterialButton(
-                              color: bigBags > 0
-                                  ? Colors.green
-                                  : const Color.fromARGB(255, 175, 76, 101),
-                              onPressed: () {
-                                if (mounted) {
-                                  setState(() {
-                                    totalPrice += 0.18;
-                                    bigBags += 1;
-                                  });
-                                }
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    10.0), // Adjust the radius as needed
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    textAlign: TextAlign.center,
-                                    AppLocalizations.of(context)
-                                        .translate('Big supermarket bag'),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Text(textAlign: TextAlign.center, '18 ΛΕΠΤΑ')
-                                ],
+                      if (bagsProvider.isBagsProviderEnabled)
+                        SizedBox(
+                          height: 20,
+                        ),
+                      if (bagsProvider.isBagsProviderEnabled)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 100,
+                              width: 100,
+                              child: MaterialButton(
+                                color: smallBags > 0
+                                    ? Colors.green
+                                    : const Color.fromARGB(255, 175, 76, 101),
+                                onPressed: () {
+                                  if (mounted) {
+                                    setState(() {
+                                      totalPrice += 0.09;
+                                      smallBags += 1;
+                                    });
+                                  }
+                                },
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10.0), // Adjust the radius as needed
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      textAlign: TextAlign.center,
+                                      AppLocalizations.of(context)
+                                          .translate('Small supermarket bag'),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(textAlign: TextAlign.center, '9 ΛΕΠΤΑ')
+                                  ],
+                                ),
                               ),
                             ),
-                          )
-                        ],
-                      )
+                            if (bagsProvider.isBagsProviderEnabled)
+                              SizedBox(
+                                height: 100,
+                                width: 100,
+                                child: MaterialButton(
+                                  color: bigBags > 0
+                                      ? Colors.green
+                                      : const Color.fromARGB(255, 175, 76, 101),
+                                  onPressed: () {
+                                    if (mounted) {
+                                      setState(() {
+                                        totalPrice += 0.18;
+                                        bigBags += 1;
+                                      });
+                                    }
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        10.0), // Adjust the radius as needed
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        textAlign: TextAlign.center,
+                                        AppLocalizations.of(context)
+                                            .translate('Big supermarket bag'),
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Text(
+                                          textAlign: TextAlign.center,
+                                          '18 ΛΕΠΤΑ')
+                                    ],
+                                  ),
+                                ),
+                              )
+                          ],
+                        )
                     ],
                   ),
                 ),
@@ -982,7 +1004,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           shoppingdProvider.geIsShoppingtEnabled &&
                           _todos.length >= 1 &&
                           googlePaydProvider.geIsGooglePaytEnabled
-                      ? 320
+                      ? bagsProvider.isBagsProviderEnabled
+                          ? 320
+                          : 100
                       : 0),
           child: FloatingActionButton(
             highlightElevation: 3.0,
@@ -1447,17 +1471,18 @@ class _TodoListScreenState extends State<TodoListScreen> {
     }
   }
 
-  void _navigateToCheckoutPage(ShoppingEnabledProvider shoppingdProvider) {
-    Navigator.of(context).pushAndRemoveUntil(
+  void _navigateToCheckoutPage(ShoppingEnabledProvider shoppingdProvider,
+      GooglePayEnabledProvider googlePaydProvider) {
+    Navigator.of(context).push(
       CustomPageRoute(
         child: CheckoutPage(
             itemsChecked: allChecked(_todos),
             totalPrice: totalPrice,
-            shoppingdProvider: shoppingdProvider),
-        forwardAnimation: false,
+            shoppingdProvider: shoppingdProvider,
+            googlePaydProvider: googlePaydProvider),
+        forwardAnimation: true,
         duration: Duration(milliseconds: 500),
       ),
-      (route) => false,
     );
   }
 }

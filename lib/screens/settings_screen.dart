@@ -13,6 +13,7 @@ import 'package:tooday/screens/shopping_history_page.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/back_service_provider.dart';
+import 'package:tooday/utils/bags_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/language.dart';
@@ -112,6 +113,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final repeatNotificationsProvider =
         Provider.of<RepeatNotificationsProvider>(context);
     final periodicTimeIProvider = Provider.of<TimePeriodicProvider>(context);
+    final bagsProvider = Provider.of<BagsProvider>(context);
     return WillPopScope(
       onWillPop: () {
         Navigator.of(context).pushAndRemoveUntil(
@@ -870,12 +872,96 @@ class _SettingsPageState extends State<SettingsPage> {
                                         duration: Duration(milliseconds: 700),
                                       ));
                                     },
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          10.0), // Adjust the radius as needed
+                                    ),
                                     child: Text(AppLocalizations.of(context)
                                         .translate('View History')),
                                   ),
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      SizedBox(height: 20.0),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            AppLocalizations.of(context).translate(
+                              'Shopping Completion Settings',
+                            ),
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              color: themeProvider.isDarkThemeEnabled
+                                  ? Colors.white
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      if (shoppingdProvider.geIsShoppingtEnabled)
+                        ListTile(
+                          title: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Icon(
+                                  Icons.shopping_bag_rounded,
+                                  color: themeProvider.isDarkThemeEnabled
+                                      ? Colors.white
+                                      : Colors.black,
+                                  size: 35,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Container(
+                                  child: Text(
+                                    AppLocalizations.of(context).translate(
+                                        'Enable Supermarket Bags Count'),
+                                    style: TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: themeProvider.isDarkThemeEnabled
+                                            ? bagsProvider.isBagsProviderEnabled
+                                                ? Color.fromARGB(
+                                                    255, 16, 186, 192)
+                                                : Colors.white
+                                            : bagsProvider.isBagsProviderEnabled
+                                                ? Color.fromARGB(
+                                                    255, 16, 186, 192)
+                                                : Colors.black),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        bagsProvider.isBagsProviderEnabled =
+                                            !bagsProvider.isBagsProviderEnabled;
+                                      });
+                                      saveBagsProvider(
+                                          bagsProvider.isBagsProviderEnabled);
+                                    },
+                                    icon: Icon(
+                                      Icons.shopping_bag_outlined,
+                                      color: bagsProvider.isBagsProviderEnabled
+                                          ? Color.fromARGB(255, 16, 186, 192)
+                                          : themeProvider.isDarkThemeEnabled
+                                              ? Colors.white
+                                              : bagsProvider
+                                                      .isBagsProviderEnabled
+                                                  ? Color.fromARGB(
+                                                      255, 16, 186, 192)
+                                                  : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       if (shoppingdProvider.geIsShoppingtEnabled)
@@ -899,9 +985,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                         style: TextStyle(
                                             fontSize: 16.0,
                                             fontWeight: FontWeight.bold,
-                                            color:
-                                                themeProvider.isDarkThemeEnabled
-                                                    ? Colors.white
+                                            color: themeProvider
+                                                    .isDarkThemeEnabled
+                                                ? googlePaydProvider
+                                                        .geIsGooglePaytEnabled
+                                                    ? Color.fromARGB(
+                                                        255, 16, 186, 192)
+                                                    : Colors.white
+                                                : googlePaydProvider
+                                                        .geIsGooglePaytEnabled
+                                                    ? Color.fromARGB(
+                                                        255, 16, 186, 192)
                                                     : Colors.black),
                                       ),
                                     ],
@@ -925,7 +1019,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                           ? Color.fromARGB(255, 16, 186, 192)
                                           : themeProvider.isDarkThemeEnabled
                                               ? Colors.white
-                                              : Colors.black,
+                                              : googlePaydProvider
+                                                      .geIsGooglePaytEnabled
+                                                  ? Color.fromARGB(
+                                                      255, 16, 186, 192)
+                                                  : Colors.black,
                                     ),
                                   ),
                                 ),
@@ -1076,11 +1174,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 }
                                               },
                                               items: [
-                                                DropdownMenuItem<int>(
-                                                  value: 0,
-                                                  child: Text(
-                                                      '${AppLocalizations.of(context).translate('No')}'),
-                                                ),
                                                 DropdownMenuItem<int>(
                                                   value: 1,
                                                   child: Text(
@@ -1321,5 +1414,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void saveGooglePay(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isGooglePayEnabled', value);
+  }
+
+  void saveBagsProvider(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isBagsProviderEnabled', value);
   }
 }

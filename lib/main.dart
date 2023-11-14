@@ -11,6 +11,7 @@ import 'package:tooday/screens/splash_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
 import 'package:tooday/utils/back_service_provider.dart';
 import 'package:tooday/utils/back_services.dart';
+import 'package:tooday/utils/bags_provider.dart';
 import 'package:tooday/utils/connectivity_provider.dart';
 import 'package:tooday/utils/filterItemsProvider.dart';
 import 'package:tooday/utils/firebase_user_provider.dart';
@@ -90,6 +91,7 @@ void main() async {
       ChangeNotifierProvider(create: (_) => NotificationTimingProvider()),
       ChangeNotifierProvider(create: (_) => RepeatNotificationsProvider()),
       ChangeNotifierProvider(create: (_) => TimePeriodicProvider()),
+      ChangeNotifierProvider(create: (_) => BagsProvider()),
     ],
     child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
   ));

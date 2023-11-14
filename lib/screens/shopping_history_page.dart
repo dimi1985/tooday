@@ -38,9 +38,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context).translate(
-            'Confirm Deletion',
-          )),
+          title: Text(
+            AppLocalizations.of(context).translate('Confirm Deletion'),
+          ),
           content: SizedBox(
             height: 150,
             child: Column(
@@ -48,11 +48,13 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context).translate(
-                  'Are you sure you want to delete shopping date:',
-                )),
                 Text(
-                    '${DateFormat('dd-MM HH:mm:ss').format(item['date'].toDate())} ?'),
+                  AppLocalizations.of(context).translate(
+                      'Are you sure you want to delete shopping date:'),
+                ),
+                Text(
+                  '${DateFormat('dd-MM HH:mm:ss').format(item['date'].toDate())} ?',
+                ),
               ],
             ),
           ),
@@ -61,9 +63,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text(AppLocalizations.of(context).translate(
-                'Cancel',
-              )),
+              child: Text(
+                AppLocalizations.of(context).translate('Cancel'),
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -73,9 +75,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                 });
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text(AppLocalizations.of(context).translate(
-                'Delete',
-              )),
+              child: Text(
+                AppLocalizations.of(context).translate('Delete'),
+              ),
             ),
           ],
         );
@@ -98,39 +100,41 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
     });
 
     return Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          iconTheme: IconThemeData(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(
+          color: widget.themeProvider.isDarkThemeEnabled
+              ? Colors.white
+              : Colors.black,
+        ),
+        title: Text(
+          AppLocalizations.of(context).translate('Shopping History'),
+          style: TextStyle(
             color: widget.themeProvider.isDarkThemeEnabled
                 ? Colors.white
                 : Colors.black,
           ),
-          title: Text(
-            AppLocalizations.of(context).translate(
-              'Shopping History',
-            ),
-            style: TextStyle(
-              color: widget.themeProvider.isDarkThemeEnabled
-                  ? Colors.white
-                  : Colors.black,
-            ),
-          ),
         ),
-        body: groupedData.isEmpty
-            ? Center(
-                child: Text(AppLocalizations.of(context).translate(
-                  'There is no Purchase History Yet',
-                )),
-              )
-            : ListView.builder(
-                itemCount: groupedData.length,
-                itemBuilder: (context, index) {
-                  double totalPrice = groupedData.keys.elementAt(index);
-                  List<Map<String, dynamic>> items = groupedData[totalPrice]!;
+      ),
+      body: groupedData.isEmpty
+          ? Center(
+              child: Text(
+                AppLocalizations.of(context)
+                    .translate('There is no Purchase History Yet'),
+              ),
+            )
+          : ListView.builder(
+              itemCount: groupedData.length,
+              itemBuilder: (context, index) {
+                double totalPrice = groupedData.keys.elementAt(index);
+                List<Map<String, dynamic>> items = groupedData[totalPrice]!;
 
-                  return GestureDetector(
-                    onLongPress: () => _showContextMenu(context, items.first),
+                return GestureDetector(
+                  onLongPress: () => _showContextMenu(context, items.first),
+                  child: Card(
+                    elevation: 2,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ExpansionTile(
                       onExpansionChanged: (value) {
                         setState(() {
@@ -146,9 +150,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                                     Text(AppLocalizations.of(context)
                                         .translate('Date')),
                                     Container(
-                                      width: 75, // Adjust the width as needed
+                                      width: 75,
                                       child: Text(
-                                        ': ${DateFormat('MM-yyyy').format(items.first['date'].toDate())}',
+                                        ': ${DateFormat('dd-MM').format(items.first['date'].toDate())}',
                                         style: TextStyle(
                                             overflow: TextOverflow.ellipsis),
                                       ),
@@ -159,9 +163,15 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(AppLocalizations.of(context)
-                                        .translate('Total Price:')),
-                                    Text('$totalPrice'),
+                                    Flexible(
+                                      child: Text(
+                                        AppLocalizations.of(context)
+                                            .translate('Price'),
+                                        style: TextStyle(
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                    ),
+                                    Text(': ${totalPrice.toStringAsFixed(2)}'),
                                   ],
                                 ),
                               ],
@@ -180,7 +190,8 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                                       children: [
                                         Text(AppLocalizations.of(context)
                                             .translate('Total Price:')),
-                                        Text('$totalPrice'),
+                                        Text(
+                                            '${totalPrice.toStringAsFixed(2)}'),
                                       ],
                                     ),
                                   ],
@@ -189,9 +200,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                                   height: 20,
                                 ),
                                 Container(
-                                  width: 200, // Adjust the width as needed
+                                  width: 200,
                                   child: Text(
-                                    '${DateFormat('yyyy-MM-dd HH:mm:ss').format(items.first['date'].toDate())}',
+                                    '${DateFormat('dd-MM HH:mm').format(items.first['date'].toDate())}',
                                     style: TextStyle(
                                         overflow: TextOverflow.ellipsis),
                                   ),
@@ -206,8 +217,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                               Row(
                                 children: [
                                   Expanded(
-                                      child: Text(AppLocalizations.of(context)
-                                          .translate('Quantity'))),
+                                    child: Text(AppLocalizations.of(context)
+                                        .translate('Quantity')),
+                                  ),
                                   Text(item['quantity'].toString())
                                 ],
                               ),
@@ -217,8 +229,9 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                               Row(
                                 children: [
                                   Expanded(
-                                      child: Text(AppLocalizations.of(context)
-                                          .translate('Product Price'))),
+                                    child: Text(AppLocalizations.of(context)
+                                        .translate('Product Price')),
+                                  ),
                                   Text(item['productPrice'].toString())
                                 ],
                               )
@@ -227,9 +240,11 @@ class _ShoppingHistoryPageState extends State<ShoppingHistoryPage> {
                         );
                       }).toList(),
                     ),
-                  );
-                },
-              ));
+                  ),
+                );
+              },
+            ),
+    );
   }
 
   deleteDocumentsByTotalPrice(double totalPrice) async {

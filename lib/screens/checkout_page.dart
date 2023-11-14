@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:tooday/database/database_helper.dart';
 import 'package:tooday/screens/todo_list_screen.dart';
 import 'package:tooday/utils/app_localization.dart';
+import 'package:tooday/utils/google_pay_enable_provider.dart';
 import 'package:tooday/utils/shopping_enabled_provider.dart';
 import 'package:tooday/widgets/custom_page_route.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -12,10 +13,12 @@ class CheckoutPage extends StatefulWidget {
   final double totalPrice;
   final bool itemsChecked;
   final ShoppingEnabledProvider shoppingdProvider;
+  final GooglePayEnabledProvider googlePaydProvider;
   CheckoutPage(
       {required this.totalPrice,
       required this.itemsChecked,
-      required this.shoppingdProvider});
+      required this.shoppingdProvider,
+      required this.googlePaydProvider});
 
   @override
   State<CheckoutPage> createState() => _CheckoutPageState();
@@ -83,36 +86,37 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   ],
                 ),
                 SizedBox(height: 30),
-                MaterialButton(
-                  onPressed: () {
-                    launchGooglePay();
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                    side: BorderSide(color: Colors.blueGrey.shade100),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  color: Colors.white,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/google_pay.png',
-                        height: 30.0,
-                      ),
-                      SizedBox(width: 16.0),
-                      Text(
-                        AppLocalizations.of(context)
-                            .translate('Open Google Pay'),
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueGrey.shade800,
+                if (widget.googlePaydProvider.isGooglePaytEnabled)
+                  MaterialButton(
+                    onPressed: () {
+                      launchGooglePay();
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                      side: BorderSide(color: Colors.blueGrey.shade100),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    color: Colors.white,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/google_pay.png',
+                          height: 30.0,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 16.0),
+                        Text(
+                          AppLocalizations.of(context)
+                              .translate('Open Google Pay'),
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 SizedBox(height: 30),
                 SizedBox(
                   width: 400,
