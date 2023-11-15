@@ -61,6 +61,18 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
         }
+
+        	**buildTypes {
+		appcenter {
+			applicationVariants.all { variant ->
+				variant.outputs.all {
+					def currentFile = new File(outputFileName)
+					def filename = currentFile.getName()
+					outputFileName = "../../../../../Application/Application/build/outputs/apk/${filename}"
+				}
+			}
+		}
+	}**
     }
 }
 
