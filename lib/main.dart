@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tooday/screens/splash_screen.dart';
@@ -93,7 +92,7 @@ void main() async {
       ChangeNotifierProvider(create: (_) => TimePeriodicProvider()),
       ChangeNotifierProvider(create: (_) => BagsProvider()),
     ],
-    child: Phoenix(child: TodoApp(initialLocale: initialLocale)),
+    child: TodoApp(initialLocale: initialLocale),
   ));
 
   // initialize the plugin
